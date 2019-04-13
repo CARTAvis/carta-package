@@ -213,29 +213,22 @@ let mainWindow;
 //// Check for pfort and port number in server mode
 if (items.server === true) {
 
-//sleep(5000, function() {
 console.log('DEBUG: server mode variables');
 // --feport setting (frontend port)
  arg6 = items.fport;
  if (arg6 === undefined) {
-///// ???? to be fixed 
-// Choose free port within certain range
-//  portscanner.findAPortNotInUse(1234, '127.0.0.1').then(function(port) {
-//  console.log('Port',port,'available for frontend')
-//  arg6 = port;
-//  });
-// 
-// As user to manually choose one for now
-    console.log('Please define a frontend port with --fport <port number>. Usually between 1025-65535');
-    process.exit()
-    } else {
-       if (typeof arg6 != "number") {
-          console.log('Selected frontend port value is not number. Please check.');
-          process.exit()
-      }
-   }
+       // Automatically choose free port within certain range
+       portscanner.findAPortNotInUse(2000, 2500, '127.0.0.1', function(error, port) {
+       console.log('DEBUG: Automatically selected port',port,'for frontend')
+       arg6 = port;
+       });
+ } else if (Number.isInteger(arg6) === false) {
+       console.log('Selected websocket port value is not number. Please check.');
+       process.exit()
+ } else {
 // Check if the port is available on the system
-   portscanner.checkPortStatus(arg6).then(status1 => {
+  try{
+  portscanner.checkPortStatus(arg6, function(error, status1) {
       // Status is 'open' if currently in use or 'closed' if available
       console.log('frontend',status1);
       if (status1 == 'closed'){
@@ -246,41 +239,51 @@ console.log('DEBUG: server mode variables');
          process.exit()
       }
    });
+ }
+ catch(error) {
+     if (error.code === 'ERR_SOCKET_BAD_PORT') {
+        console.log('Requested port value out of range. It should be > 1024 and < 65536, but',arg6,'was received');
+        process.exit()
+     }
+  }
+ }
  console.log("DEBUG: User argument 6:", arg6);
 
 
 // --port setting (backend websocket port)
  arg4 = items.port;
 if (arg4 === undefined) {
-///// ???? to be fixed 
-// Choose free port within certain range
-//  portscanner.findAPortNotInUse(1234, '127.0.0.1').then(function(port) {
-//  console.log('Port',port,'available for frontend')
-//  arg6 = port;
-//  });
-//   
-// As user to manually choose one for now
-   console.log('Please define a backend websocket port with --port=<a port number>. Usually between 1025-65535');
-   process.exit()
-   } else {
-      if (typeof arg4 != "number") {
-         console.log('Selected websocket port value is not number. Please check.');
-         process.exit()
-      }
-   }
+       // Automatically choose free port within certain range
+       portscanner.findAPortNotInUse(3000, 3500, '127.0.0.1', function(error, port) {
+       console.log('DEBUG: Automatically selected port',port,'for websocket')
+       arg4 = port;
+       });
+ } else if (Number.isInteger(arg4) === false) {
+       console.log('Selected websocket port value is not number. Please check.');
+       process.exit()
+ } else {
 // Check if the port is available on the system
-   portscanner.checkPortStatus(arg4).then(status2 => {
+  try{
+   portscanner.checkPortStatus(arg4, function(error, status2) {
       // Status is 'open' if currently in use or 'closed' if available
-      console.log('backend',status2);
+      console.log('websocket',status2);
       if (status2 == 'closed'){
-         console.log('DEBUG: Manually selected port',arg4,'is available for the backend');
+         console.log('DEBUG: Manually selected port',arg4,'is available for the backend')
       }
       if (status2 == 'open'){
-         console.log('Requested websocket port',arg4,'already in use. Please try a different port number');
+         console.log('Requested backend port',arg4,'is already in use. Please try a different port number');
          process.exit()
       }
    });
-   console.log("User argument 6:", arg4);
+  }
+  catch(error) {
+     if (error.code === 'ERR_SOCKET_BAD_PORT') {
+	console.log('Requested port value out of range. It should be > 1024 and < 65536, but',arg4,'was received');
+        process.exit()
+     }
+  }
+ }
+ console.log("DEBUG: User argument 4:", arg4);
 
 } //end of (items.server === true) for selecting two ports
 
@@ -297,14 +300,15 @@ if (arg4 === undefined) {
      console.log("Remote server mode flags");
      console.log("             [--server] start CARTA in remote server mode. For accessing CARTA's");
      console.log("                        frontend through your webrowser rather than the standard ");
-     console.log("                        Electron interface. --port and --fport are required.");
-     console.log("             [--port] set the websocket port for the backend.");
-     console.log("                      This is required for remote server mode.");
-     console.log("                      CARTA will check whether the port is available and issue a")
+     console.log("                        Electron interface. A free websocket port and a frontend");
+     console.log("                        port will be chosen automatically.");
+     console.log("             [--port] Optional: Manually choose a websocket port for the backend.");
+     console.log("                      CARTA will check if the port is available and issue a")
      console.log("                      warning if not. A typical value is between 1025-65535.");                   
-     console.log("             [--fport] set the frontend port number for the CARTA web interface.");
-     console.log("                      CARTA will check whether the port is available and issue a");
-     console.log("                      warning if not. A typical value is between 1025-65535.");
+     console.log("             [--fport] Optional: Manually choose a frontend port for the CARTA");
+     console.log("                       web interface.");
+     console.log("                       CARTA will check if the port is available and issue a");
+     console.log("                       warning if not. A typical value is between 1025-65535.");
      console.log("Advanced usage flags");
      console.log("             [--root <path>] Define the lowest path the file browser can");
      console.log("                             navigate to. e.g. carta --root /home/bob means the ");
