@@ -299,7 +299,7 @@ if (arg4 === undefined) {
      console.log("                               Note: Not for directly opening an image.");     
      console.log("             [--help] View this help output");
      console.log("Remote mode flags");
-     console.log("             [--remote=] start CARTA in 'remote' mode. For accessing CARTA's");
+     console.log("             [--remote] start CARTA in 'remote' mode. For accessing CARTA's");
      console.log("                        frontend through your webrowser rather than the standard ");
      console.log("                        Electron interface. A free websocket port and a frontend");
      console.log("                        port will be chosen automatically.");
