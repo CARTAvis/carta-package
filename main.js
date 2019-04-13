@@ -55,11 +55,11 @@ let mainWindow;
  var items = require('minimist')(process.argv.slice(1));
  console.log(items);
 
-// Check if server mode is requested
- if (items.server === true) {;
+// Check if remote mode is requested
+ if (items.remote === true) {;
     console.log("DEBUG: Server mode requested");
-    var servermode = 1
-    console.log(servermode);
+    var remotemode = 1
+    console.log(remotemode);
    }
 
 // Check if a directory or image is requested
@@ -88,8 +88,8 @@ let mainWindow;
             var filemode = 1
             console.log('DEBUG: File type should be OK', arg1);
 
-            if (items.server === true) {
-              console.log('Error: Can not open an image directly if you are also requesting "--server" mode')
+            if (items.remote === true) {
+              console.log('Error: Can not open an image directly if you are also requesting "--remote" mode')
 	      process.exit()
 	    }
 
@@ -168,7 +168,7 @@ let mainWindow;
 // In Electron mode this should really be fixed to port 5555
 // as the Electron frontend is built to listen for port 5555
 // but the option to change it is still available
- if (items.server != true) {
+ if (items.remote != true) {
     arg4 = items.port;
        if (arg4 === undefined) {
           arg4 = 5555;
@@ -191,7 +191,7 @@ let mainWindow;
        }
     });
  console.log("DEBUG: User argument 4:", arg4);
- } //end of items.server loop
+ } //end of items.remote loop
 
 // --threads setting
  arg5 = items.threads;
@@ -210,10 +210,10 @@ let mainWindow;
 ////
 ////
 ////
-//// Check for pfort and port number in server mode
-if (items.server === true) {
+//// Check for pfort and port number in remote mode
+if (items.remote === true) {
 
-console.log('DEBUG: server mode variables');
+console.log('DEBUG: remote mode variables');
 // --feport setting (frontend port)
  arg6 = items.fport;
  if (arg6 === undefined) {
@@ -285,7 +285,7 @@ if (arg4 === undefined) {
  }
  console.log("DEBUG: User argument 4:", arg4);
 
-} //end of (items.server === true) for selecting two ports
+} //end of (items.remote === true) for selecting two ports
 
  // --help output  
  if (items.help === true) {
@@ -297,8 +297,8 @@ if (arg4 === undefined) {
      console.log("             [--folder <path>] An alternative way to define the default");
      console.log("                               CARTA file browser path.");
      console.log("             [--help] View this help output");
-     console.log("Remote server mode flags");
-     console.log("             [--server] start CARTA in remote server mode. For accessing CARTA's");
+     console.log("Remote mode flags");
+     console.log("             [--remote] start CARTA in 'remote' mode. For accessing CARTA's");
      console.log("                        frontend through your webrowser rather than the standard ");
      console.log("                        Electron interface. A free websocket port and a frontend");
      console.log("                        port will be chosen automatically.");
@@ -321,8 +321,8 @@ if (arg4 === undefined) {
      process.exit()
  }
 
-// Prevent Electron window opening if using server mode
-if (items.server != true) {
+// Prevent Electron window opening if using remote  mode
+if (items.remote != true) {
 
   function createWindow() {
     // Create the browser window.
@@ -433,15 +433,15 @@ app.on('activate', function () {
     }
 });
 
-} //end of the large servermode=false loop
+} //end of the large remotemode=false loop
 
 
-// Start CARTA in remote server mode
-if (items.server === true) {
+// Start CARTA in remote mode
+if (items.remote === true) {
 
 setTimeout(function(){ //delay to make sure asynchronous portscanner finishes
 
-      console.log("Starting in remote server mode");
+      console.log("Starting in remote mode");
 
 // 5 varaibles will be sent from here to the carta_backend executable in remote.sh
 // cartabase $1
