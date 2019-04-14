@@ -113,6 +113,13 @@ let mainWindow;
            folder = arg1;
 	   console.log('DEBUG: File browser starting location will default to',folder);
      }
+     // Extra: detect if a CASA or MIRIAD image is attempted to be opened in --remote mode
+     if  ( (fs.existsSync(arg1+'/table.dat') && fs.existsSync(arg1+'/table.info') && fs.existsSync(arg1+'/table.f0') && items.remote === true ) // for CASA image  
+            || ( fs.existsSync(arg1+'/image') && fs.existsSync(arg1+'/header') && fs.existsSync(arg1+'/history')  && items.remote === true ) //for MIRIAD image
+         ){
+           console.log('Error: Can not open a CASA or MIRIAD image directly if you are also requesting "--remote" mode')
+           process.exit()
+      }
    } //end of  (fs.statSync(arg1).isDirectory() === true) loop
  } //end of try loop
     catch (err) {
@@ -134,6 +141,22 @@ let mainWindow;
          fs.statSync(arg2);
          console.log('Checking...',arg2,' directory exists');
          folder = items.folder;
+
+// Extra: detect if a CASA or MIRIAD image is attempted to be opened with --folder flag
+         if  ( (fs.existsSync(arg2+'/table.dat') && fs.existsSync(arg2+'/table.info') && fs.existsSync(arg2+'/table.f0') ) // for CASA image  
+                   || ( fs.existsSync(arg2+'/image') && fs.existsSync(arg2+'/header') && fs.existsSync(arg2+'/history')  ) //for MIRIAD image
+             ){
+                console.log('Error: Requested --folder path is a CASA or MIRIAD image.') 
+	        console.log('--folder should be a directory, a path, or a folder, not an image.')
+                process.exit()
+         }
+//Wxtra: detect if a file is requested as a --folder
+         if (fs.statSync(arg2).isFile() === true) {
+                console.log('Error: Requested --folder path is a file.')
+                console.log('--folder should be a directory, a path, or a folder, not a file.')
+                process.exit()
+         }
+
      }
      catch (err) {
         if (err.code === 'ENOENT') {
