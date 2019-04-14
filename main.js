@@ -55,6 +55,12 @@ let mainWindow;
  var items = require('minimist')(process.argv.slice(1));
  console.log(items);
 
+// Check if the user uses the older --server flag
+ if (items.server === true) {
+    console.log('Please use the "--remote" flag instead')
+    process.exit()
+ }
+
 // Check if remote mode is requested
  if (items.remote === true) {;
     console.log("DEBUG: Server mode requested");
