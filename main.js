@@ -224,6 +224,16 @@ let mainWindow;
      }
   }
 
+// check if elected -root is a subdirectory of 'folder'
+   function isParentOf(parent, dir) {
+     return dir.indexOf(parent) === 0;
+   }
+
+   if (isParentOf(folder, arg3) === true) {
+     console.log('Chosen --root',arg3,'can not be inside --folder or $pwd',folder);
+     process.exit()
+   }
+
  console.log("DEBUG: User argument 3:", arg3);
 
 // --port setting
