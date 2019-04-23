@@ -4,14 +4,12 @@ const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
-//let {PythonShell} = require('python-shell')
-
 const path = require('path');
 const url = require('url');
 var spawn = require('child_process').spawn;
 const child_process = require("child_process");
 const os = require('os');
-
+const contextMenu = require('electron-context-menu');
 const dialog = electron.dialog;
 
 var fs = require('fs');
@@ -19,6 +17,41 @@ const homedir = require('os').homedir();
 
 var portscanner = require('portscanner');
 var express = require('express');
+
+//////////////////////////////////////////////
+// Creating a simple 'Edit' menu
+const {Menu} = require('electron');
+
+const template = [
+  {
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'delete' },
+      { type: 'separator' },
+      { role: 'selectall' }
+    ]
+  }
+]
+
+if (process.platform === 'darwin') {
+  const name = app.getName()
+  template.unshift({
+    label: name,
+    submenu: [
+      {
+        role: 'quit'
+      }
+    ]
+  })
+}
+const menu = Menu.buildFromTemplate(template)
+///////////////////////////////////////////////
 
 // Disable error dialogs by overriding
 dialog.showErrorBox = function(title, content) {
@@ -359,11 +392,19 @@ if (items.remote != true) {
     // Create the browser window.
     if (process.platform === 'darwin') {
     mainWindow = new BrowserWindow({width: 1920, height: 1080});
+    Menu.setApplicationMenu(menu);
     }
     if (process.platform === 'linux') {
     mainWindow = new BrowserWindow({width: 1280, height: 720, icon:"carta_logo_v2.png"});
-    mainWindow.setMenu(null);
+    Menu.setApplicationMenu(menu);          // add the menu first
+    mainWindow.setMenuBarVisibility(false); // then hide it from view
     }
+
+// add a simple right click context menu for copy,cut,paste.
+contextMenu({
+        prepend: (params, browserWindow) => [
+    ],
+});
 
 // CARTA will load image directly if arg1 is a file
    if (filemode === 1) {
