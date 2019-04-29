@@ -4,7 +4,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building..'
-                    sh "cp ../build.sh && ./build.sh"
+                    sh "cp ../build.sh . && ./build.sh"
                     sh "ls -sort"
             }
         }
