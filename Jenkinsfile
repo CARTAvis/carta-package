@@ -6,7 +6,7 @@ pipeline {
             steps {
                 echo 'Building..'
                     pwd
-                    git clone https://github.com/CARTAvis/carta-backend.git
+                    git clone https\://github.com/CARTAvis/carta-backend.git
                     cd carta-backend
                     git submodule init
                     git submodule update
