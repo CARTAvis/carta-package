@@ -1,9 +1,10 @@
 pipeline {
     agent any
-        stages {
-            stage('Build') {
-                steps {
-                    echo 'Build Stage'
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building..'
                     pwd
                     git clone https://github.com/CARTAvis/carta-backend.git
                     cd carta-backend
@@ -14,11 +15,11 @@ pipeline {
                     cmake -DCMAKE_CXX_FLAGS="-I /usr/local/opt/openssl/include -I /usr/local/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L /usr/local/Cellar/fmt/5.3.0/lib -L /usr/local/Cellar/hdf5/1.10.5/lib -L /usr/local/lib -L /usr/local/opt/openssl/lib" ..
                     make
                     ls -sort
-                }
             }
-            stage('ICD tests') {
-                steps {
-                    echo 'ICD test stage'
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing..'
                     pwd
                     source ~/emsdk/emsdk_env.sh
                     wget http://alma.asiaa.sinica.edu.tw/_downloads/carta-backend-ICD-test-travis.tar.gz
@@ -36,7 +37,12 @@ pipeline {
                     ls src/test/
                     ./run-circle.sh
                     echo "Finished !!"
-                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
             }
         }
     }
+}
