@@ -4,13 +4,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building..'
-                    sh "pwd"
-                    sh "cd carta-backend"
-                    sh "git submodule init && git submodule update"
-                    sh "mkdir build"
-                    sh "cd build"
-                    sh "cmake .."
-                    sh "make"
+                    sh "cp ../build.sh && ./build.sh"
                     sh "ls -sort"
             }
         }
