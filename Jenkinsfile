@@ -20,23 +20,6 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing..'
-                    pwd
-                    source ~/emsdk/emsdk_env.sh
-                    wget http://alma.asiaa.sinica.edu.tw/_downloads/carta-backend-ICD-test-travis.tar.gz
-                    tar -xvf carta-backend-ICD-test-travis.tar.gz
-                    sed -i '' 's/carta_backend/carta_backend base=$PWD\/carta-backend-ICD-test-travis/g' run.sh
-                    ./run.sh & # run carta_backend in the background
-                    cd carta-backend-ICD-test-travis
-                    cd protobuf
-                    git submodule init
-                    git submodule update
-                    git checkout master
-                    npm install
-                    ./build_proto.sh
-                    cd ..
-                    ls src/test/
-                    ./run-circle.sh
-                    echo "Finished !!"
             }
         }
         stage('Deploy') {
