@@ -31,9 +31,8 @@ pipeline {
                     sh "cd .."
                     sh "ls src/test/"
                     sh "./run-circle.sh"
-echo "Finished !!"
+                 echo "Finished !!"
             }
-        }
         }
     }
 }
