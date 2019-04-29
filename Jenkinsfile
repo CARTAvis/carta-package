@@ -22,7 +22,6 @@ pipeline {
                     sh "source ~/emsdk/emsdk_env.sh"
                     sh "wget http://alma.asiaa.sinica.edu.tw/_downloads/carta-backend-ICD-test-travis.tar.gz"
                     sh "tar -xvf carta-backend-ICD-test-travis.tar.gz"
-                    sh "sed -i '' 's/carta_backend/carta_backend base=$PWD\/carta-backend-ICD-test-travis/g' run.sh"
                     sh "./run.sh & # run carta_backend in the background"
                     sh "cd carta-backend-ICD-test-travis"
                     sh "cd protobuf"
