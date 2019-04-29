@@ -5,14 +5,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building..'
-                    pwd
-                    git clone "https://github.com/CARTAvis/carta-backend.git"
-                    cd carta-backend
-                    git submodule init
-                    git submodule update
-                    mkdir build
-                    cd build
-                    ls -sort
+                    sh "pwd"
+                    sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                    sh "cd carta-backend"
+                    sh "git submodule init"
+                    sh "git submodule update"
+                    sh "mkdir build"
+                    sh "cd build"
+                    sh "ls -sort"
             }
         }
         stage('Test') {
