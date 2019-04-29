@@ -38,7 +38,5 @@ pipeline {
                     echo "Finished !!"
                 }
             }
-                }
-            }
         }
     }
