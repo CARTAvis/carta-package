@@ -39,7 +39,7 @@ pipeline {
                         sh "source ~/emsdk/emsdk_env.sh && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh"
                         }
                         sh "lsof -i :3002"
-                        sh "source ~/emsdk/emsdk_env.sh && ./run-circle.sh"
+                        sh "source ~/emsdk/emsdk_env.sh && ./run-travis.sh"
                       }
                    }
                  echo "Finished !!"
