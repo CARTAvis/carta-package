@@ -4,8 +4,12 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building..'
-                    sh "cp ../build.sh . && ./build.sh"
-                    sh "ls -sort"
+                sh "cp -r ../carta-backend/* ."
+                sh "export PATH=/usr/local/bin:$PATH"
+                sh "git submodule init && git submodule update"
+                sh "mkdir build && cd build"
+                sh "cmake -DCMAKE_CXX_FLAGS="-I /usr/local/opt/openssl/include -I /usr/local/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L /usr/local/Cellar/fmt/5.3.0/lib -L /usr/local/Cellar/hdf5/1.10.5/lib -L /usr/local/lib -L /usr/local/opt/openssl/lib" .."
+                sh "make"
             }
         }
         stage('ICD tests') {
