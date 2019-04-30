@@ -8,7 +8,8 @@ pipeline {
                 sh "cp -r ../cmake-command.sh ."
                 sh "export PATH=/usr/local/bin:$PATH"
                 sh "git submodule init && git submodule update"
-                sh "mkdir build && cd build"
+                sh "mkdir build && cd build && cp ../../cmake-command.sh ."
+                sh "pwd"
                 sh "./cmake-command.sh"
                 sh "make"
             }
