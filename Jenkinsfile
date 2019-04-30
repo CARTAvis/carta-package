@@ -26,6 +26,7 @@ pipeline {
                       sh "cp -r ../../carta-backend-ICD-test-travis ."
                       sh "cp ../../run.sh ."
                       sh "./run.sh # run carta_backend in the background"
+                      sh "lsof -i :3002"
                       sh "ls -sort"
                       sh "pwd"
                       dir ('carta-backend-ICD-test-travis') {
