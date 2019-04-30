@@ -27,11 +27,15 @@ pipeline {
                       sh "cp -r ../../carta-backend-ICD-test-travis ."
                       sh "cp ../../run.sh ."
                       sh "./run.sh # run carta_backend in the background"
+                      sh "ls -sort"
+                      sh "pwd"
                       dir ('carta-backend-ICD-test-travis') {
+                        sh "ls -sort"
+                        sh "pwd"
+                        sh "ls src/test/"
+                        sh "./run-circle.sh"
                       }
-                      sh "ls src/test/"
-                      sh "./run-circle.sh"
-                    }
+                   }
                  echo "Finished !!"
             }
         }
