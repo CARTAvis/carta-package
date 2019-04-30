@@ -23,18 +23,19 @@ pipeline {
                     sh "pwd"
                     sh "export PATH=/usr/local/bin:$PATH"
                     dir ('build') {
-                      sh "cp -r ../../carta-backend-ICD-test-travis ."
+                      sh "cp ../../carta-backend-ICD-test-travis.tar.gz ."
                       sh "cp ../../run.sh ."
                       sh "./run.sh # run carta_backend in the background"
                       sh "lsof -i :3002"
                       sh "ls -sort"
                       sh "pwd"
+                      sh "tar -xvf carta-backend-ICD-test-travis.tar.gz"
                       dir ('carta-backend-ICD-test-travis') {
                         sh "ls -sort"
                         sh "pwd"
                         sh "ls src/test/"
                         sh "lsof -i :3002"
-                        sh "source ~/emsdk/emsdk_env.sh && npm install && ./run-circle.sh"
+                        sh "source ~/emsdk/emsdk_env.sh && cd protobuf && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh && cd .. && ./run-circle.sh"
                       }
                    }
                  echo "Finished !!"
