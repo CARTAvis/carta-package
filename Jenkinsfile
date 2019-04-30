@@ -33,6 +33,7 @@ pipeline {
                         sh "ls -sort"
                         sh "pwd"
                         sh "ls src/test/"
+                        sh "lsof -i :3002"
                         sh "source ~/emsdk/emsdk_env.sh && npm install && ./run-circle.sh"
                       }
                    }
