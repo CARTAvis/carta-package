@@ -20,7 +20,6 @@ pipeline {
         stage('ICD tests') {
             steps {
                 echo 'Testing..'
-                    sh "source ~/emsdk/emsdk_env.sh"
                     sh "pwd"
                     sh "export PATH=/usr/local/bin:$PATH"
                     dir ('build') {
@@ -33,7 +32,7 @@ pipeline {
                         sh "ls -sort"
                         sh "pwd"
                         sh "ls src/test/"
-                        sh "./run-circle.sh"
+                        sh "source ~/emsdk/emsdk_env.sh && ./run-circle.sh"
                       }
                    }
                  echo "Finished !!"
