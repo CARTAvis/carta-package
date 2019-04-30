@@ -23,17 +23,16 @@ pipeline {
                     sh "source ~/emsdk/emsdk_env.sh"
                     sh "pwd"
                     sh "export PATH=/usr/local/bin:$PATH"
-                    sh "wget http://alma.asiaa.sinica.edu.tw/_downloads/carta-backend-ICD-test-travis.tar.gz"
-                    sh "tar -xvf carta-backend-ICD-test-travis.tar.gz"
-                    sh "./run.sh & # run carta_backend in the background"
-                    sh "cd carta-backend-ICD-test-travis"
-                    sh "cd protobuf"
-                    sh "git submodule init && git submodule update && git checkout master"
-                    sh "npm install"
-                    sh "./build_proto.sh"
-                    sh "cd .."
-                    sh "ls src/test/"
-                    sh "./run-circle.sh"
+                    dir ('build') {
+                      sh "cp -r ../../carta-backend-ICD-test-travis ."
+                      sh "cp ../../run.sh ."
+                      sh "./run.sh # run carta_backend in the background"
+                      dir ('carta-backend-ICD-test-travis') {
+                        sh "cd protobuf && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh"
+                      }
+                      sh "ls src/test/"
+                      sh "./run-circle.sh"
+                    }
                  echo "Finished !!"
             }
         }
