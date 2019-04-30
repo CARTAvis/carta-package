@@ -33,7 +33,7 @@ pipeline {
                         sh "ls -sort"
                         sh "pwd"
                         sh "ls src/test/"
-                        sh "source ~/emsdk/emsdk_env.sh && ./run-circle.sh"
+                        sh "source ~/emsdk/emsdk_env.sh && npm install && ./run-circle.sh"
                       }
                    }
                  echo "Finished !!"
