@@ -26,9 +26,9 @@ pipeline {
                       sh "tar -xvf carta-backend-ICD-test-travis.tar.gz"
                       dir ('carta-backend-ICD-test-travis') {
                         dir ('protobuf') {
-                        sh "source ~/emsdk/emsdk_env.sh && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh" # prepare the tests
+                        sh "source ~/emsdk/emsdk_env.sh && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh # prepare the tests #
                         }
-                        sh "source ~/emsdk/emsdk_env.sh && ./run-travis.sh" # run the tests
+                        sh "source ~/emsdk/emsdk_env.sh && ./run-travis.sh # run the tests"
                       }
                    }
                  echo "Finished !!"
