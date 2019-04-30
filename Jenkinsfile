@@ -38,7 +38,8 @@ pipeline {
                         dir ('protobuf') {
                         sh "source ~/emsdk/emsdk_env.sh && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh"
                         }
-                        sh "npm test src/test/ACCESS_CARTA_DEFAULT.test.ts"
+                        sh "lsof -i :3002"
+                        sh "source ~/emsdk/emsdk_env.sh && npm test src/test/ACCESS_CARTA_DEFAULT.test.ts"
                       }
                    }
                  echo "Finished !!"
