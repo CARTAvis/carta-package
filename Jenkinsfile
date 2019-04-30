@@ -21,6 +21,8 @@ pipeline {
             steps {
                 echo 'Testing..'
                     sh "source ~/emsdk/emsdk_env.sh"
+                    sh "pwd"
+                    sh "export PATH=/usr/local/bin:$PATH"
                     sh "wget http://alma.asiaa.sinica.edu.tw/_downloads/carta-backend-ICD-test-travis.tar.gz"
                     sh "tar -xvf carta-backend-ICD-test-travis.tar.gz"
                     sh "./run.sh & # run carta_backend in the background"
