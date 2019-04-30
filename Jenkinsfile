@@ -28,7 +28,6 @@ pipeline {
                       sh "cp ../../run.sh ."
                       sh "./run.sh # run carta_backend in the background"
                       dir ('carta-backend-ICD-test-travis') {
-                        sh "cd protobuf && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh"
                       }
                       sh "ls src/test/"
                       sh "./run-circle.sh"
