@@ -35,7 +35,8 @@ pipeline {
                         sh "pwd"
                         sh "ls src/test/"
                         sh "lsof -i :3002"
-                        sh "source ~/emsdk/emsdk_env.sh && cd protobuf && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh && cd .. && ./run-circle.sh"
+                        sh "source ~/emsdk/emsdk_env.sh && cd protobuf && git submodule init && git submodule update && git checkout master && npm install && ./build_proto.sh"
+                        sh "npm test src/test/ACCESS_CARTA_DEFAULT.test.ts"
                       }
                    }
                  echo "Finished !!"
