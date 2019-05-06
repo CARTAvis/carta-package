@@ -76,17 +76,17 @@ let mainWindow;
 // console.log("DEBUG",str);
  if (process.platform === 'darwin') {
     if (str.substring(str.lastIndexOf('/')+1) === '') {
-       console.log('DEBUG: Probably using Launchpad. Defaulting to $HOME');
+//       console.log('DEBUG: Probably using Launchpad. Defaulting to $HOME');
        folder = homedir;
        } else {
          folder = process.cwd();
     }
  }  
- console.log('DEBUG:', folder);
+// console.log('DEBUG:', folder);
 //
 
  var items = require('minimist')(process.argv.slice(1));
- console.log(items);
+// console.log(items);
 
 // Check if the user uses the older --server flag
  if (items.server === true) {
@@ -96,7 +96,7 @@ let mainWindow;
 
 // Check if remote mode is requested
  if (items.remote === true) {;
-    console.log("DEBUG: Server mode requested");
+//    console.log("DEBUG: Server mode requested");
     var remotemode = 1
     console.log(remotemode);
    }
@@ -112,20 +112,20 @@ let mainWindow;
  if (arg1 === '')  { 
 //     arg1 = homedir;
      arg1 = '';
-      console.log('DEBUG: arg1', arg1);
+//      console.log('DEBUG: arg1', arg1);
      var filemode = 0
    } else {
      try {
        fs.statSync(arg1);
-       console.log('DEBUG: File or directory exists');
-       console.log('DEBUG: Checking if a directory or file');
+//       console.log('DEBUG: File or directory exists');
+//       console.log('DEBUG: Checking if a directory or file');
        
        if (fs.statSync(arg1).isFile() === true) {
-         console.log('DEBUG: File detected');
+//         console.log('DEBUG: File detected');
 	 //double check that it is a valid filetype for CARTA
          if ( arg1.includes('.fits') || arg1.includes('.hdf5') )  {
             var filemode = 1
-            console.log('DEBUG: File type should be OK', arg1);
+//            console.log('DEBUG: File type should be OK', arg1);
 
             if (items.remote === true) {
               console.log('Error: Can not open an image directly if you are also requesting "--remote" mode')
@@ -140,17 +140,17 @@ let mainWindow;
     
    if (fs.statSync(arg1).isDirectory() === true) {
    //check if it could actually be an image such as casa file format image 
-   console.log( fs.existsSync(arg1+'/table.dat')); 
+//   console.log( fs.existsSync(arg1+'/table.dat')); 
      if  ( (fs.existsSync(arg1+'/table.dat') && fs.existsSync(arg1+'/table.info') && fs.existsSync(arg1+'/table.f0') ) // for CASA image  
             || ( fs.existsSync(arg1+'/image') && fs.existsSync(arg1+'/header') && fs.existsSync(arg1+'/history') ) //for MIRIAD image
          ){
-           console.log('DEBUG: However it seems to be a CASA or MIRIAD file format image');
-           console.log('DEBUG: So opening', arg1,'as an image');
+//           console.log('DEBUG: However it seems to be a CASA or MIRIAD file format image');
+//           console.log('DEBUG: So opening', arg1,'as an image');
 	   var filemode = 1;
       } else {
 	   var filemode = 0;
            folder = arg1;
-	   console.log('DEBUG: File browser starting location will default to',folder);
+//	   console.log('DEBUG: File browser starting location will default to',folder);
      }
      // Extra: detect if a CASA or MIRIAD image is attempted to be opened in --remote mode
      if  ( (fs.existsSync(arg1+'/table.dat') && fs.existsSync(arg1+'/table.info') && fs.existsSync(arg1+'/table.f0') && items.remote === true ) // for CASA image  
@@ -168,7 +168,7 @@ let mainWindow;
        }
     }
  }
- console.log("DEBUG: User argument 1:", arg1);
+// console.log("DEBUG: User argument 1:", arg1);
 
 // --folder directory setting
 // Note: If user has defined arg1 as a directory and also defines the 'folder' flag, 'folder' will take preference
@@ -178,7 +178,7 @@ let mainWindow;
     } else {
      try{
          fs.statSync(arg2);
-         console.log('Checking...',arg2,' directory exists');
+//         console.log('Checking...',arg2,' directory exists');
          folder = items.folder;
 
 // Extra: detect if a CASA or MIRIAD image is attempted to be opened with --folder flag
@@ -204,7 +204,7 @@ let mainWindow;
         }
      }
  }
- console.log("DEBUG: User argument 2:", folder);
+// console.log("DEBUG: User argument 2:", folder);
 
 // --root directory setting
  arg3 = items.root; 
@@ -213,7 +213,7 @@ let mainWindow;
        } else {
           try{
          fs.statSync(arg3);
-         console.log('Checking... root directory exists');
+//         console.log('Checking... root directory exists');
          arg3 = items.root; 
      }
      catch (err) {
@@ -230,16 +230,16 @@ let mainWindow;
       process.exit()
    }
 
- console.log("DEBUG: User argument 3:", arg3);
+// console.log("DEBUG: User argument 3:", arg3);
 
 // --port setting
-// In Electron mode this should really be fixed to port 5555
-// as the Electron frontend is built to listen for port 5555
+// In Electron mode this should really be fixed to port 5511
+// as the Electron frontend is built to listen for port 5511
 // but the option to change it is still available
  if (items.remote != true) {
     arg4 = items.port;
        if (arg4 === undefined) {
-          arg4 = 5555;
+          arg4 = 5511;
        } else {
           if (typeof arg4 != "number") {
              console.log('Selected port value is not number. Please check.');
@@ -250,7 +250,7 @@ let mainWindow;
     portscanner.checkPortStatus(arg4).then(status => {
        // Status is 'open' if currently in use or 'closed' if available
        if (status == 'closed'){
-          console.log('DEBUG: Port',arg4,'is available')
+//          console.log('DEBUG: Port',arg4,'is available')
        }
        if (status == 'open'){
           console.log('Port',arg4,'already in use. Please free the port before starting CARTA'); 
@@ -258,7 +258,7 @@ let mainWindow;
            process.exit()
        }
     });
- console.log("DEBUG: User argument 4:", arg4);
+// console.log("DEBUG: User argument 4:", arg4);
  } //end of items.remote loop
 
 // --threads setting
@@ -273,7 +273,7 @@ let mainWindow;
           process.exit()
        }
  }
- console.log("DEBUG: User argument 5:", arg5);
+// console.log("DEBUG: User argument 5:", arg5);
 
 ////
 ////
@@ -281,13 +281,13 @@ let mainWindow;
 //// Check for pfort and port number in remote mode
 if (items.remote === true) {
 
-console.log('DEBUG: remote mode variables');
+//console.log('DEBUG: remote mode variables');
 // --feport setting (frontend port)
  arg6 = items.fport;
  if (arg6 === undefined) {
        // Automatically choose free port within certain range
        portscanner.findAPortNotInUse(2000, 2500, '127.0.0.1', function(error, port) {
-       console.log('DEBUG: Automatically selected port',port,'for frontend')
+//       console.log('DEBUG: Automatically selected port',port,'for frontend')
        arg6 = port;
        });
  } else if (Number.isInteger(arg6) === false) {
@@ -298,9 +298,9 @@ console.log('DEBUG: remote mode variables');
   try{
   portscanner.checkPortStatus(arg6, function(error, status1) {
       // Status is 'open' if currently in use or 'closed' if available
-      console.log('frontend',status1);
+//      console.log('frontend',status1);
       if (status1 == 'closed'){
-         console.log('DEBUG: Manually selected port',arg6,'is available for the frontend')
+//         console.log('DEBUG: Manually selected port',arg6,'is available for the frontend')
       }
       if (status1 == 'open'){
          console.log('Requested frontend port',arg6,'is already in use. Please try a different port number');
@@ -315,7 +315,7 @@ console.log('DEBUG: remote mode variables');
      }
   }
  }
- console.log("DEBUG: User argument 6:", arg6);
+// console.log("DEBUG: User argument 6:", arg6);
 
 
 // --port setting (backend websocket port)
@@ -323,7 +323,7 @@ console.log('DEBUG: remote mode variables');
 if (arg4 === undefined) {
        // Automatically choose free port within certain range
        portscanner.findAPortNotInUse(3000, 3500, '127.0.0.1', function(error, port) {
-       console.log('DEBUG: Automatically selected port',port,'for websocket')
+//       console.log('DEBUG: Automatically selected port',port,'for websocket')
        arg4 = port;
        });
  } else if (Number.isInteger(arg4) === false) {
@@ -334,9 +334,9 @@ if (arg4 === undefined) {
   try{
    portscanner.checkPortStatus(arg4, function(error, status2) {
       // Status is 'open' if currently in use or 'closed' if available
-      console.log('websocket',status2);
+//      console.log('websocket',status2);
       if (status2 == 'closed'){
-         console.log('DEBUG: Manually selected port',arg4,'is available for the backend')
+//         console.log('DEBUG: Manually selected port',arg4,'is available for the backend')
       }
       if (status2 == 'open'){
          console.log('Requested backend port',arg4,'is already in use. Please try a different port number');
@@ -351,7 +351,7 @@ if (arg4 === undefined) {
      }
   }
  }
- console.log("DEBUG: User argument 4:", arg4);
+// console.log("DEBUG: User argument 4:", arg4);
 
 } //end of (items.remote === true) for selecting two ports
 
@@ -362,8 +362,8 @@ if (arg4 === undefined) {
      console.log("                      path <path> e.g. carta ~/CARTA/Images");
      console.log("             [<image>] CARTA will directly open the image named <image>");
      console.log("                       e.g. carta aJ.fits or carta ~/CARTA/Images/aJ.fits");
-     console.log("             [--folder=<path>] An alternative way to define the default");
-     console.log("                               CARTA file browser path.");
+     console.log("             [--folder=<path>] Optional: An alternative way to define the");
+     console.log("                               default CARTA file browser path.");
      console.log("                               Note: Not for directly opening an image.");     
      console.log("             [--help] View this help output");
      console.log("Remote mode flags");
@@ -401,7 +401,7 @@ if (items.remote != true) {
     Menu.setApplicationMenu(menu);
     }
     if (process.platform === 'linux') {
-    mainWindow = new BrowserWindow({width: 1280, height: 720, icon:"carta_logo_v2.png"});
+    mainWindow = new BrowserWindow({width: 1280, height: 720, icon:(__dirname + '/carta_logo_v2.png')});
     Menu.setApplicationMenu(menu);          // add the menu first
     mainWindow.setMenuBarVisibility(false); // then hide it from view
     }
@@ -414,26 +414,26 @@ contextMenu({
 
 // CARTA will load image directly if arg1 is a file
    if (filemode === 1) {
-        console.log("DEBUG: Opening file directly");
-        console.log("DEBUG: full string:", arg1);
+//        console.log("DEBUG: Opening file directly");
+//        console.log("DEBUG: full string:", arg1);
         var filename = arg1.substring(arg1.lastIndexOf('/')+1);
-        console.log("DEBUG: filename:",filename);
+//        console.log("DEBUG: filename:",filename);
 	var pathname = arg1.substring(0, arg1.lastIndexOf('/'));
-	console.log("DEBUG: path:",pathname);
-	console.log("DEBUG: current directory", process.cwd());
-	console.log("DEBUG:", folder);
+//	console.log("DEBUG: path:",pathname);
+//	console.log("DEBUG: current directory", process.cwd());
+//	console.log("DEBUG:", folder);
 
 // Figure out the correct path e.g. if user does carta aJ.fits or carta ~/CARTA/Images/aJ.fits
 
         if (arg1.includes(process.cwd()) ){
-	   console.log("DEBUG: Case1: String includes the current directory");
+//	   console.log("DEBUG: Case1: String includes the current directory");
            mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?folder=${pathname}&file=${filename}`);
 //	}   
 //       } else if ( arg1.includes('/') ) {
 //           console.log("DEBUG: String contains a / so image must not be in the current directory");
 //           mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?folder=${process.cwd()}&file=${arg1}`);
 	} else {
-           console.log("DEBUG: Case2: String does not include the current directory ");
+//           console.log("DEBUG: Case2: String does not include the current directory ");
            mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?folder=${process.cwd()}&file=${arg1}`);
        };
     
@@ -441,7 +441,7 @@ contextMenu({
 
 // CARTA will open normally if arg1/arg2 is a directory or empty
    if (filemode === 0) {
-    console.log("DEBUG: Starting CARTA normally");
+//    console.log("DEBUG: Starting CARTA normally");
         mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
@@ -466,7 +466,7 @@ contextMenu({
       cartathreads = arg5;
 
       exec(path.join(__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads));
-      console.log(path.join('DEBUG',__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads));
+//      console.log(path.join('DEBUG',__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads));
 //    };
 
 // Open the DevTools.
@@ -519,7 +519,7 @@ if (items.remote === true) {
 
 setTimeout(function(){ //delay to make sure asynchronous portscanner finishes
 
-      console.log("Starting in remote mode");
+      console.log("Starting CARTA in remote mode");
 
 // 5 varaibles will be sent from here to the carta_backend executable in remote.sh
 // cartabase $1
@@ -540,8 +540,6 @@ setTimeout(function(){ //delay to make sure asynchronous portscanner finishes
       webserver.use('/', express.static(__dirname + '/'));
       webserver.listen(arg6);
 
-console.log("before setTimeout");
-
 // Start the backend process using the the remote.sh script
       const { spawn } = require('child_process');
       const remote = spawn('bash', [path.join(__dirname,'carta-backend/bin/remote.sh'),cartabase,cartaroot,cartaport,cartathreads,cartafport]);
@@ -551,11 +549,11 @@ console.log("before setTimeout");
       });
 
       remote.stderr.on('data', (data) => {
-      console.log(`stderr: ${data}`);
+//      console.log(`stderr: ${data}`);
       });
 
       remote.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
+//      console.log(`child process exited with code ${code}`);
       process.exit();
       });
 

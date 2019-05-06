@@ -42,23 +42,14 @@ fi
 # $5 = frontend port
 # $6 = websocket port
 
-echo "DEBUG: output from remote.sh file:"
-echo "DEBUG: base $1"
-echo "DEBUG: root $2"
-echo "DEBUG: websocket port $3"
-echo "DEBUG: threads $4"
-echo "DEBUG: frontend port $5"
-
-echo "Starting CARTA in remote server mode"
 echo " "
-echo " "
-echo "To access CARTA, please enter the following URL in your local web browser: "
+echo "To access CARTA, please enter either of the following URLs in your local web browser: "
 echo " "
 echo "$SERVER_NAME:$5/?socketUrl=ws://$SERVER_NAME:$3"
 echo " "
-echo "DEBUG: OR"
+echo "OR"
 echo " "
-echo "DEBUG: $SERVER_IP:$5/?socketUrl=ws://$SERVER_IP:$3"
+echo "$SERVER_IP:$5/?socketUrl=ws://$SERVER_IP:$3"
 echo " "
 echo "Press ctrl+c to exit"
 echo " "

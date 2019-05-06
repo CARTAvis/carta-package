@@ -107,11 +107,11 @@ case $i in
 esac
 done
 #################################################################
-echo "DEBUG: folder= ${folder}"
-echo "DEBUG: root= ${root}"
-echo "DEBUG: threads= ${threads}"
-echo "DEBUG: port= ${port}"
-echo "DEBUG: fport= ${fport}"
+#echo "DEBUG: folder= ${folder}"
+#echo "DEBUG: root= ${root}"
+#echo "DEBUG: threads= ${threads}"
+#echo "DEBUG: port= ${port}"
+#echo "DEBUG: fport= ${fport}"
 
 #################################################################
 #### Do some checks on the user defined command line variables
@@ -164,10 +164,10 @@ cd $DIR
 # Check if python3 is installed or not and run the appropriate command
 
 if command -v python3 &>/dev/null; then
-    echo "DEBUG: python3 present"
+#    echo "DEBUG: python3 present"
     python3 -m http.server $fport > /dev/null 2>&1 &
 else
-    echo "DEBUG: python2 present"
+#    echo "DEBUG: python2 present"
     python -m SimpleHTTPServer $fport > /dev/null 2>&1 &
 fi
 #######################################################################
@@ -186,10 +186,9 @@ $DIR/../bin/carta_backend verbose=true base=$folder root=$root port=$port thread
 
 sleep 1
 
-echo "Starting CARTA in remote server mode"
+echo "Starting CARTA in remote mode"
 echo " "
-echo " "
-echo "To access CARTA, please enter the following URL in your local web browser: "
+echo "To access CARTA, please enter either of the following URLs in your local web browser: "
 echo " "
 echo "$SERVER_NAME:$fport/?socketUrl=ws://$SERVER_NAME:$port"
 echo " "
