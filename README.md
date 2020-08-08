@@ -9,13 +9,16 @@ On Linux (Ubuntu and RHEL) we package it into an [AppImage](https://appimage.org
 Brief instructions on how to package the MacOS Desktop version for CARTA:
 
 
-1. Build the [carta-backend[(https://github.com/cartavis/carta-backend) and package it with dylibbundler to make it distributable.
-```
-dylibbundler -od -of -b -x carta_backend -d lib
-```
+1. Build the [carta-backend[(https://github.com/cartavis/carta-backend) and package it with dylibbundler to make it distributable:
 
-	Note: carta-casacore needs to have been previously built with a floating CASAROOT i.e. `-DDATA_DIR="%CASAROOT%/data"` so that it can find the 
-packaged ephemerides and geodetic data that we place in the packaged `carta-backend/etc/data` directory.
+	```
+	dylibbundler -od -of -b -x carta_backend -d lib
+	```
+
+	Note: carta-casacore needs to have been previously built with a floating CASAROOT 
+	i.e. `-DDATA_DIR="%CASAROOT%/data"` so that it can find the packaged ephemerides 
+	and geodetic data that we place in the packaged `carta-backend/etc/data` directory.
+
 
 	The final layout of the packaged backend should be:
 
@@ -28,8 +31,8 @@ packaged ephemerides and geodetic data that we place in the packaged `carta-back
     	|-- libs (all packaged .dylib files)
     	|
     	|-- etc
-       		|-- data
-           		|-- ephemerides
+       	    |-- data
+           	|-- ephemerides
                	|-- geodetic
 
 
