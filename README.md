@@ -22,18 +22,18 @@ Brief instructions on how to package the MacOS Desktop version for CARTA:
 
 	The final layout of the packaged backend should be:
 
-	carta_backend    
-    	|-- bin  
-    	|   |--carta-backend
-    	|   |-- run.sh
-    	|   |-- remote.sh
-    	|
-    	|-- libs (all packaged .dylib files)
-    	|
-    	|-- etc
-            |-- data
-                |-- ephemerides
-                |-- geodetic
+		carta_backend    
+    		|-- bin  
+    		|   |-- carta-backend
+    		|   |-- run.sh
+    		|   |-- remote.sh
+    		|
+    		|-- libs (all packaged .dylib files)
+    		|
+    		|-- etc
+		    |-- data
+		    |-- ephemerides
+		    |-- geodetic
 
 
 	`run.sh` is used to start up the carta-backend when using Electon to display the carta-frontend.
