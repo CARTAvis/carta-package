@@ -18,14 +18,14 @@
     "electron-builder": "^22.3.3",
     "electron-notarize": "^0.2.1",
     "electron-packager": "^13.1.1",
-    "minimist": "1.2.0"
+    "minimist": "1.2.5"
   },
   "dependencies": {
     "electron-context-menu": "^0.12.0",
     "electron-installer-dmg": "^3.0.0",
     "electron-window-state": "^5.0.3",
     "express": "^4.16.4",
-    "minimist": "1.2.0",
+    "minimist": "1.2.5",
     "portscanner": "^2.2.0"
   },
   "mac": {
