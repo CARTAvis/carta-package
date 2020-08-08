@@ -21,16 +21,16 @@ Brief instructions on how to package the MacOS Desktop version for CARTA:
 
 
 	The final layout of the packaged backend should be:
-
-		carta_backend    
-    		|-- bin  
-    		|   |-- carta-backend
-    		|   |-- run.sh
-    		|   |-- remote.sh
-    		|
-    		|-- libs (all packaged .dylib files)
-    		|
-    		|-- etc
+	
+		carta_backend
+		|-- bin
+		|   |-- carta-backend
+		|   |-- run.sh
+		|   |-- remote.sh
+		|
+		|-- libs (all packaged .dylib files)
+		|
+		|-- etc
 		    |-- data
 		    |-- ephemerides
 		    |-- geodetic
