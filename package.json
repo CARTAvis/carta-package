@@ -1,0 +1,48 @@
+{
+  "name": "CARTA-v1.4-alpha-4",
+  "version": "1.4.0",
+  "description": "2020 CARTA Desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/CARTAvis/carta-package",
+  "keywords": [
+    "Electron",
+    "CARTA"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "9.1.2",
+    "electron-builder": "^22.3.3",
+    "electron-notarize": "^0.2.1",
+    "electron-packager": "^13.1.1",
+    "minimist": "1.2.0"
+  },
+  "dependencies": {
+    "electron-context-menu": "^0.12.0",
+    "electron-installer-dmg": "^3.0.0",
+    "electron-window-state": "^5.0.3",
+    "express": "^4.16.4",
+    "minimist": "1.2.0",
+    "portscanner": "^2.2.0"
+  },
+  "mac": {
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "entitlements.mac.plist",
+    "entitlementsInherit": "entitlements.mac.plist"
+  },
+  "build": {
+    "afterSign": "scripts/notarize.js",
+    "asar": "false"
+  },
+  "dmg": {
+    "sign": false,
+    "window": {
+      "width": "540",
+      "height": "380"
+    }
+  }
+}

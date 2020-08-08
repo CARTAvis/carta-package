@@ -1,8 +1,21 @@
 const electron = require('electron');
+
+/////////////////////////////////////////////////////////////
+// Set the Electron frontend port number here.
+// This is the port number that the carta-frontend has been 
+// built to listen for in its .env.local file
+// i.e. REACT_APP_DEFAULT_ADDRESS_PROD=ws://localhost:54143
+// We usually increment it for each CARTA release.
+var electronport = '54143';
+/////////////////////////////////////////////////////////////
+
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+// For touch bar support on MacOS
+const { TouchBar, nativeImage } = require('electron');
+const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar;
 
 const path = require('path');
 const url = require('url');
@@ -11,6 +24,9 @@ const child_process = require("child_process");
 const os = require('os');
 const contextMenu = require('electron-context-menu');
 const dialog = electron.dialog;
+const windowStateKeeper = require('electron-window-state');
+
+electron.app.allowRendererProcessReuse = true;
 
 var fs = require('fs');
 const homedir = require('os').homedir();
@@ -40,7 +56,7 @@ const template = [
 ]
 
 if (process.platform === 'darwin') {
-  const name = app.getName()
+  const name = app.name;
   template.unshift({
     label: name,
     submenu: [
@@ -51,7 +67,11 @@ if (process.platform === 'darwin') {
   })
 }
 const menu = Menu.buildFromTemplate(template)
-///////////////////////////////////////////////
+//////////////////////////////////////////////
+
+// Close any earlier versions of CARTA that may be running
+var execSync = require('child_process').execSync;
+execSync("xargs pkill -f CARTA-v1.0 CARTA-v1.0.1 CARTA-v1.1-beta0");
 
 // Disable error dialogs by overriding
 dialog.showErrorBox = function(title, content) {
@@ -69,10 +89,12 @@ let mainWindow;
  var arg5 = 'undefined'; 
  var arg6 = 'undefined';
  var arg7 = 'undefined';
+ var arg8 = 'undefined';
  var folder = process.cwd(); //Default to $PWD if no directory or --base is defined
 
 // Want to default filebrowser location to be homedir if opening from launchpad
  var str = String(folder);
+
 // console.log("DEBUG",str);
  if (process.platform === 'darwin') {
     if (str.substring(str.lastIndexOf('/')+1) === '') {
@@ -83,7 +105,6 @@ let mainWindow;
     }
  }  
 // console.log('DEBUG:', folder);
-//
 
  var items = require('minimist')(process.argv.slice(1));
 // console.log(items);
@@ -99,7 +120,7 @@ let mainWindow;
 //    console.log("DEBUG: Server mode requested");
     var remotemode = 1
     console.log(remotemode);
-   }
+ }
 
 // Check if a directory or image is requested
  var arg1 = items._.toString()
@@ -110,7 +131,6 @@ let mainWindow;
 //
 
  if (arg1 === '')  { 
-//     arg1 = homedir;
      arg1 = '';
 //      console.log('DEBUG: arg1', arg1);
      var filemode = 0
@@ -123,20 +143,18 @@ let mainWindow;
        if (fs.statSync(arg1).isFile() === true) {
 //         console.log('DEBUG: File detected');
 	 //double check that it is a valid filetype for CARTA
-         if ( arg1.includes('.fits') || arg1.includes('.hdf5') )  {
+          if ( arg1.includes('.fits') || arg1.includes('.hdf5') )  {
             var filemode = 1
 //            console.log('DEBUG: File type should be OK', arg1);
-
             if (items.remote === true) {
               console.log('Error: Can not open an image directly if you are also requesting "--remote" mode')
 	      process.exit()
 	    }
-
-        } else {
+          } else {
             console.log('Error: Possibly an unsupported file type');
             process.exit()
          }
-      }
+       }
     
    if (fs.statSync(arg1).isDirectory() === true) {
    //check if it could actually be an image such as casa file format image 
@@ -147,7 +165,7 @@ let mainWindow;
 //           console.log('DEBUG: However it seems to be a CASA or MIRIAD file format image');
 //           console.log('DEBUG: So opening', arg1,'as an image');
 	   var filemode = 1;
-      } else {
+     } else {
 	   var filemode = 0;
            folder = arg1;
 //	   console.log('DEBUG: File browser starting location will default to',folder);
@@ -170,16 +188,17 @@ let mainWindow;
  }
 // console.log("DEBUG: User argument 1:", arg1);
 
+
 // --folder directory setting
 // Note: If user has defined arg1 as a directory and also defines the 'folder' flag, 'folder' will take preference
  arg2 = items.folder;
  if (arg2 === undefined) {
          arg2 = String(homedir);
-    } else {
-     try{
-         fs.statSync(arg2);
+ } else {
+   try{
+        fs.statSync(arg2);
 //         console.log('Checking...',arg2,' directory exists');
-         folder = items.folder;
+        folder = items.folder;
 
 // Extra: detect if a CASA or MIRIAD image is attempted to be opened with --folder flag
          if  ( (fs.existsSync(arg2+'/table.dat') && fs.existsSync(arg2+'/table.info') && fs.existsSync(arg2+'/table.f0') ) // for CASA image  
@@ -189,7 +208,7 @@ let mainWindow;
 	        console.log('--folder should be a directory, a path, or a folder, not an image.')
                 process.exit()
          }
-//Wxtra: detect if a file is requested as a --folder
+// Extra: detect if a file is requested as a --folder
          if (fs.statSync(arg2).isFile() === true) {
                 console.log('Error: Requested --folder path is a file.')
                 console.log('--folder should be a directory, a path, or a folder, not a file.')
@@ -205,6 +224,7 @@ let mainWindow;
      }
  }
 // console.log("DEBUG: User argument 2:", folder);
+
 
 // --root directory setting
  arg3 = items.root; 
@@ -224,7 +244,7 @@ let mainWindow;
      }
   }
 
-// check if elected -root is a subdirectory of 'folder'
+// Check if selected --root is a subdirectory of 'folder'
    if ( arg3.indexOf(folder) === 0 ) {
       console.log('Chosen --root',arg3,'can not be inside --folder or $pwd',folder);
       process.exit()
@@ -232,14 +252,15 @@ let mainWindow;
 
 // console.log("DEBUG: User argument 3:", arg3);
 
+
 // --port setting
-// In Electron mode this should really be fixed to port 5511
-// as the Electron frontend is built to listen for port 5511
-// but the option to change it is still available
+// When using Electron, this should really be fixed to port number 
+// defined on line 9 of this file (the 'electronport' variable)
+// but the option to change it is still available.
  if (items.remote != true) {
     arg4 = items.port;
        if (arg4 === undefined) {
-          arg4 = 5511;
+          arg4 = electronport;
        } else {
           if (typeof arg4 != "number") {
              console.log('Selected port value is not number. Please check.');
@@ -261,24 +282,69 @@ let mainWindow;
 // console.log("DEBUG: User argument 4:", arg4);
  } //end of items.remote loop
 
+
 // --threads setting
  arg5 = items.threads;
  if (arg5 == undefined) {
-     // find actual number of cores on the system
-     var corecount = os.cpus().length;
-     arg5 = corecount;
+     // set the default --threads setting as 4
+     arg5 = 4;
        } else {
        if (typeof arg5 != "number") {
-          console.log('Selected thread value is not number. Please check.');
+          console.log('Selected threads value is not number. Please check.');
           process.exit()
        }
  }
 // console.log("DEBUG: User argument 5:", arg5);
 
-////
-////
+
+// --omp_threads setting
+ arg7 = items.omp_threads;
+  if (arg7 == undefined) {
+      // Default value is taken as the actual number of cores on the system
+      var corecount = os.cpus().length;
+      arg7 = corecount;
+        } else {
+	if (typeof arg7 != "number") {
+           console.log('Selected omp_threads value is not number. Please check.');
+	   process.exit()
+	}
+ }
+// console.log("DEBUG: User argument 7:", arg7);
+
+
+// --grpc_port setting
+
+    arg8 = items.grpc_port;
+       if (arg8 === undefined) {
+       // gRPC for scripting interface is deactivated by default
+          arg8 = -1;
+       } else {
+          if (typeof arg8 != "number") {
+             console.log('Selected grpc_port value is not number. Please check.');
+             process.exit()
+          }
+       }
+
+    if (arg8 > 0) {
+       // Check if the grpc_port is available on the system
+       portscanner.checkPortStatus(arg8).then(status => {
+       // Status is 'open' if currently in use or 'closed' if available
+       if (status == 'closed'){
+       //   console.log('DEBUG: Port',arg8,'is available')
+       }
+       if (status == 'open'){
+          console.log('grpc_port',arg8,'already in use. Please free the port before starting CARTA');
+          console.log('Suggestion: Check with "lsof -i :',arg8,'" to find the PID and kill the process with "kill -9 <PID>".');
+           process.exit()
+       }
+      });
+    };
+// console.log("DEBUG: User argument 8:", arg8);
+
+
 ////
 //// Check for pfort and port number in remote mode
+////
 if (items.remote === true) {
 
 //console.log('DEBUG: remote mode variables');
@@ -317,7 +383,6 @@ if (items.remote === true) {
  }
 // console.log("DEBUG: User argument 6:", arg6);
 
-
 // --port setting (backend websocket port)
  arg4 = items.port;
 if (arg4 === undefined) {
@@ -355,7 +420,11 @@ if (arg4 === undefined) {
 
 } //end of (items.remote === true) for selecting two ports
 
- // --help output  
+////
+////
+////
+
+// --help output  
  if (items.help === true) {
      console.log("usage: carta [] CARTA file browser will default to the current path.");
      console.log("             [<path>] CARTA file browser will default to the specified");
@@ -379,34 +448,124 @@ if (arg4 === undefined) {
      console.log("                                CARTA web interface. CARTA will check if the port");
      console.log("                                is available and issue a warning if not. A typical");
      console.log("                                value is between 1025-65535.");
+     console.log("             [--grpc_port=<number>] Optional: Manually choose a port to activate ");
+     console.log("                                    and use the scripting functionality.");
+     console.log("                                    Note: This feature is currently in development.");
      console.log("Advanced usage flags");
      console.log("             [--root=<path>] Define the lowest path the file browser can");
      console.log("                             navigate to. e.g. carta --root /home/bob means the ");
      console.log("                             the file browser can not access anything in /home");
      console.log("                             Note: --root can not be set inside --folder.");
-     console.log("             [--threads=<number>] Set number of threads. The default value is");
-     console.log("                                  the automatically detected number of cores on");
-     console.log("                                  your system; usually 4 or 8 on a typcial");
-     console.log("                                  desktop or laptop.");
-     process.exit()
+     console.log("             [--threads=<number>] Set the number of threads. It controls how many");
+     console.log("                                  tasks CARTA handles simultaneosuly. The default");
+     console.log("                                  value is set as 4");
+     console.log("             [--omp_threads=<number>] Set the number of OpenMP threads. It controls"); 
+     console.log("                                      how trivially parallelisable tasks are split");
+     console.log("                                      by CARTA. The default value is the");
+     console.log("                                      automatically detected number of cores on");
+     console.log("                                      your system; usually 4 or 8 on a typcial");
+     console.log("             [--size=<width>x<height>] Manually define the dimensions of CARTA's");
+     console.log("                                       Electron window in pixels.");     
+     console.log("             [--disable-gpu] May help if running CARTA Desktop through a VNC server");
+     console.log("                             and images are not rendering properly.");     
+     console.log("             [--debug] Open the DevTools in the Electron window.");
+     console.log("            ");
+process.exit()
  }
 
-// Prevent Electron window opening if using remote  mode
+
+
+// Basic MacOS touch bar support
+
+// Show CARTA version number
+  const button1 = new TouchBarButton({
+      icon: path.join(__dirname, 'carta_logo_v2.png'),
+      iconPosition: 'left',
+      label: 'CARTA v1.4.alpha.4',
+      backgroundColor: '#000',
+//      click: () => {
+//           mainWindow.loadURL('https://cartavis.github.io/');
+//      },
+   });
+
+// Button to open CARTA user manual in local webbrowser
+  const button2 = new TouchBarButton({
+              iconPosition: 'right',
+              label: 'CARTA user manual',
+              click: () => {
+              electron.shell.openExternal("https://carta.readthedocs.io/en/latest");
+                },
+  });
+
+// Button to quit CARTA
+//  const button3 = new TouchBarButton({
+//            iconPosition: 'right',
+//            label: 'Quit CARTA',
+//            click: () => {
+//              var killall = "/usr/bin/killall";
+//              var args = ["carta_backend"];
+//              child_process.spawn(killall, args, {});
+//              app.quit()
+//              },
+// });
+
+const touchBar = new TouchBar({
+    items: [
+            new TouchBarSpacer({ size: 'flexible' }),
+	    button1,
+	    new TouchBarSpacer({ size: 'flexible' }),
+            button2,
+	    //new TouchBarSpacer({ size: 'flexible' }),
+	    //button3,
+           ],
+     });
+
+
+// Prevent Electron window opening if using remote mode
 if (items.remote != true) {
 
   function createWindow() {
     // Create the browser window.
-    if (process.platform === 'darwin') {
-    mainWindow = new BrowserWindow({width: 1920, height: 1080});
-    Menu.setApplicationMenu(menu);
-    }
-    if (process.platform === 'linux') {
-    mainWindow = new BrowserWindow({width: 1280, height: 720, icon:(__dirname + '/carta_logo_v2.png')});
-    Menu.setApplicationMenu(menu);          // add the menu first
-    mainWindow.setMenuBarVisibility(false); // then hide it from view
-    }
+
+// Allow user to manually set size of the Electron window
+if (items.size === undefined){
+ 
+  let mainWindowState = windowStateKeeper({
+    defaultWidth: 1920,
+    defaultHeight: 1080
+  });
+
+  mainWindow = new BrowserWindow({
+    'x': mainWindowState.x,
+    'y': mainWindowState.y,
+    'width': mainWindowState.width,
+    'height': mainWindowState.height
+  });
+  mainWindowState.manage(mainWindow);
+
+} else {
+  window_size=items.size
+  var dims = window_size.split("x", 2);
+  windowWidth = dims[0];
+  windowHeight = dims[1];
+
+  var check_width = (!isNaN(windowWidth) && windowWidth % 1 === 0 && 0 <= ~~windowWidth);
+  var check_height = (!isNaN(windowHeight) && windowHeight % 1 === 0 && 0 <= ~~windowHeight);
+  if (check_width === false || check_height === false) {
+    console.log('Can not understand chosen window dimensions: ',windowWidth,'x',windowHeight,' Please check.');
+    process.exit()
+  }
+
+  mainWindow = new BrowserWindow({
+      'width': parseInt(windowWidth),
+      'height': parseInt(windowHeight)
+  });
+}
+
+mainWindow.setTouchBar(touchBar);
 
 // add a simple right click context menu for copy,cut,paste.
+Menu.setApplicationMenu(menu);
 contextMenu({
         prepend: (params, browserWindow) => [
     ],
@@ -423,7 +582,7 @@ contextMenu({
 //	console.log("DEBUG: current directory", process.cwd());
 //	console.log("DEBUG:", folder);
 
-// Figure out the correct path e.g. if user does carta aJ.fits or carta ~/CARTA/Images/aJ.fits
+// Figure out the correct path e.g. if user does 'carta aJ.fits' or 'carta ~/CARTA/Images/aJ.fits'
 
         if (arg1.includes(process.cwd()) ){
 //	   console.log("DEBUG: Case1: String includes the current directory");
@@ -454,32 +613,36 @@ contextMenu({
 //    if (process.platform === 'linux') {
       const exec = require('child_process').exec;
 //
-// 4 varaibles will be sent from here to the carta_backend executable
+// 6 varaibles will be sent from here to the carta_backend executable's run.sh script in carta-backend/bin/run.sh
 // cartabase $1
 // cartaroot $2
 // cartaport $3
 // cartathreads $4
+// carta_omp_threads = $5;
+// carta_grpc_port = $6;
 
       cartabase = folder;
       cartaroot = arg3;
       cartaport = arg4;
       cartathreads = arg5;
+      carta_omp_threads = arg7;
+      carta_grpc_port = arg8;
 
-      exec(path.join(__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads));
-//      console.log(path.join('DEBUG',__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads));
+      exec(path.join(__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads,' ',carta_omp_threads,' ',carta_grpc_port));
+//      console.log(path.join('DEBUG',__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads,' ',carta_omp_threads,' ',carta_grpc_port));
 //    };
 
-// Open the DevTools.
-//   mainWindow.webContents.openDevTools()
+// Open the DevTools with the --debug flag
+if (items.debug === true) {
+  mainWindow.webContents.openDevTools()
+  }
 
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
         mainWindow = null;
-	var killall = "/usr/bin/killall";
+        // Also, stop the carta_backend process
+        var killall = "/usr/bin/killall";
         var args = ["carta_backend"];
         child_process.spawn(killall, args, {});
         app.quit()
@@ -493,7 +656,7 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-    // On OS X it is common for applications and their menu bar
+    // On MacOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
 //    if (process.platform == 'darwin') {
         var killall = "/usr/bin/killall";
@@ -508,31 +671,35 @@ app.on('activate', function () {
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
         createWindow()
-    }
+   }
 });
 
 } //end of the large remotemode=false loop
 
-
 // Start CARTA in remote mode
+// This prevents the Electron window from opening
 if (items.remote === true) {
 
 setTimeout(function(){ //delay to make sure asynchronous portscanner finishes
 
       console.log("Starting CARTA in remote mode");
 
-// 5 varaibles will be sent from here to the carta_backend executable in remote.sh
-// cartabase $1
-// cartaroot $2
-// cartaport $3
-// cartathreads $4
-// cartafport $5
+// 7 variables will be sent from here to the carta_backend executable in remote.sh
+// cartabase
+// cartaroot
+// cartaport
+// cartathreads
+// cartafport
+// carta_omp_threads
+// carta_grpc_port
 
       cartabase = folder;
       cartaroot = arg3;
       cartaport = arg4;
       cartathreads = arg5;
       cartafport = arg6;
+      carta_omp_threads = arg7;
+      carta_grpc_port = arg8;
 
 // Start the http webserver
 // It uses cartafport: arg6
@@ -542,7 +709,7 @@ setTimeout(function(){ //delay to make sure asynchronous portscanner finishes
 
 // Start the backend process using the the remote.sh script
       const { spawn } = require('child_process');
-      const remote = spawn('bash', [path.join(__dirname,'carta-backend/bin/remote.sh'),cartabase,cartaroot,cartaport,cartathreads,cartafport]);
+      const remote = spawn('bash', [path.join(__dirname,'carta-backend/bin/remote.sh'),cartabase,cartaroot,cartaport,cartathreads,cartafport,carta_omp_threads,carta_grpc_port]);
 
       remote.stdout.on('data', (data) => {
       console.log(`${data}`);
@@ -560,3 +727,4 @@ setTimeout(function(){ //delay to make sure asynchronous portscanner finishes
    },3000); // delay for 3 seconds
 
 }
+

@@ -26,11 +26,11 @@ if [ "$(uname)" == "Linux" ]; then
    export LD_LIBRARY_PATH=$dirname/../lib:$LD_LIBRARY_PATH
 fi
 
-#echo $1
-#echo $2
-#echo $3
-#echo $4
+#echo "base: "$1
+#echo "root: "$2
+#echo "port: "$3
+#echo "threads:"$4
+#echo "omp_threads: "$5
+#echo "grpc_port: "$6
 
-#exec(path.join(__dirname,'carta-backend/bin/run.sh').concat(' ',cartabase,' ',cartaroot,' ',cartaport,' ',cartathreads));
-
-$dirname/carta_backend verbose=true base=$1 root=$2 port=$3 threads=$4 >> $logfilename 2>&1
+$dirname/carta_backend verbose=true base=$1 root=$2 port=$3 threads=$4 omp_threads=$5 grpc_port=$6 #>> $logfilename 2>&1

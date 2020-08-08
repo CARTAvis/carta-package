@@ -40,7 +40,16 @@ fi
 # $3 = port
 # $4 = threads
 # $5 = frontend port
-# $6 = websocket port
+# $6 = omp_threads
+# $7 = grpc_port
+
+#echo "base: "$1
+#echo "root: "$2
+#echo "port: "$3
+#echo "threads:"$4
+#echo "frontend port: "$5
+#echo "omp_threads: "$6
+#echo "grpc_port: "$7
 
 echo " "
 echo "To access CARTA, please enter either of the following URLs in your local web browser: "
@@ -54,6 +63,6 @@ echo " "
 echo "Press ctrl+c to exit"
 echo " "
 
-$dirname/carta_backend base=$1 root=$2 port=$3 threads=$4 >> $logfilename 2>&1
+$dirname/carta_backend base=$1 root=$2 port=$3 threads=$4 omp_threads=$7 grpc_port=$8 >> $logfilename 2>&1
 
 ### Exit script
