@@ -143,7 +143,7 @@ let mainWindow;
        if (fs.statSync(arg1).isFile() === true) {
 //         console.log('DEBUG: File detected');
 	 //double check that it is a valid filetype for CARTA
-          if ( arg1.includes('.fits') || arg1.includes('.hdf5') )  {
+          if ( arg1.endsWith('.fits') || arg1.endsWith('.hdf5') )  {
             var filemode = 1
 //            console.log('DEBUG: File type should be OK', arg1);
             if (items.remote === true) {
