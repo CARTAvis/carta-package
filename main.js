@@ -573,30 +573,18 @@ contextMenu({
 
 // CARTA will load image directly if arg1 is a file
    if (filemode === 1) {
-//        console.log("DEBUG: Opening file directly");
-//        console.log("DEBUG: full string:", arg1);
-        var filename = arg1.substring(arg1.lastIndexOf('/')+1);
-//        console.log("DEBUG: filename:",filename);
-	var pathname = arg1.substring(0, arg1.lastIndexOf('/'));
-//	console.log("DEBUG: path:",pathname);
-//	console.log("DEBUG: current directory", process.cwd());
-//	console.log("DEBUG:", folder);
-
+        var filename = arg1
+//        console.log("DEBUG: full string:", arg1)
 // Figure out the correct path e.g. if user does 'carta aJ.fits' or 'carta ~/CARTA/Images/aJ.fits'
-
-        if (arg1.includes(process.cwd()) ){
-//	   console.log("DEBUG: Case1: String includes the current directory");
-           mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?folder=${pathname}&file=${filename}`);
-//	}   
-//       } else if ( arg1.includes('/') ) {
-//           console.log("DEBUG: String contains a / so image must not be in the current directory");
-//           mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?folder=${process.cwd()}&file=${arg1}`);
+	if ( arg1.startsWith('/') ) {
+//           console.log("DEBUG: Case 1: String contains a / at beginning so must be an absolute path");
+	   mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?file=${encodeURIComponent(arg1)}`);
 	} else {
-//           console.log("DEBUG: Case2: String does not include the current directory ");
-           mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?folder=${process.cwd()}&file=${arg1}`);
-       };
-    
-    }
+//          console.log("DEBUG:",process.cwd());
+//          console.log("DEBUG: Case 2: String includes the current directory");
+          mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?file=${process.cwd()}\/${encodeURIComponent(arg1)}`);
+	};
+   }
 
 // CARTA will open normally if arg1/arg2 is a directory or empty
    if (filemode === 0) {
