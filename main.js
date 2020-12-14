@@ -254,9 +254,8 @@ let mainWindow;
 
 
 // --port setting
-// When using Electron, this should really be fixed to port number 
-// defined on line 9 of this file (the 'electronport' variable)
-// but the option to change it is still available.
+// Using the override URL feature so that more than one Electron instance can be opened simultaneously.
+// Start with the 'electronport' number. If it is in use, increment to the next number.
  if (items.remote != true) {
     arg4 = items.port;
        if (arg4 === undefined) {
@@ -271,15 +270,15 @@ let mainWindow;
     portscanner.checkPortStatus(arg4).then(status => {
        // Status is 'open' if currently in use or 'closed' if available
        if (status == 'closed'){
-//          console.log('DEBUG: Port',arg4,'is available')
+          console.log('DEBUG: Port',arg4,'is available')
        }
        if (status == 'open'){
-          console.log('Port',arg4,'already in use. Please free the port before starting CARTA'); 
-          console.log('Suggestion: Check with "lsof -i :',arg4,'" to find the PID and kill the process with "kill -9 <PID>".');
-           process.exit()
+          console.log('DEBUG: Port',arg4,'already in use. Incrementing port');
+          arg4++; 
+          console.log('DEBUG: New port number:',arg4);
        }
     });
-// console.log("DEBUG: User argument 4:", arg4);
+    console.log("DEBUG: User argument 4:", arg4);
  } //end of items.remote loop
 
 
@@ -309,6 +308,13 @@ let mainWindow;
 	   process.exit()
 	}
  }
+
+// Prevent CARTA from running with 1 OMP thread
+ if ((items.remote != true) && (arg7 < 2)) {
+    console.log('CARTA requires more than 1 OMP thread in order to function. Please run with omp_threads > 1. Check --help for more info.');
+    process.exit()
+ }
+
 // console.log("DEBUG: User argument 7:", arg7);
 
 
@@ -481,7 +487,7 @@ process.exit()
   const button1 = new TouchBarButton({
       icon: path.join(__dirname, 'carta_logo_v2.png'),
       iconPosition: 'left',
-      label: 'CARTA v1.4.alpha.4',
+      label: 'CARTA v1.4',
       backgroundColor: '#000',
 //      click: () => {
 //           mainWindow.loadURL('https://cartavis.github.io/');
@@ -493,7 +499,7 @@ process.exit()
               iconPosition: 'right',
               label: 'CARTA user manual',
               click: () => {
-              electron.shell.openExternal("https://carta.readthedocs.io/en/latest");
+              electron.shell.openExternal("https://carta.readthedocs.io/en/1.4");
                 },
   });
 
@@ -576,25 +582,22 @@ contextMenu({
         var filename = arg1
 //        console.log("DEBUG: full string:", arg1)
 // Figure out the correct path e.g. if user does 'carta aJ.fits' or 'carta ~/CARTA/Images/aJ.fits'
+// with the override URL feature
 	if ( arg1.startsWith('/') ) {
-//           console.log("DEBUG: Case 1: String contains a / at beginning so must be an absolute path");
-	   mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?file=${encodeURIComponent(arg1)}`);
+           console.log("DEBUG: Case 1: String contains a / at beginning so must be an absolute path");
+	   mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?socketUrl=ws://localhost:${encodeURIComponent(arg4)}\/?file=${encodeURIComponent(arg1)}`);
 	} else {
-//          console.log("DEBUG:",process.cwd());
-//          console.log("DEBUG: Case 2: String includes the current directory");
-          mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?file=${process.cwd()}\/${encodeURIComponent(arg1)}`);
+          console.log("DEBUG:",process.cwd());
+          console.log("DEBUG: Case 2: String includes the current directory");
+          mainWindow.loadURL(`file:\/\/${__dirname}\/index.html?socketUrl=ws://localhost:${encodeURIComponent(arg4)}\/?file=${process.cwd()}\/${encodeURIComponent(arg1)}`);
 	};
    }
 
 // CARTA will open normally if arg1/arg2 is a directory or empty
    if (filemode === 0) {
-//    console.log("DEBUG: Starting CARTA normally");
-        mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'index.html'),
-        protocol: 'file:',
-        preload: __dirname + '/preload.js',
-        slashes: true
-    }));
+// Use the override URL feature so that more than one Electron instance of CARTA can be opened
+    console.log("DEBUG: Starting CARTA normally", arg4);
+        mainWindow.loadURL(`file:\/\/${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(arg4)}`);
    }
 
 // Start CARTA backend
