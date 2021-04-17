@@ -52,6 +52,26 @@ cp /usr/lib64/libprofiler.so.0 lib/
 cp /usr/lib64/libwcs.so.4 lib/
 cp /usr/lib64/libgpr.so.7 lib/
 cp /usr/lib64/libcares.so.2 lib/
+cp /usr/lib64/libsmime3.so lib/
+
+# Extra library files to allow it to work bare Docker containers
+cp /usr/lib64/libcares.so.2 lib/
+cp /usr/lib64/libssl3.so lib/
+cp /usr/lib64/libnss3.so lib/
+cp /usr/lib64/libnssutil3.so lib/
+cp /usr/lib64/libplds4.so lib/
+cp /usr/lib64/libplc4.so lib/
+cp /usr/lib64/libnspr4.so lib/
+cp /usr/lib64/libgssapi_krb5.so.2 lib/
+cp /usr/lib64/libkrb5.so.3 lib/
+cp /usr/lib64/libk5crypto.so.3 lib/
+cp /usr/lib64/liblber-2.4.so.2 lib/
+cp /usr/lib64/libldap-2.4.so.2 lib/
+cp /usr/lib64/libkrb5support.so.0 lib/
+cp /usr/lib64/libkeyutils.so.1 lib/
+cp /usr/lib64/libsasl2.so.3 lib/
+cp /usr/lib64/libcrypt.so.1 lib/
+cp /usr/lib64/libfreebl3.so lib/
 
 # Remove some library files to make it universal
 rm lib/libz.so.1
