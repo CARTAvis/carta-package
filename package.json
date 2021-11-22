@@ -1,7 +1,7 @@
 {
-  "name": "CARTA-v1.4-alpha-4",
-  "version": "1.4.0",
-  "description": "2020 CARTA Desktop",
+  "name": "CARTA-v3.0.0-beta.1b",
+  "version": "3.0.0",
+  "description": "2021 CARTA Desktop",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
@@ -14,19 +14,24 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "9.1.2",
+    "electron": "^13.1.8",
     "electron-builder": "^22.3.3",
     "electron-notarize": "^0.2.1",
     "electron-packager": "^13.1.1",
-    "minimist": "^1.2.3"
+    "minimist": "^1.2.5",
+    "portscanner": "^2.2.0",
+    "uuid": "^8.3.2"
   },
   "dependencies": {
     "electron-context-menu": "^0.12.0",
     "electron-installer-dmg": "^3.0.0",
     "electron-window-state": "^5.0.3",
+    "electron-window-state-manager": "^0.3.2",
+    "find-free-port-sync": "^1.0.0",
     "express": "^4.16.4",
     "minimist": "^1.2.3",
-    "portscanner": "^2.2.0"
+    "portscanner": "^2.2.0",
+    "uuid": "^8.3.2"
   },
   "mac": {
     "hardenedRuntime": true,
