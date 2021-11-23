@@ -14,4 +14,4 @@ fi
 #echo "base: "$2
 #echo "port: "$3
 
-CARTA_AUTH_TOKEN=$1 $dirname/carta_backend $2 --port=$3 --no_http --no_browser
+CARTA_AUTH_TOKEN=$1 $dirname/carta_backend $2 --port=$3 --frontend_folder=$dirname/../../ --no_browser
