@@ -1,6 +1,6 @@
 ## Create a CARTA Snap
 
-CARTA can be built and run as a [Snap](https://snapcraft.io/). It could be convenient for development and testing.
+CARTA can be built and run as a [Snap](https://snapcraft.io/). It could be convenient for development and testing, or for running CARTA on a non-supported Linux platform.
 
 The CARTA snapcraft file is currently configured to use `v3.0.0-beta.3` of the carta-backend and carta-frontend.
 
@@ -20,13 +20,13 @@ export SNAPCRAFT_BUILD_ENVIRONMENT_MEMORY=8G
 snapcraft 
 ```
 
-4. A snap file will be created. To install it in a local developer mode:
+4. A snap file will be created. To install it locally in developer mode:
 
 ```
 sudo snap install --devmode carta_3.0.0-beta.3_amd64.snap
 ```
 
-5. To run the installed snap version:
+5. To run the installed snap version of CARTA:
 
 ```
 /snap/bin/carta
