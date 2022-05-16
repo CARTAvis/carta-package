@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="431px" height="520px" viewBox="0 0 431 520" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>Group</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="28.6841964%" y1="-4.44786443%" x2="65.9740129%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#DAF0FD" offset="0%"></stop>
+            <stop stop-color="#B3DCF9" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="30.3458353%" y1="-12.0162423%" x2="64.5726208%" y2="97.3601724%" id="linearGradient-2">
+            <stop stop-color="#B7DCF1" offset="0%"></stop>
+            <stop stop-color="#80B7DE" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="34.5851588%" y1="0%" x2="66.1096048%" y2="100%" id="linearGradient-3">
+            <stop stop-color="#99CDE7" offset="0%"></stop>
+            <stop stop-color="#609FCB" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="34.9527428%" y1="2.05374391%" x2="65.3970124%" y2="91.1299165%" id="linearGradient-4">
+            <stop stop-color="#74BADA" offset="0%"></stop>
+            <stop stop-color="#4084B3" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="26.3795309%" y1="-27.3514067%" x2="66.7314293%" y2="105.657006%" id="linearGradient-5">
+            <stop stop-color="#2584AF" offset="0%"></stop>
+            <stop stop-color="#104D77" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="36.6338615%" y1="0%" x2="64.9168291%" y2="100%" id="linearGradient-6">
+            <stop stop-color="#0065A3" offset="0%"></stop>
+            <stop stop-color="#00356A" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group">
+            <polygon id="Path" fill="url(#linearGradient-1)" points="159 403.980024 256.662782 254 431 265.625865 334.45479 415.722572"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-2)" points="145 378.980024 242.662782 229 417 240.625865 320.45479 390.722572"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-3)" points="132 353.980024 229.662782 204 404 215.625865 307.45479 365.722572"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-4)" points="119 328.980024 216.662782 179 391 190.625865 294.45479 340.722572"></polygon>
+            <polygon id="Path" fill="#276A98" points="105 302.980024 202.662782 153 377 164.625865 280.45479 314.722572"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-5)" points="92 277.980024 189.662782 128 364 139.625865 267.45479 289.722572"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-6)" points="79 251.980024 176.662782 102 351 113.625865 254.45479 263.722572"></polygon>
+            <path d="" id="Path-3" stroke="#979797"></path>
+            <path d="" id="Path-5" stroke="#979797"></path>
+            <path d="M391.739282,495.478564 C356.303512,511.208988 316.73761,520 275,520 C123.121694,520 0,403.594035 0,260 C0,116.405965 123.121694,0 275,0 C297.451423,0 319.27445,2.54373287 340.164251,7.34299701 L324.393861,70.4245564 C308.553394,66.8785874 292.012957,65 275,65 C159.020203,65 65,152.304474 65,260 C65,367.695526 159.020203,455 275,455 C306.278812,455 335.960421,448.650021 362.631308,437.262616 L391.739282,495.478564 Z" id="Combined-Shape" fill="#003973"></path>
+        </g>
+    </g>
+</svg>
