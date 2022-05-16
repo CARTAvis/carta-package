@@ -1,0 +1,162 @@
+app-id: org.flatpak.carta
+runtime: org.freedesktop.Platform
+runtime-version: '21.08'
+sdk: org.freedesktop.Sdk
+command: carta
+finish-args:
+  - --filesystem=host:rw
+  - --socket=session-bus
+  - --share=network
+  - --share=ipc
+
+modules:
+  - name: gsl
+    config-opts:
+      - --disable-static
+    cleanup:
+      - /bin
+      - /share
+    sources:
+      - type: archive
+        url: https://ftp.gnu.org/gnu/gsl/gsl-2.7.1.tar.gz
+        sha256: dcb0fbd43048832b757ff9942691a8dd70026d5da0ff85601e52687f6deeb34b
+
+  - name: hdf5
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Dev
+    cleanup:
+      - /bin
+      - /share
+    sources:
+      - type: archive
+        url: https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.bz2
+        sha256: 02018fac7e5efc496d9539a303cfb41924a5dadffab05df9812096e273efa55e
+
+  - name: cfitsio
+    buildsystem: simple
+    cleanup:
+      - /bin
+    build-commands:
+      - ./configure --prefix=/app  --includedir=/app/include --libdir=/app/lib
+      - make shared
+      - make install
+    sources:
+      - type: archive
+        url: https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-4.0.0.tar.gz
+        sha256: b2a8efba0b9f86d3e1bd619f662a476ec18112b4f27cc441cc680a4e3777425e
+
+  - name: wcslib
+    buildsystem: simple
+    cleanup:
+      - /share
+    build-commands:
+      - ./configure --prefix=/app --without-pgplot --with-cfitsiolib=/app/lib --with-cfitsioinc=/app/include
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib-7.7.tar.bz2
+        sha256: a708e6b4e90e2cd6427434715b591bb9c3d4005c99725ec494b8e0bed2de5355
+
+  - name: fftw3
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -Wno-dev # suppress warning for project developers
+      - -DENABLE_THREADS=ON
+      - -DENABLE_FLOAT=ON
+    sources:
+      - type: archive
+        url: http://www.fftw.org/fftw-3.3.8.tar.gz
+        sha256: 6113262f6e92c5bd474f2875fa1b01054c4ad5040f6b0da7c03c98821d9ae303
+
+  - name: openblas
+    buildsystem: cmake-ninja
+    cleanup:
+      - /share
+    sources:
+      - type: archive
+        url: https://github.com/xianyi/OpenBLAS/releases/download/v0.3.20/OpenBLAS-0.3.20.tar.gz
+        sha256: 8495c9affc536253648e942908e88e097f2ec7753ede55aca52e5dead3029e3c
+
+  - name: measures-data
+    buildsystem: simple
+    build-commands:
+      - mkdir -p $FLATPAK_DEST/share/casacore/data
+      - cp -R * $FLATPAK_DEST/share/casacore/data
+    sources:
+      - type: archive
+        url: https://alma.asiaa.sinica.edu.tw/_downloads/measures-data-14-5-22.tar.gz
+        sha256: 380614cecf88dc4861c46f8d8af09d2acd379c84f896bec20e2dd327cbad5567
+        path: measures-data-14-5-22
+
+  - name: carta-casacore
+    buildsystem: cmake-ninja
+    builddir: true
+    cleanup:
+      - /bin
+    config-opts:
+      - -DBUILD_PYTHON=OFF
+      - -DUSE_FFTW3=ON
+      - -DUSE_HDF5=ON
+      - -DUSE_THREADS=ON
+      - -DUSE_OPENMP=ON
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_TESTING=OFF
+      - -DUseCcache=1
+      - -DHAS_CXX11=1
+      - -DDATA_DIR=/app/share/casacore/data
+    sources:
+      - type: git
+        url: https://github.com/CARTAvis/carta-casacore.git
+        branch: master
+
+  - name: carta-frontend
+    buildsystem: simple
+    build-commands:
+      - mkdir -p $FLATPAK_DEST/share/carta/frontend
+      - cp -R build/* $FLATPAK_DEST/share/carta/frontend
+    sources:
+      - type: archive
+        url: https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0-beta.3.tgz
+        sha256: 36414c50bb795689f7d828ffa28ef2034d9e33437ba916edb01e666a7c55b601
+        path: build
+
+  - name: zfp
+    buildsystem: cmake
+    builddir: true
+    sources:
+      - type: archive
+        url: https://github.com/LLNL/zfp/releases/download/0.5.5/zfp-0.5.5.tar.gz
+        sha256: fdf7b948bab1f4e5dccfe2c2048fd98c24e417ad8fb8a51ed3463d04147393c5
+
+  - name: pugixml
+    buildsystem: cmake
+    #    builddir: true
+    sources:
+      - type: archive
+        url: https://github.com/zeux/pugixml/releases/download/v1.12.1/pugixml-1.12.1.tar.gz
+        sha256: dcf671a919cc4051210f08ffd3edf9e4247f79ad583c61577a13ee93af33afc7
+
+  - name: protobuf
+    buildsystem: autotools
+    cleanup:
+      - /bin
+    sources:
+      - type: git
+        url: https://github.com/protocolbuffers/protobuf.git
+        tag: v3.12.4
+
+  - name: carta
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCARTA_CASACORE_ROOT=/app
+    sources:
+      - type: git
+        url: https://github.com/CARTAvis/carta-backend.git
+        tag: v3.0.0-beta.3
+        #branch: dev
+

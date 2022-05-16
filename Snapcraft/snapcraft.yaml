@@ -1,0 +1,151 @@
+name: carta
+base: core20
+version: '3.0.0-beta.3'
+summary: CARTA - Cube Analysis and Rendering Tool for Astronomy
+description: |
+  CARTA is a next generation image visualization and analysis tool designed for ALMA, VLA, and SKA pathfinders.      
+
+package-repositories:
+ - type: apt
+   ppa: kernsuite/kern-7
+   ppa: cartavis-team/carta
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+apps:
+  carta:
+    command: usr/local/bin/carta
+    environment:
+      LD_LIBRARY_PATH: $SNAP/opt/carta-casacore/lib:$SNAP/usr/lib/x86_64-linux-gnu/lapack:$SNAP/usr/lib/x86_64-linux-gnu/blas:$LD_LIBRARY_PATH
+      PATH: $SNAP/usr/local/bin:/usr/bin
+    plugs:
+      - desktop      
+      - home
+      - network
+      - opengl
+parts:
+  carta-casacore:
+    source: https://github.com/CARTAvis/carta-casacore.git
+    source-type: git
+    source-tag: 3.4.0+6.5.0+2022.5.11
+    plugin: cmake
+    build-packages:
+      - bison
+      - fftw3-dev
+      - flex
+      - gfortran
+      - libblas-dev
+      - libcfitsio-dev
+      - libgsl-dev
+      - libhdf5-dev
+      - liblapack-dev
+      - libreadline-dev
+      - wcslib-dev
+    stage-packages:
+      - libaec0
+      - libasn1-8-heimdal
+      - libbrotli1
+      - libcfitsio8
+      - libcurl3-gnutls
+      - libfftw3-double3
+      - libfftw3-single3
+      - libgfortran5
+      - libgomp1
+      - libgsl23
+      - libgslcblas0
+      - libgssapi3-heimdal
+      - libhcrypto4-heimdal
+      - libhdf5-103
+      - libheimbase1-heimdal
+      - libheimntlm0-heimdal
+      - libhx509-5-heimdal
+      - libkrb5-26-heimdal
+      - libldap-2.4-2
+      - libnghttp2-14
+      - libpsl5
+      - libquadmath0
+      - libroken18-heimdal
+      - librtmp1
+      - libsasl2-2
+      - libssh-4
+      - libsz2
+      - libwcs7
+      - libwind0-heimdal    
+    override-build: |
+       # It appears to be necessary to build carta-casacore with manual commands. Otherwise some .h files would be missing.     
+       cd $SNAPCRAFT_PART_SRC
+       git submodule init
+       git submodule update
+       cd casa6
+       git submodule init
+       git submodule update
+       cd $SNAPCRAFT_PART_BUILD
+       cmake $SNAPCRAFT_PART_SRC -DUSE_FFTW3=ON -DUSE_HDF5=ON -DUSE_THREADS=ON -DUSE_OPENMP=ON \
+             -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_PYTHON=OFF -DUseCcache=1 -DHAS_CXX11=1 \
+             -DCMAKE_INSTALL_PREFIX=$SNAPCRAFT_PART_INSTALL/opt/carta-casacore \
+             -DDATA_DIR=/snap/carta/current/usr/share/casacore/data
+       make -j2
+       make install
+    stage:
+      - opt/*        
+  carta:
+    source: https://github.com/CARTAvis/carta-backend.git
+    source-tag: v3.0.0-beta.3
+    plugin: cmake
+    after: 
+      - carta-casacore
+    cmake-parameters: 
+      - -DCMAKE_CXX_FLAGS="-I$SNAPCRAFT_STAGE/opt/carta-casacore/include -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacode -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacore" -DCMAKE_CXX_STANDARD_LIBRARIES="-L$SNAPCRAFT_STAGE/opt/carta-casacore/lib"
+    build-packages:
+      - bison  
+      - fftw3-dev
+      - flex
+      - libgrpc-dev        
+      - libblas-dev
+      - libcfitsio-dev
+      - libcurl4-gnutls-dev
+      - libgrpc++-dev        
+      - libgsl-dev
+      - libhdf5-dev
+      - liblapack-dev
+      - libprotobuf-dev        
+      - libpugixml-dev        
+      - libreadline-dev
+      - libzfp-dev
+      - libzstd-dev        
+      - pkg-config
+      - protobuf-compiler-grpc
+      - wcslib-dev
+      - uuid-dev
+    stage-packages:
+      - casacore-data
+      - libaec0
+      - libc-ares2
+      - libgrpc++1
+      - libgrpc6
+      - libhdf5-103
+      - libgsl23
+      - libprotobuf17
+      - libpugixml1v5
+      - libsz2
+      - libzfp0
+    override-build: |
+      snapcraftctl build
+      mkdir -p $SNAPCRAFT_PART_INSTALL
+      cp $SNAPCRAFT_PART_SRC/static/icons/256x256/cartaviewer.png $SNAPCRAFT_PART_INSTALL/
+
+  carta-frontend:
+    plugin: nil
+    source: https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0-beta.3.tgz
+    #stage-packages:
+    #      - coreutils
+    #      - xdg-utils
+    #      - grep
+    #      - sed
+    #      - awk
+    override-build: |
+      snapcraftctl build
+      mkdir -p $SNAPCRAFT_PART_INSTALL/usr/local/share/carta/frontend
+      cp -R build/* $SNAPCRAFT_PART_INSTALL/usr/local/share/carta/frontend
+
