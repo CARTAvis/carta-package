@@ -1,0 +1,145 @@
+## For creating the ubuntu appimage
+## Need to build on the oldest supported platform. Then forward compatibility is assured/
+## Oldest supported platform 18.04
+## Customised for carta-backend v3.0.0-beta.3 and carta-casacore 3.4.0+6.5.0+2022.4.22
+##
+
+FROM ubuntu:18.04
+
+ARG FRONTEND_TAG
+ARG BACKEND_TAG
+ARG NAME
+
+# Update and pull down build tools
+RUN \
+  apt-get update && \
+  apt-get -y upgrade && \
+  DEBIAN_FRONTEND=noninteractive \
+  apt-get install -y apt-utils autoconf bison build-essential byobu curl default-jre emacs \
+    fftw3-dev flex gdb g++-8 gcc-8 gfortran git git-lfs htop libblas-dev libcurl4-gnutls-dev \
+    libpugixml-dev libcfitsio-dev libgtest-dev libhdf5-dev liblapack-dev libncurses-dev \
+    libreadline-dev libssl-dev libstarlink-ast-dev libtool libfmt-dev \
+    libxml2-dev libzstd-dev libgsl-dev man pkg-config python3-pip python3-pip \
+    software-properties-common unzip uuid-dev vim wcslib-dev wget cmake && \
+  update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
+
+# Install carta-casacore from CARTAvis repo (with the floating CASAROOT)
+RUN \
+  cd /root && \
+  git clone https://github.com/CARTAvis/carta-casacore.git && \
+  cd carta-casacore && \
+  git submodule init && git submodule update && \
+  cd casa6 && \
+  git submodule init && git submodule update && \
+  cd ../ && mkdir -p build && cd build && \
+  cd /root/carta-casacore/build && \
+  cmake .. -DUSE_FFTW3=ON \
+           -DUSE_HDF5=ON \
+           -DUSE_THREADS=ON \
+           -DUSE_OPENMP=ON \
+           -DCMAKE_BUILD_TYPE=Release \
+           -DBUILD_TESTING=OFF \
+           -DBUILD_PYTHON=OFF \
+           -DUseCcache=1 \
+           -DHAS_CXX11=1 \
+           -DDATA_DIR="%CASAROOT%/data" \
+           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
+           -DENABLE_RPATH=NO && \
+  make -j4 && make install && \
+  cd /root && rm -rf carta-casacore
+
+# Install zfp
+RUN \
+  cd /root && \
+  git clone https://github.com/LLNL/zfp.git && \
+  mkdir -p zfp/build && cd zfp/build && \
+  cmake .. && make all install && \
+  cd /root && rm -rf zfp
+
+# Get carta dependencies from the cartavis-team PPA and casacore-data from KERN
+RUN \
+  ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone && \
+#  apt-add-repository -y -s ppa:kernsuite/kern-5 && \
+  apt-add-repository -y -s ppa:kernsuite/kern-7 && \
+  add-apt-repository -y -s ppa:cartavis-team/carta && \
+  apt-get -y update && \
+  apt-get -y install casacore-data libzfp-dev libprotobuf-dev protobuf-compiler cmake
+
+# install a newer cmake
+RUN \ 
+  wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \ 
+  apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+  apt-get -y update && \
+  apt-get -y install cmake && \
+  cmake --version
+
+# Clone and build the carta-backend
+# Builds in "Release" mode
+# Parallel 'make' needs a lot of RAM. If you get this error "c++: fatal error: Killed signal terminated program cc1plus" 
+# assign more RAM to Docker. 4GB should be enough for make -j 2.
+RUN \
+  cd /root && \
+  git clone https://github.com/CARTAvis/carta-backend.git && \
+  cd carta-backend && \
+  git checkout $BACKEND_TAG && \
+  git submodule update --init --recursive && \
+  mkdir build && cd build && \
+  cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta" && \
+  make -j 4
+
+# Grab a pre-built production carta-frontend from one of its npm packages
+RUN \
+  cd /root && \
+  ls -sort && \
+  wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-$FRONTEND_TAG.tgz && \
+  tar -xvf carta-frontend-${FRONTEND_TAG}.tgz
+
+# Package the carta-backend using the 'pack-ubuntu.sh' packaging script
+COPY pack-ubuntu.sh /root/carta-backend/build/
+
+RUN \
+ apt-get -y install patchelf subversion
+
+# Get geodetic and ephemerides casa-data
+RUN \
+  mkdir -p /usr/local/share/casacore/data/geodetic/Observatories && \
+  cd /root && \
+  wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar && \
+  tar -xzf WSRT_Measures.ztar && \
+  cp -r geodetic/Observatories/* /usr/local/share/casacore/data/geodetic/Observatories/
+
+RUN \
+  cd /root/carta-backend/build && \
+  chmod 755 pack-ubuntu.sh && \
+  ./pack-ubuntu.sh carta_backend && \
+  mkdir -p /root/CARTA/bin && \
+  cp /root/carta-backend/build/carta_backend /root/CARTA/bin && \
+  cp /opt/carta-casacore/bin/casa_data_autoupdate /root/CARTA/bin && \
+  cp -r /root/carta-backend/build/lib /root/CARTA/ && \
+  mkdir -p /root/CARTA/etc && \
+  cp -r /usr/local/share/casacore/data /root/CARTA/etc && \
+  mkdir -p /root/CARTA/share/carta/frontend && \
+  cp -r /root/package/build/* /root/CARTA/share/carta/frontend/ && \
+  mkdir -p /root/CARTA/usr/share/icons/hicolor/256x256/apps && \
+  mkdir -p /root/CARTA/usr/share/icons/hicolor/128x128/apps && \
+  cp -r /root/carta-backend/static/icons/256x256/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/256x256/apps/ && \
+  cp -r /root/carta-backend/static/icons/128x128/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/128x128/apps/
+
+COPY AppRun /root/CARTA
+COPY usr /root/CARTA/usr
+COPY CARTA.desktop /root/CARTA
+COPY carta.png /root/CARTA
+
+RUN \ 
+  cd /root && \
+  mkdir appimage && \
+  apt-get -y install appstream && \
+  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage && \
+  chmod 755 appimagetool-x86_64.AppImage && \
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 /root/appimagetool-x86_64.AppImage CARTA appimage/$NAME-ubuntu.AppImage
+
+WORKDIR /root
+
+# overwrite this with 'CMD []' in a dependent Dockerfile
+CMD ["bash"]
+

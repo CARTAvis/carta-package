@@ -1,6 +1,6 @@
 #!/bin/bash -e
 ### Script to create a distributable carta_backend on CentOS7
-### Updated 11-5-2022
+### Updated 16-4-2021
 
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
@@ -28,21 +28,16 @@ xargs -d '\n' -I{} cp --copy-contents {} ./lib
 patchelf --set-rpath "\$ORIGIN/lib" "$1"
 
 # Extra: Copy over some missed library files
-cp /opt/carta-casacore/lib/libcasa_scimath_f.so.6 lib/
+cp /usr/local/lib/libcasa_scimath_f.so.5 lib/
 cp /usr/lib64/libhdf5_hl.so.8 lib/
 cp /usr/lib64/liblapack.so.3 lib/
 cp /usr/lib64/libblas.so.3 lib/
-#cp /usr/lib64/libgsl.so.0 lib/
-#cp /usr/lib64/libgslcblas.so.0 lib/
-cp /opt/carta-gsl/lib/libgslcblas.so.0 lib/
+cp /usr/lib64/libgsl.so.0 lib/
+cp /usr/lib64/libgslcblas.so.0 lib/
 cp /usr/lib64/libgfortran.so.5 lib/
 cp /usr/lib64/libquadmath.so.0 lib/
 cp /usr/lib64/libgfortran.so.3 lib/
-#cp /lib64/atlas/libsatlas.so.3 lib/
-#cp /usr/lib64/libprofiler.so.0 lib/
-cp /usr/lib64/libwcs.so.4 lib/
-#cp /usr/lib64/libgpr.so.7 lib/
-#cp /usr/lib64/libcares.so.2 lib/
+cp /lib64/atlas/libsatlas.so.3 lib/
 
 # Extra library files to allow it to run on Ubuntu 20.04, 18.04, Debian 10, Fedora 32
 cp /usr/lib64/libidn.so.11 lib/
@@ -53,13 +48,17 @@ cp /usr/lib64/libnsl.so.1 lib/
 cp /usr/lib64/libssh2.so.1 lib/
 cp /usr/lib64/libssl.so.10 lib/
 cp /usr/lib64/libcrypto.so.10 lib/
+cp /usr/lib64/libprofiler.so.0 lib/
+cp /usr/lib64/libwcs.so.4 lib/
+cp /usr/lib64/libgpr.so.7 lib/
+cp /usr/lib64/libcares.so.2 lib/
 cp /usr/lib64/libsmime3.so lib/
 
-# Extra library files to allow it to work in a Docker container
-#cp /usr/lib64/libcares.so.2 lib/
+# Extra library files to allow it to work bare Docker containers
+cp /usr/lib64/libcares.so.2 lib/
 cp /usr/lib64/libssl3.so lib/
-#cp /usr/lib64/libnss3.so lib/
-#cp /usr/lib64/libnssutil3.so lib/
+cp /usr/lib64/libnss3.so lib/
+cp /usr/lib64/libnssutil3.so lib/
 cp /usr/lib64/libplds4.so lib/
 cp /usr/lib64/libplc4.so lib/
 cp /usr/lib64/libnspr4.so lib/

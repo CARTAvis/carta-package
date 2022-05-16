@@ -1,0 +1,168 @@
+##
+## Dockerfile to build and package a CentOS7 carta-backend with a pre-build carta-frontend as a universal Linux Appimage
+##
+## Requires BACKEND_TAG, FRONTEND_TAG, and NAME from the Docker build command
+## e.g BACKEND_TAG=v3.0.0-beta.3 FRONTEND_TAG=3.0.0-beta.3
+##
+## Find available backend tags from here: https://github.com/CARTAvis/carta-backend/releases
+## (carta-backend github branch names could also be used)
+## Find available frontend tags from here: https://www.npmjs.com/package/carta-frontend?activeTab=explore
+## (carta-frontend github branch names can't be used in this case, but could if the Dockerfile was modified to build the carta-frontend from source)
+## Different carta-casacore branches could also be checked out in a similar fashion with the addition of another --build-arg and a checkout line 
+## in the carta-casacore build stage.
+
+FROM centos:7.9.2009
+
+ARG FRONTEND_TAG
+ARG BACKEND_TAG
+ARG NAME
+
+# The carta-backend will use GCC 8 functions, so install and activate devtoolset-8 
+RUN \
+  yum -y install centos-release-scl && \
+  yum install -y centos-release-scl && yum install -y devtoolset-8-gcc devtoolset-8-gcc-c++ devtoolset-8-gcc-gfortran && \
+  echo "source scl_source enable devtoolset-8" >> /etc/bashrc
+
+# Install the required packages
+RUN \
+  yum -y install centos-release-openstack-train && \
+  yum -y install epel-release
+
+RUN \
+  yum install -y autoconf automake bison blas-devel bzip2 cfitsio-devel curl-devel cmake3 flex \
+    git git-lfs gtest-devel hdf5-devel lapack-devel libtool libxml2-devel libzstd-devel \
+    make openssl-devel protobuf-devel pugixml-devel readline-devel subversion systemd-devel wcslib-devel wget \
+    zlib-devel libuuid-devel zfp-devel patchelf file && \
+  ln -s /usr/bin/cmake3 /usr/bin/cmake
+
+# RHEL7 carta now requires gsl 2.5. We made a special package carta-gsl
+RUN \
+  curl https://packages.cartavis.org/cartavis-el7.repo --output /etc/yum.repos.d/cartavis.repo && \
+  yum -y install carta-gsl-devel
+
+# CARTA will have a problem finding the .h files in /usr/include/cfitsio/
+RUN \
+  source /etc/bashrc && \
+  cp /usr/include/cfitsio/* /usr/include/
+
+# Get geodetic and ephemerides casa-data
+RUN \
+  source /etc/bashrc && \
+  mkdir -p /usr/local/share/casacore/data/geodetic/Observatories && \
+  cd /root && \
+  wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar && \
+  tar -xzf WSRT_Measures.ztar && \
+  cp -r geodetic/Observatories/* /usr/local/share/casacore/data/geodetic/Observatories/
+
+# Get libsofa.a for casacore
+RUN \
+  source /etc/bashrc && \
+  wget http://www.iausofa.org/2018_0130_F/sofa_f-20180130.tar.gz && \
+  tar xzf sofa_f-20180130.tar.gz && rm sofa_f-20180130.tar.gz && \
+  cd sofa/20180130/f77/src && make && cp libsofa.a /usr/lib/libsofa.a && \
+  cd /root && rm -rf sofa
+
+# Install carta-casacore from CARTAvis repo (with the floating CASAROOT)
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  ls -sort && \
+  git clone https://github.com/CARTAvis/carta-casacore.git && \
+  cd carta-casacore && \
+  git submodule init && git submodule update && \
+  cd casa6 && \
+  git submodule init && git submodule update && \
+  cd ../ && mkdir -p build && cd build && \
+  cmake .. -DUSE_FFTW3=ON \
+           -DUSE_HDF5=ON \
+           -DUSE_THREADS=ON \
+           -DUSE_OPENMP=ON \
+           -DCMAKE_BUILD_TYPE=Release \
+           -DBUILD_TESTING=OFF \
+           -DBUILD_PYTHON=OFF \
+           -DUseCcache=1 \
+           -DHAS_CXX11=1 \
+           -DDATA_DIR="%CASAROOT%/data" \
+           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
+           -DENABLE_RPATH=NO \
+           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
+           -DGSL_INCLUDE=/opt/carta-gsl/include \
+           -DGSL_LIBRARY_PATH=/opt/carta-gsl/lib \
+           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
+           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" && \
+  make -j4 && make install && \
+  cd /root && rm -rf carta-casacore
+
+# Clone and build the carta-backend
+# Builds in "Release" mode
+# Parallel 'make' needs a lot of RAM. If you get this error "c++: fatal error: Killed signal terminated program cc1plus" 
+# assign more RAM to Docker. 4GB should be enough for make -j 2.
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  git clone https://github.com/CARTAvis/carta-backend.git && \
+  cd carta-backend && \
+  git checkout $BACKEND_TAG && \
+  git submodule update --init --recursive && \
+  mkdir build && cd build && \
+  cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+           -DCartaUserFolderPrefix=".carta-beta" \
+           -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
+           -DGSL_LIBRARY=/opt/carta-gsl/lib \
+           -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
+           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" && \
+  make -j 4
+
+# Grab a pre-built production carta-frontend from one of its npm packages
+RUN \
+  source /etc/bashrc && \
+  ls -sort && \
+  cd /root && \
+  wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-$FRONTEND_TAG.tgz && \
+  tar -xvf carta-frontend-${FRONTEND_TAG}.tgz
+  tar -xvf carta-frontend-$FRONTEND_TAG.tgz
+
+# Package the carta-backend using the 'pack-centos7.sh' packaging script
+COPY pack-centos7.sh /root/carta-backend/build/
+
+RUN \
+  source /etc/bashrc && \
+  cd /root/carta-backend/build && \
+  chmod 755 pack-centos7.sh && \
+  ./pack-centos7.sh carta_backend && \
+  mkdir -p /root/CARTA/bin && \
+  cp /root/carta-backend/build/carta_backend /root/CARTA/bin && \
+  cp /opt/carta-casacore/bin/casa_data_autoupdate /root/CARTA/bin && \
+  cp -r /root/carta-backend/build/lib /root/CARTA/ && \
+  mkdir -p /root/CARTA/etc && \
+  cp -r /usr/local/share/casacore/data /root/CARTA/etc && \
+  mkdir -p /root/CARTA/share/carta/frontend && \
+  cp -r /root/package/build/* /root/CARTA/share/carta/frontend/ && \
+  mkdir -p /root/CARTA/usr/share/icons/hicolor/256x256/apps && \
+  mkdir -p /root/CARTA/usr/share/icons/hicolor/128x128/apps && \
+  cp -r /root/carta-backend/static/icons/256x256/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/256x256/apps/ && \
+  cp -r /root/carta-backend/static/icons/128x128/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/128x128/apps/
+
+COPY AppRun /root/CARTA
+COPY usr /root/CARTA/usr
+COPY CARTA.desktop /root/CARTA
+COPY carta.png /root/CARTA
+
+RUN echo $NAME
+
+RUN \ 
+  source /etc/bashrc && \
+  cd /root && \
+  mkdir appimage && \
+  yum -y install appstream-data && \
+  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage && \
+  chmod 755 appimagetool-x86_64.AppImage && \
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 /root/appimagetool-x86_64.AppImage CARTA appimage/$NAME-redhat.AppImage
+
+WORKDIR /root
+
+# overwrite this with 'CMD []' in a dependent Dockerfile
+CMD ["bash"]
+
