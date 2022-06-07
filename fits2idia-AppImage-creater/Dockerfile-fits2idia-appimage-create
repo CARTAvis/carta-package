@@ -1,0 +1,94 @@
+# Creates a universal AppImage of fits2idia
+# Created on our oldest supported system, CentOS7/RHEL7, to ensure full forward compatibility
+# Uses HDF5 1.8.12 and cfitsio 3.47
+FROM centos:7.9.2009
+
+ARG RELEASE_TAG
+
+# fits2idia will use GCC 8 functions, so install and activate devtoolset-8
+RUN \
+  yum -y install centos-release-scl && \
+  yum install -y centos-release-scl && yum install -y devtoolset-8-gcc devtoolset-8-gcc-c++ devtoolset-8-gcc-gfortran && \
+  echo "source scl_source enable devtoolset-8" >> /etc/bashrc
+
+# Install required packages
+RUN \
+  yum install -y epel-release && \
+  yum install -y appstream-data autoconf automake cmake3 file gcc-c++ git hdf5-devel make patchelf wget
+
+# Need to use a newer pkg-config than CentOS7's 0.27.1, otherwise the fits2idia CMakeLists.txt can not find cfitsio
+# Also need to build it with GCC 4.8.5 as it will not build with GCC 8.3.1.
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  wget https://src.fedoraproject.org/repo/pkgs/pkgconfig/pkg-config-0.29.tar.gz/77f27dce7ef88d0634d0d6f90e03a77f/pkg-config-0.29.tar.gz && \
+  tar -zxvf pkg-config-0.29.tar.gz && \
+  cd pkg-config-0.29 && \
+  CXX=/usr/bin/g++ CC=/usr/bin/gcc ./configure --with-internal-glib && \
+  make && make install && \
+  rm -rf /root/pkg-config-0.29*
+
+# fits2idia requires a newer cfitsio than CentOS7's 3.370 default version
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  wget http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.47.tar.gz && \
+  tar -xvf cfitsio-3.47.tar.gz && \
+  cd cfitsio-3.47 && \
+  ./configure --prefix=/usr/local && \
+  make && make install && \
+  rm -f /root/cfitsio-3.47*
+
+# Build fits2idia
+RUN \ 
+  source /etc/bashrc && \
+  cd /root && \
+  git clone https://github.com/CARTAvis/fits2idia.git && \
+  cd fits2idia && \
+  git checkout ${TAG} && \  
+  mkdir build && cd build && \
+  cmake3 .. && make
+
+# Prepare the fits2idia appimage directory structure
+RUN \
+  source /etc/bashrc && \
+  mkdir -p /root/appimage/bin && cd /root/appimage/bin && \
+  cp /root/fits2idia/build/fits2idia /root/appimage/bin && \
+  patchelf --set-rpath "\$ORIGIN/lib" fits2idia && \
+  mkdir -p /root/appimage/lib && \
+  cp /lib64/libgomp.so.1 /root/appimage/lib && \
+  cp /lib64/libhdf5_cpp.so.8 /root/appimage/lib && \
+  cp /lib64/libhdf5.so.8 /root/appimage/lib && \
+  cp  /usr/local/lib/libcfitsio.so.8 /root/appimage/lib && \
+  cp /lib64/libgcc_s.so.1 /root/appimage/lib && \
+  touch /root/appimage/fits2idia.svg
+
+# Create the AppRun script
+RUN \
+  echo -e '#!/bin/bash \n\
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"\n\
+export LD_LIBRARY_PATH=$DIR/lib:$LD_LIBRARY_PATH\n\
+$DIR/bin/fits2idia "$@"\n\
+' >> /root/appimage/AppRun && \
+ chmod a+x ./root/appimage/AppRun
+
+# Create the fits2idia.desktop file
+RUN \
+  echo -e '\
+[Desktop Entry]\n\
+Name=fits2idia\n\
+Icon=fits2idia\n\
+Exec=AppRun\n\
+Type=Application\n\
+Categories=Science;\n\
+' >> /root/appimage/fits2idia.desktop
+
+# Download appimagetool and generate the AppImage
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  mkdir appimage && \
+  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage && \
+  chmod 755 appimagetool-x86_64.AppImage
+  mkdir /root/ready && \
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 /root/appimagetool-x86_64.AppImage appimage /root/ready/fits2idia-$RELEASE_TAG.AppImage
