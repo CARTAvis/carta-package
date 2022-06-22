@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# To add an icon
+if [ ! -z "$APPIMAGE" ] && [ ! -z "$APPDIR" ]; then
+    MD5=$(echo -n "file://$APPIMAGE" | md5sum | cut -d' ' -f1)
+      mkdir -p $HOME/.cache/thumbnails/large
+      mkdir -p $HOME/.cache/thumbnails/normal
+      cp "$APPDIR/usr/share/icons/hicolor/256x256/apps/cartaviewer.png" "$HOME/.cache/thumbnails/large/$MD5.png"
+      cp "$APPDIR/usr/share/icons/hicolor/128x128/apps/cartaviewer.png" "$HOME/.cache/thumbnails/normal/$MD5.png"
+      mkdir -p $HOME/.local/share/icons/hicolor
+      xdg-icon-resource forceupdate
+fi
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+export CASAPATH="../../../../$DIR/etc linux"
+export LD_LIBRARY_PATH=$DIR/lib:$LD_LIBRARY_PATH
+
+FIRST_IP=$(hostname -I | cut -d' ' -f1)
+# Only export env variable if it's not empty
+if [ ! -z $FIRST_IP ]; then
+    export SERVER_IP=$FIRST_IP
+fi
+
+$DIR/bin/casa_data_autoupdate
+
+$DIR/bin/carta_backend "$@"
+

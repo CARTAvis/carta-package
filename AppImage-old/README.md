@@ -1,5 +1,7 @@
 ## Use Docker to create a universal AppImage for CARTA
 
+## Note: Old method for v3.0.0-beta.3 and earlier.
+
 ### Basic usage:
 
 Execute the `./create-appimage-redhat.sh` or `./create-appimage-ubuntu.sh` scripts. They will create the v3.0.0-beta.3 AppImages automatically.
