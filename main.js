@@ -315,6 +315,8 @@ const createWindow = exports.createWindow = () => {
     const newWindow = new BrowserWindow({
     width: mainWindowState.width,
     height: mainWindowState.height,
+    minWidth: 640,
+    minHeight: 480,
     x: x,
     y: y,
     show: false
