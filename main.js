@@ -312,9 +312,11 @@ const createWindow = exports.createWindow = () => {
   }
 
 //console.log('case1');
-    const newWindow = new BrowserWindow({
-    width: mainWindowState.width > 640 ? mainWindowState.width : 640,
-    height: mainWindowState.height > 480 ? mainWindowState.height : 640,
+  const newWindow = new BrowserWindow({
+    width: Math.max(mainWindowState.width, 640),
+    height: Math.max(mainWindowState.height, 480),
+    minWidth: 640,
+    minHeight: 480,
     x: x,
     y: y,
     show: false
