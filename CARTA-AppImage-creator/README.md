@@ -14,9 +14,7 @@ Execute the `./create-carta-appimage.sh` script. It will build a CentOS 7.9 (RHE
 
 1. Open the script `./create-carta-appimage.sh` script for editing.
 
-2. Modify the `BACKEND_TAG`, `FRONTEND_TAG`, and `CARTA_CASACORE_TAG` variables with the branch/commit/tag that you would like to use.
-
- The `NAME` variable allows you to provide a custom name to the resulting AppImage: `<NAME>.AppImage`.
+2. Modify the `BACKEND_TAG`, `FRONTEND_TAG`, `VERSION`, (and optionally the `CARTA_CASACORE_TAG`) with the branch/commit/tag that you would like to use.
 
  The pre-built production carta-frontends can be directly downloaded from the 
 [carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend) by setting `FRONTEND_FROM_NPM=True`, or built from source by 
@@ -35,4 +33,4 @@ setting `FRONTEND_FROM_NPM=False`.
 
 - To run an AppImage inside a Docker container (or a system without FUSE enabled): `APPIMAGE_EXTRACT_AND_RUN=1 ./CARTA.AppImage`
 
-- AppImages currently do not run on Ubuntu 22.04 because it uses libfuse3 by default and AppImages currently require libfuse2. A workaround is to install libfuse2: `sudo apt-get install libfuse2` or prefix with `APPIMAGE_EXTRACT_AND_RUN=1` as above.
+- The `./create-carta-appimage.sh` script will build an `x86_64` version if run on an `x86_64` computer (or Intel Mac), and an `aarch64` version if run on an `aarch64` computer (or M1 Mac).

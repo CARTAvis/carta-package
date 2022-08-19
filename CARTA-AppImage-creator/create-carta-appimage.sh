@@ -6,14 +6,37 @@
 #        To download a pre-packaged carta-frontend from https://www.npmjs.com/package/carta-frontend (fewer tags available)
 #   2. Set FRONTEND_FROM_NPM_REPO=False
 #        To build any frontend commit/tag from https://github.com/CARTAvis/carta-frontend
-# NAME is the file name to be assigned to the AppImage
+# 'VERSION' is the part of the name applied to the final AppImage.
 
-BACKEND_TAG=dev
+BACKEND_TAG=v3.0.0
 CARTA_CASACORE_TAG=master
-FRONTEND_FROM_NPM=False # Set to True in order to take prebuilt carta-frontend from the npm repo
-FRONTEND_TAG=dev
-#FRONTEND_TAG=3.0.0-beta.3
-NAME=CARTA-test
+FRONTEND_FROM_NPM=True # Set to True in order to take prebuilt carta-frontend from the npm repo
+FRONTEND_TAG=3.0.0
+VERSION=3.0.0
+
+ARCH=$(arch)
+
+if [ $ARCH = "arm64" ]
+then
+  ARCH="aarch64"
+  IMAGE="arm64v8/centos:7.9.2009"
+fi
+
+if [ $ARCH = "i386" ]
+then
+  ARCH="x86_64"
+  IMAGE="centos:7.9.2009"
+fi
+
+if [ $ARCH = "aarch64" ]
+then
+  IMAGE="arm64v8/centos:7.9.2009"
+fi
+
+if [ $ARCH = "x86_64" ]
+then
+  IMAGE="centos:7.9.2009"
+fi
 
 if [ $FRONTEND_FROM_NPM = "False" ]; then
   echo 'Building a production frontend from Github using Docker.'
@@ -31,11 +54,13 @@ else
 fi
 
 docker build -f Dockerfile-carta-appimage-create \
+             --build-arg ARCH_TYPE=$ARCH \
+             --build-arg BASE_IMAGE=$IMAGE \
              --build-arg CASACORE=$CARTA_CASACORE_TAG \
              --build-arg FRONTEND=$FRONTEND_TAG \
              --build-arg NPM=$FRONTEND_FROM_NPM \
              --build-arg BACKEND=$BACKEND_TAG \
-             --build-arg FILENAME=$NAME \
+             --build-arg RELEASE_TAG=$VERSION \
              -t carta-appimage-create .
 docker run -d --name grabappimage carta-appimage-create
 docker cp grabappimage:/root/appimage/. .

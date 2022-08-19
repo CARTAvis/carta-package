@@ -1,14 +1,17 @@
 # Dockerfile to build and package a universal Linux Appimage of CARTA.
 # Built on our oldest supported platform (CentOS7.9/RHEL7) to ensure full forward compatibility.
-# Requires CASACORE_TAG, BACKEND_TAG, FRONTEND_TAG, and NAME arguments from the 'create-carta-appimage.sh' script.
+# Requires BASE_IMAGE, ARCH_TYPE, CASACORE_TAG, BACKEND_TAG, FRONTEND_TAG, and VERSION arguments from the 'create-carta-appimage.sh' script.
 
-FROM centos:7.9.2009
+ARG BASE_IMAGE
+# On x86_64 it uses "centos:7.9.2009", on aarch64 it uses "arm64v8/centos:7.9.2009"
+FROM $BASE_IMAGE
 
+ARG ARCH_TYPE
 ARG CASACORE
 ARG NPM
 ARG FRONTEND
 ARG BACKEND
-ARG FILENAME
+ARG RELEASE_TAG
 
 # The carta-backend will use GCC 8 functions, so install and activate devtoolset-8 
 RUN \
@@ -89,7 +92,7 @@ RUN \
   git submodule update --init --recursive && \
   mkdir build && cd build && \
   cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-           -DCartaUserFolderPrefix=".carta-beta" \
+           -DCartaUserFolderPrefix=".carta" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
            -DGSL_LIBRARY=/opt/carta-gsl/lib \
            -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
@@ -147,13 +150,13 @@ RUN \
   cp /usr/lib64/libncurses.so.5  /root/CARTA/lib && \
   cp /usr/lib64/libprotobuf.so.16 /root/CARTA/lib && \
   cp /usr/lib64/libpugixml.so.1 /root/CARTA/lib && \
-  cp /usr/lib64/libquadmath.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libreadline.so.6 /root/CARTA/lib && \
   cp /usr/lib64/libsz.so.2 /root/CARTA/lib && \
   cp /usr/lib64/libtinfo.so.5 /root/CARTA/lib && \
   cp /usr/lib64/libwcs.so.4 /root/CARTA/lib && \
   cp /usr/lib64/libzfp.so.0 /root/CARTA/lib && \
-  cp /usr/lib64/libzstd.so.1 /root/CARTA/lib
+  cp /usr/lib64/libzstd.so.1 /root/CARTA/lib && \
+  if [ "$ARCH_TYPE" = "x86_64" ]; then cp /usr/lib64/libquadmath.so.0 /root/CARTA/lib; fi
 
 # Prepare the AppImage
 RUN \
@@ -176,9 +179,11 @@ COPY carta.png /root/CARTA
 RUN \ 
   source /etc/bashrc && \
   cd /root && \
-  mkdir appimage && \
-  yum -y install appstream-data && \
-  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage && \
-  chmod 755 appimagetool-x86_64.AppImage && \
-  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 /root/appimagetool-x86_64.AppImage CARTA appimage/$FILENAME.AppImage
+  mkdir -p /root/appimage && \
+  wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-715-${ARCH_TYPE}.AppImage && \
+  chmod 755 appimagetool-715-${ARCH_TYPE}.AppImage && \
+  cd /root/CARTA && git init && \
+  cd /root && \
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH_TYPE} VERSION=${RELEASE_TAG} /root/appimagetool-715-${ARCH_TYPE}.AppImage CARTA && \
+  mv *.AppImage appimage
 

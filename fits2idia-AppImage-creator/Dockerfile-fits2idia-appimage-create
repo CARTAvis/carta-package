@@ -1,8 +1,13 @@
 # Creates a universal AppImage of fits2idia
 # Created on our oldest supported system, CentOS7/RHEL7, to ensure full forward compatibility
 # Uses HDF5 1.8.12 and cfitsio 3.47
-FROM centos:7.9.2009
 
+ARG BASE_IMAGE
+
+# On x86_64 it uses "centos:7.9.2009", on aarch64 it uses "arm64v8/centos:7.9.2009"
+FROM $BASE_IMAGE
+
+ARG ARCH_TYPE
 ARG RELEASE_TAG
 
 # fits2idia will use GCC 8 functions, so install and activate devtoolset-8
@@ -37,7 +42,7 @@ RUN \
   cd cfitsio-3.47 && \
   ./configure --prefix=/usr/local && \
   make && make install && \
-  rm -f /root/cfitsio-3.47*
+  rm -rf /root/cfitsio-3.47*
 
 # Build fits2idia
 RUN \ 
@@ -61,6 +66,8 @@ RUN \
   cp /lib64/libhdf5.so.8 /root/appimage/lib && \
   cp  /usr/local/lib/libcfitsio.so.8 /root/appimage/lib && \
   cp /lib64/libgcc_s.so.1 /root/appimage/lib && \
+  cp /lib64/libsz.so.2 /root/appimage/lib && \
+  cp /lib64/libaec.so.0 /root/appimage/lib && \
   touch /root/appimage/fits2idia.svg
 
 # Create the AppRun script
@@ -87,8 +94,9 @@ Categories=Science;\n\
 RUN \
   source /etc/bashrc && \
   cd /root && \
-  mkdir appimage && \
-  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage && \
-  chmod 755 appimagetool-x86_64.AppImage
+  wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-715-${ARCH_TYPE}.AppImage && \
+  chmod 755 appimagetool-715-${ARCH_TYPE}.AppImage && \
+  cd /root/appimage && git init && cd /root && \
   mkdir /root/ready && \
-  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 /root/appimagetool-x86_64.AppImage appimage /root/ready/fits2idia-$RELEASE_TAG.AppImage
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH_TYPE} VERSION=${RELEASE_TAG} /root/appimagetool-715-${ARCH_TYPE}.AppImage appimage && \
+  mv *.AppImage /root/ready/
