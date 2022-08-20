@@ -1,7 +1,7 @@
 {
-  "name": "CARTA-v3.0.0-beta.1b",
+  "name": "CARTA",
   "version": "3.0.0",
-  "description": "2021 CARTA Desktop",
+  "description": "2022 CARTA Desktop",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
@@ -14,8 +14,7 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^13.1.8",
-    "electron-builder": "^22.3.3",
+    "electron": "19.0.13",
     "electron-notarize": "^0.2.1",
     "electron-packager": "^13.1.1",
     "minimist": "^1.2.5",
@@ -27,9 +26,10 @@
     "electron-installer-dmg": "^3.0.0",
     "electron-window-state": "^5.0.3",
     "electron-window-state-manager": "^0.3.2",
-    "find-free-port-sync": "^1.0.0",
     "express": "^4.16.4",
+    "get-port-sync": "^1.0.1",
     "minimist": "^1.2.3",
+    "node-gyp": "^9.1.0",
     "portscanner": "^2.2.0",
     "uuid": "^8.3.2"
   },

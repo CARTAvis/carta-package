@@ -18,7 +18,7 @@ electron.app.allowRendererProcessReuse = true;
 var fs = require('fs');
 const homedir = require('os').homedir();
 
-var findFreePort = require('find-free-port-sync');
+var getPortSync = require('get-port-sync');
 
 var uuid = require("uuid");
 
@@ -122,13 +122,13 @@ let newWindow;
        if (fs.statSync(arg1).isFile() === true) {
 //         console.log('DEBUG: File detected');
 	 //double check that it is a valid filetype for CARTA
-          if ( arg1.endsWith('.fits') || arg1.endsWith('.hdf5') )  {
+//          if ( arg1.endsWith('.fits') || arg1.endsWith('.hdf5') )  {
             var filemode = 1
 //            console.log('DEBUG: File type should be OK', arg1);
-          } else {
-            console.log('Error: Possibly an unsupported file type');
-            process.exit()
-         }
+//            } else {
+//            console.log('Error: Possibly an unsupported file type');
+//            process.exit()
+//         }
        }
     
    if (fs.statSync(arg1).isDirectory() === true) {
@@ -222,9 +222,9 @@ process.exit()
 
 // Show CARTA version number
   const button1 = new TouchBarButton({
-      icon: path.join(__dirname, 'carta_logo_v2.png'),
+      icon: path.join(__dirname, 'carta_icon_128px.png'),
       iconPosition: 'left',
-      label: 'CARTA v3.0.0-beta.1b',
+      label: 'CARTA',
       backgroundColor: '#000',
 //      click: () => {
 //           mainWindow.loadURL('https://cartavis.github.io/');
@@ -245,7 +245,7 @@ process.exit()
               iconPosition: 'right',
               label: 'CARTA User Manual',
               click: () => {
-              electron.shell.openExternal("https://carta.readthedocs.io/en/2.0");
+              electron.shell.openExternal("https://carta.readthedocs.io/en/3.0");
                 },
   });
 
@@ -312,18 +312,16 @@ const createWindow = exports.createWindow = () => {
   }
 
 //console.log('case1');
-  const newWindow = new BrowserWindow({
-    width: Math.max(mainWindowState.width, 640),
-    height: Math.max(mainWindowState.height, 480),
-    minWidth: 640,
-    minHeight: 480,
+    const newWindow = new BrowserWindow({
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     x: x,
     y: y,
     show: false
   });
 
 // Using the find-free-port-sync to find a free port for each carta-backend instance
-   arg4 = findFreePort();
+   arg4 = getPortSync();
 
 // CARTA will open normally if arg1/arg2 is a directory or empty
   if (filemode === 0) {
