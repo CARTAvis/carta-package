@@ -169,21 +169,23 @@ RUN \
   mkdir -p /root/CARTA/usr/share/icons/hicolor/256x256/apps && \
   mkdir -p /root/CARTA/usr/share/icons/hicolor/128x128/apps && \
   cp -r /root/carta-backend/static/icons/256x256/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/256x256/apps/ && \
-  cp -r /root/carta-backend/static/icons/128x128/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/128x128/apps/
+  cp -r /root/carta-backend/static/icons/128x128/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/128x128/apps/ && \
+  mkdir -p /root/CARTA/usr/share/metainfo
 
 COPY AppRun /root/CARTA
-COPY CARTA.desktop /root/CARTA
+COPY carta.desktop /root/CARTA
 COPY carta.png /root/CARTA
+COPY org.carta.desktop.appdata.xml /root/CARTA/usr/share/metainfo
 
 # Generate the AppImage
 RUN \ 
   source /etc/bashrc && \
   cd /root && \
   mkdir -p /root/appimage && \
-  wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-715-${ARCH_TYPE}.AppImage && \
-  chmod 755 appimagetool-715-${ARCH_TYPE}.AppImage && \
+  wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-722-${ARCH_TYPE}.AppImage && \
+  chmod 755 appimagetool-722-${ARCH_TYPE}.AppImage && \
   cd /root/CARTA && git init && \
   cd /root && \
-  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH_TYPE} VERSION=${RELEASE_TAG} /root/appimagetool-715-${ARCH_TYPE}.AppImage CARTA && \
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH_TYPE} VERSION=${RELEASE_TAG} /root/appimagetool-722-${ARCH_TYPE}.AppImage CARTA && \
   mv *.AppImage appimage
 

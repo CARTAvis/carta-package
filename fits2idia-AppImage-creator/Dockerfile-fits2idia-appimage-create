@@ -94,9 +94,9 @@ Categories=Science;\n\
 RUN \
   source /etc/bashrc && \
   cd /root && \
-  wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-715-${ARCH_TYPE}.AppImage && \
-  chmod 755 appimagetool-715-${ARCH_TYPE}.AppImage && \
+  wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-722-${ARCH_TYPE}.AppImage && \
+  chmod 755 appimagetool-722-${ARCH_TYPE}.AppImage && \
   cd /root/appimage && git init && cd /root && \
   mkdir /root/ready && \
-  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH_TYPE} VERSION=${RELEASE_TAG} /root/appimagetool-715-${ARCH_TYPE}.AppImage appimage && \
+  APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH_TYPE} VERSION=${RELEASE_TAG} /root/appimagetool-722-${ARCH_TYPE}.AppImage appimage && \
   mv *.AppImage /root/ready/

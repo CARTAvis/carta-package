@@ -34,3 +34,7 @@ setting `FRONTEND_FROM_NPM=False`.
 - To run an AppImage inside a Docker container (or a system without FUSE enabled): `APPIMAGE_EXTRACT_AND_RUN=1 ./CARTA.AppImage`
 
 - The `./create-carta-appimage.sh` script will build an `x86_64` version if run on an `x86_64` computer (or Intel Mac), and an `aarch64` version if run on an `aarch64` computer (or M1 Mac).
+
+- We are currently using the Continuous build from [probonopd/go-appimage](https://github.com/probonopd/go-appimage) as that is the only version of 
+Appimagetool that supports running on Ubuntu 22.04 without the need to install the older libfuse-2. The Continuous build regularly changes the version 
+number, so you many need to adjust the URL/filename in the Dockerfile before running the script e.g. 715, 718, 722 etc.
