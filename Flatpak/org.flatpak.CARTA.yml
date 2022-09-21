@@ -120,8 +120,8 @@ modules:
       - cp -R build/* $FLATPAK_DEST/share/carta/frontend
     sources:
       - type: archive
-        url: https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0-beta.3.tgz
-        sha256: 36414c50bb795689f7d828ffa28ef2034d9e33437ba916edb01e666a7c55b601
+        url: https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0.tgz
+        sha256: 56753940f0184cb66eb382032f8d82f425fc245e4b3656f5f38727582047e940
         path: build
 
   - name: zfp
@@ -154,9 +154,9 @@ modules:
     builddir: true
     config-opts:
       - -DCARTA_CASACORE_ROOT=/app
+      - -DCartaUserFolderPrefix=.carta
     sources:
       - type: git
         url: https://github.com/CARTAvis/carta-backend.git
-        tag: v3.0.0-beta.3
+        tag: v3.0.0
         #branch: dev
-
