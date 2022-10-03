@@ -1,16 +1,15 @@
 %define my_prefix  %{_prefix}
 %define debug_package %{nil}
+%undefine _disable_source_fetch
 
 Name:		carta-frontend
 Version:	3.0.0
-Release:	1%{?dist}
+Release:	1
 Summary:	carta-frontend as needed by carta
 
 License:	GPL-3+
 URL:		https://github.com/CARTAvis/carta-frontend
-Source0:	%{name}-%{version}.tgz
-
-BuildArch: %{_arch}
+Source0:	http://carta.asiaa.sinica.edu.tw/repo/sources/carta-frontend-3.0.0.tgz
 
 %description
 A production built carta-frontend component simply extracted from an npm package.
@@ -35,4 +34,3 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Thu Aug 18 2022 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.0.0
 - carta-frontend component for the CARTA 3.0 release
-

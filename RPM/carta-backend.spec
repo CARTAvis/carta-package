@@ -5,7 +5,7 @@
 
 Name:           carta-backend
 Version:        3.0.0
-Release:        1%{?dist}
+Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
 URL:            https://github.com/CARTAvis/carta-backend
@@ -15,18 +15,33 @@ BuildArch: %{_arch}
 
 BuildRequires: blas-devel
 BuildRequires: carta-casacore-devel
-BuildRequires: cmake
+BuildRequires: cmake3
 BuildRequires: cfitsio-devel
+BuildRequires: gcc-c++
 BuildRequires: hdf5-devel
+BuildRequires: libuuid-devel
+BuildRequires: libzstd-devel
 BuildRequires: protobuf-devel
+BuildRequires: pugixml-devel
 BuildRequires: wcslib-devel
 BuildRequires: zfp-devel >= 0.5.5
 
 # Only el7 requires carta-gsl-devel
 %{?el7:BuildRequires: carta-gsl-devel}
+%{?el8:BuildRequires: gsl-devel}
+%{?el9:BuildRequires: gsl-devel}
+
+# el7 requires newer gcc from devtoolset
+%{?el7:BuildRequires: devtoolset-8-gcc-c++}
 
 Requires: blas
+Requires: cfitsio
 Requires: carta-casacore
+Requires: hdf5
+Requires: libaec
+Requires: pugixml
+Requires: wcslib
+Requires: zfp
 
 # Only el7 requires carta-gsl
 %{?el7:Requires: carta-gsl}
@@ -45,20 +60,25 @@ This package provides the release version of the backend component.
 mkdir build 
 cd build
 
-%{?el8:cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release}
+# Only el7 requires carta-gsl and devtoolset
+%{?el7:
+. /opt/rh/devtoolset-8/enable
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta" \
+           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
+           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
+           -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
+           -DGSL_LIBRARY=/opt/carta-gsl/lib \
+           -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
+           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
+           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"}
 
-# Only el7 requires carta-gsl
-#%{?el7:export LD_LIBRARY_PATH=/opt/carta-gsl/lib:$LD_LIBRARY_PATH}
-%{?el7:cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio -I/opt/carta-gsl/include" \
-                  -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
-                  -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
-                  -DGSL_LIBRARY=/opt/carta-gsl/lib \
-                  -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
-                  -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-                  -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"}
+%{?el8:cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta"}
+%{?el9:cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta"}
+
 make
-
 %install
+rm -rf %{buildroot}
 cd build
 %make_install
 
