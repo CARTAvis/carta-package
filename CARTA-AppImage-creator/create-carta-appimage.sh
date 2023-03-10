@@ -8,11 +8,16 @@
 #        To build any frontend commit/tag from https://github.com/CARTAvis/carta-frontend
 # 'VERSION' is the part of the name applied to the final AppImage.
 
-BACKEND_TAG=v3.0.0
+BACKEND_TAG=v3.0.1
 CARTA_CASACORE_TAG=master
 FRONTEND_FROM_NPM=True # Set to True in order to take prebuilt carta-frontend from the npm repo
 FRONTEND_TAG=3.0.0
-VERSION=3.0.0
+VERSION=3.0.1
+
+# Currently we need to use the continuous build of go-appimage in order to have libfuse-3 support.
+# It updates regularly so please check https://github.com/probonopd/go-appimage/releases/tag/continuous 
+# first for the current version (e.g. 756) and enter it here:
+APPIMAGE_VERSION=765
 
 ARCH=$(arch)
 
@@ -61,6 +66,7 @@ docker build -f Dockerfile-carta-appimage-create \
              --build-arg NPM=$FRONTEND_FROM_NPM \
              --build-arg BACKEND=$BACKEND_TAG \
              --build-arg RELEASE_TAG=$VERSION \
+	     --build-arg APPIMAGE_VER=$APPIMAGE_VERSION \
              -t carta-appimage-create .
 docker run -d --name grabappimage carta-appimage-create
 docker cp grabappimage:/root/appimage/. .
