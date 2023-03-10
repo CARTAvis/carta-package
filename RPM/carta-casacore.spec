@@ -4,7 +4,7 @@
 
 Name:           carta-casacore
 Version:        3.4.0+6.5.0+2022.5.11
-Release:        1
+Release:        4
 Summary:        carta-casacore library files as needed by the CARTA image viewer
 
 License:        GPL-3+
@@ -19,25 +19,30 @@ BuildRequires:  cmake
 BuildRequires:  curl-devel
 BuildRequires:  fftw-devel
 BuildRequires:  flex
+
+%if 0%{?suse_version} >= 1500
+BuildRequires:  gcc9-c++
+BuildRequires:  gcc9-fortran
+%else
 BuildRequires:  gcc-c++
+%endif
+
 BuildRequires:  hdf5-devel
 BuildRequires:  lapack-devel
 BuildRequires:  pkgconfig
 BuildRequires:  readline-devel
 BuildRequires:  wcslib-devel
 
-# Only el7 requires carta-gsl-devel
-%{?el7:BuildRequires: carta-gsl-devel}
-%{?el8:BuildRequires: gsl-devel}
-%{?el9:BuildRequires: gsl-devel}
-
-# el7 requires newer gcc from devtoolset
-%{?el7:BuildRequires: devtoolset-8-gcc-c++}
+# Only el7 requires carta-gsl-devel and newer devtoolset
+%if 0%{?rhel} == 7
+BuildRequires: carta-gsl-devel
+BuildRequires: devtoolset-8-gcc-c++
+Requires: carta-gsl
+%else
+BuildRequires: gsl-devel
+%endif
 
 Requires: measures-data
-
-# Only el7 requires carta-gsl
-%{?el7:Requires: carta-gsl}
 
 %define _lib /lib
 
@@ -61,9 +66,9 @@ Required to develop the CARTA image viewer (https://cartavis.org).
 mkdir build
 cd build
 
-# Only el7 requires carta-gsl and devtoolset
-%{?el7:
-. /opt/rh/devtoolset-8/enable
+# Only el7/rhel7 requires carta-gsl and devtoolset
+%if 0%{?rhel} == 7
+source /opt/rh/devtoolset-8/enable
 %cmake .. -DUSE_THREADS=ON \
                  -DUSE_FFTW3=ON \
                  -DUSE_HDF5=ON \
@@ -89,46 +94,55 @@ cd build
 %make_build
 %install
 cd build
-%make_install}
+%make_install
+%endif
 
-%{?el8:%cmake .. -DUSE_THREADS=ON \
-                  -DUSE_FFTW3=ON \
-                  -DUSE_HDF5=ON \
-                  -DBUILD_PYTHON=OFF \
-                  -DBUILD_PYTHON3=OFF \
-                  -DBUILD_TESTING=OFF \
-                  -DUSE_OPENMP=ON \
-                  -DUseCcache=1 \
-                  -DHAS_CXX11=1 \
-                  -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
-                  -DDATA_DIR=/usr/share/casacore/data \
-                  -DENABLE_RPATH=NO
+%if 0%{?rhel} == 8 || 0%{?rhel} == 9
+%cmake .. -DUSE_THREADS=ON \
+          -DUSE_FFTW3=ON \
+          -DUSE_HDF5=ON \
+          -DBUILD_PYTHON=OFF \
+          -DBUILD_PYTHON3=OFF \
+          -DBUILD_TESTING=OFF \
+          -DUSE_OPENMP=ON \
+          -DUseCcache=1 \
+          -DHAS_CXX11=1 \
+          -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
+          -DDATA_DIR=/usr/share/casacore/data \
+          -DENABLE_RPATH=NO
 %cmake_build
 %install
 cd build
-%cmake_install}
+%cmake_install
+%endif
 
-%{?el9:%cmake .. -DUSE_THREADS=ON \
-                  -DUSE_FFTW3=ON \
-                  -DUSE_HDF5=ON \
-                  -DBUILD_PYTHON=OFF \
-                  -DBUILD_PYTHON3=OFF \
-                  -DBUILD_TESTING=OFF \
-                  -DUSE_OPENMP=ON \
-                  -DUseCcache=1 \
-                  -DHAS_CXX11=1 \
-                  -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
-                  -DDATA_DIR=/usr/share/casacore/data \
-                  -DENABLE_RPATH=NO
-%cmake_build
+%if 0%{?suse_version} >= 1500
+export CC=gcc CXX=g++-9 FC=gfortran-9
+cmake .. -DUSE_THREADS=ON \
+          -DUSE_FFTW3=ON \
+          -DUSE_HDF5=ON \
+          -DBUILD_PYTHON=OFF \
+          -DBUILD_PYTHON3=OFF \
+          -DBUILD_TESTING=OFF \
+          -DUSE_OPENMP=ON \
+          -DUseCcache=1 \
+          -DHAS_CXX11=1 \
+          -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
+          -DDATA_DIR=/usr/share/casacore/data \
+          -DENABLE_RPATH=NO
+make
 %install
 cd build
-%cmake_install}
+%make_install
+%endif
+
 
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 /bin/echo "/opt/carta-casacore/lib" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}.conf
 
-%{?el7: /bin/echo "/opt/carta-gsl/lib" >> %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}.conf}
+%if 0%{?rhel} == 7
+/bin/echo "/opt/carta-gsl/lib" >> %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}.conf
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -183,6 +197,12 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Thu Mar 2 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.4.0+6.5.0+2022.5.11-4
+- spec file modified to work with rhel 7/8/9
+
+* Mon Feb 6 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.4.0+6.5.0+2022.5.11-3
+- spec file modified to work with opensuse 15.4
+
 * Sun Aug 21 2022 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.4.0+6.5.0+2022.5.11-2
 - spec file modified to work on el7, el8, and el9
 
