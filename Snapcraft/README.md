@@ -2,7 +2,7 @@
 
 CARTA can be built and run as a [Snap](https://snapcraft.io/). It could be convenient for development and testing, or for running CARTA on a non-supported Linux platform.
 
-The CARTA snapcraft file is currently configured to use `v3.0.0` of the carta-backend and carta-frontend.
+The CARTA snapcraft file is currently configured to use carta-backend `v3.0.1` and carta-frontend `v3.0.0`.
 
 ### To build and run the CARTA Flatpak
 
@@ -23,7 +23,7 @@ snapcraft
 4. A snap file will be created. To install it locally in developer mode:
 
 ```
-sudo snap install --devmode carta_3.0.0_amd64.snap
+sudo snap install --devmode carta_3.0.1_amd64.snap
 ```
 
 5. To run the installed snap version of CARTA:

@@ -3,7 +3,7 @@
 CARTA can be built and run as a [Flatpak](https://flatpak.org/). It could be convenient for developement and testing purposes as third party dependencies can be easily changed. 
 For example you could easily switch between using HDF5 1.10 and HDF5 1.12 to test CARTA performance and correctness.
 
-The CARTA Flatpak manifest file is currently configured to use `v3.0.0` of the carta-backend and carta-frontend.
+The CARTA Flatpak manifest file is currently configured to use carta-backend `v3.0.1` and carta-frontend `v3.0.0`.
 
 ### To build and run the CARTA Flatpak
 
