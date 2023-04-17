@@ -13,7 +13,8 @@ fi
 #echo "uuid: "$1
 #echo "base: "$2
 #echo "port: "$3
+#echo "extra: "${@:4}
 
 $dirname/casa_data_autoupdate
 
-CARTA_AUTH_TOKEN=$1 $dirname/carta_backend $2 --port=$3 --frontend_folder=$dirname/../../ --no_browser
+CARTA_AUTH_TOKEN=$1 $dirname/carta_backend $2 --port=$3 --frontend_folder=$dirname/../../ --no_browser ${@:4}

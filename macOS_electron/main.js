@@ -2,6 +2,7 @@ const electron = require('electron');
 const { app, BrowserWindow, TouchBar } = require('electron')
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar
 
+const exec = require('child_process').exec;
 const path = require('path');
 const url = require('url');
 var spawn = require('child_process').spawn;
@@ -18,7 +19,7 @@ electron.app.allowRendererProcessReuse = true;
 var fs = require('fs');
 const homedir = require('os').homedir();
 
-var getPortSync = require('get-port-sync');
+var getPortSync = require('find-free-port-sync');
 
 var uuid = require("uuid");
 
@@ -203,20 +204,26 @@ if (items.remote === true) {
 process.exit()
 }
 
-// --help output  
- if (items.help === true) {
-     console.log("CARTA Electron desktop version");
-     console.log("Usage:");
-     console.log("carta []             CARTA file browser will default to the current path.");
-     console.log("      [<path>]       CARTA file browser will default to the specified    ");
-     console.log("                     path <path> e.g. carta ~/CARTA/Images               ");
-     console.log("      [<image>]      CARTA will directly open the image named <image>    ");
-     console.log("                     e.g. carta aJ.fits or carta ~/CARTA/Images/aJ.fits  ");
-     console.log("      --help         View this help output.                              ");
-     console.log("      --debug        Open the DevTools in the Electron window.           ");
-     console.log(" ");
-process.exit()
- }
+// Print the --help output from the carta_backend --help output  
+ if (items.help) {
+      
+  var run = exec(path.join(__dirname, 'carta-backend/bin/carta_backend --help'));
+      
+  run.stdout.on('data', (data) => {
+    console.log(`${data}`);
+    console.log("Additional Electron version flag:");
+    console.log("      --debug      Open the DevTools in the Electron window.");
+  });
+        
+  run.on('error', (err) => {
+    console.error('Error:', err);
+  });      
+        
+  run.on('exit', () => {
+    process.exit();
+  });   
+        
+}
 
 // Basic MacOS touch bar support
 
@@ -345,16 +352,36 @@ const createWindow = exports.createWindow = () => {
 //// Start backend here ///////////////////////
 //console.log("DEBUG: Starting CARTA normally");
 
- const exec = require('child_process').exec;
-
       cartauuid = arg0;    
       cartabase = folder;
       cartaport = arg4;
 
-      var run = exec(path.join(__dirname,'carta-backend/bin/run.sh').concat(' ',cartauuid, ' ',cartabase,' ',cartaport));
+//console.log(process.argv.slice(1))
+
+var args = process.argv.slice(1); // remove first two elements
+var extraargs = args.join(' ');
+
+//console.log(extraargs)
+
+      var run = exec(path.join(__dirname,'carta-backend/bin/run.sh').concat(' ',cartauuid, ' ',cartabase,' ',cartaport,' ',extraargs));
+
+      run.stdout.on('data', (data) => {
+         console.log(`${data}`);
+      });
+
+      run.on('error', (err) => {
+         console.error('Error:', err);
+      });
 
 //  console.log('backend startup script',run.pid);
 ///////////////////////////////////////////////
+
+// --scripting mode message
+//if (items.scripting === true) {
+//     console.log("CARTA Electron desktop version - Python scripting");
+//     console.log("URL: http://localhost:"+arg4+"?token="+arg0+"");
+//     console.log(`Session ID: ${sessionNumber}`);
+//}
 
 /// Open the DevTools with the --debug flag //
 if (items.debug === true) {
