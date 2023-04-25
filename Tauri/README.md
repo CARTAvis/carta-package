@@ -6,7 +6,7 @@ On macOS, this is achieved through WebKit, and webkit2gtk on Linux.
 For example, the final CARTA Tauri App on macOS is approximately 112MB in size compared to over 300MB for the Electron version.
 
 The layout of the carta-tauri directory is as follows:
-
+```
 carta-tauri
 ├── build.rs
 ├── Cargo.toml
@@ -28,7 +28,7 @@ carta-tauri
         └── data
             ├── ephemerides \<measures data\>
             └── geodetic \<measures data\>
-
+```
 There are four main Tauri related files:
 
   -  `src/main.rs`: Responsible for initializing the app and its functionality.
