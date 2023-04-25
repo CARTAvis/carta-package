@@ -1,0 +1,23 @@
+[package]
+name = "carta-tauri"
+version = "3.0.0"
+description = "A Tauri App version of CARTA"
+authors = ["cartavis-team"]
+license = "GPL-3.0"
+repository = "https://github.com/CARTAvis"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.2.1", features = [] }
+
+[dependencies]
+tauri = { version = "1.2.4", features = ["api-all", "devtools"] }
+tauri-plugin-window-state = "0.1.0"
+dirs = "3.0.2"
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

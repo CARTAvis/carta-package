@@ -1,0 +1,59 @@
+{
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "devPath": "./",
+    "distDir": "./",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "carta-tauri",
+    "version": "3.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "http": {
+        "all": true,
+        "request": true
+      },	    
+      "fs": {
+        "all": true
+      },
+      "path": {
+        "all": true
+      },
+      "all": true,
+      "shell": {
+        "all": true,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "icon": [
+        "icons/icon.icns"
+      ],
+      "identifier": "org.cartavis.carta",
+      "targets": "all",
+      "resources": [
+        "carta-frontend",
+        "carta-backend"
+      ]
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "carta-tauri",
+        "width": 1920,
+        "height": 1080
+      }
+    ]
+  }
+}
