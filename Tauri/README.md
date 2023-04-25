@@ -17,17 +17,17 @@ carta-tauri
 │   └── main.rs
 ├── tauri.conf.json
 ├── carta-frontend
-│   └── \<production frontend files here\>
+│   └── <production frontend files here>
 └── carta-backend
     ├── bin
-    │   ├── run.sh \<remember to modify\>
+    │   ├── run.sh <remember to modify>
     │   └── carta_backend
     ├── lib
-    │   └── \<lib files required by packaged carta_backend\>
+    │   └── <lib files required by packaged carta_backend>
     └── etc
         └── data
-            ├── ephemerides \<measures data\>
-            └── geodetic \<measures data\>
+            ├── ephemerides <measures data>
+            └── geodetic <measures data>
 ```
 There are four main Tauri related files:
 
