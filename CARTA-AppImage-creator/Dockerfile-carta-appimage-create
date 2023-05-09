@@ -25,11 +25,19 @@ RUN \
   yum -y install yum-plugin-copr && \
   yum -y copr enable cartavis/carta && \
   yum -y install epel-release && \
-  yum install -y autoconf automake bison blas-devel bzip2 carta-gsl-devel cfitsio-devel curl-devel cmake3 flex \
+  yum install -y autoconf automake bison carta-gsl-devel blas-devel bzip2 cfitsio-devel curl-devel cmake3 flex \
     git git-lfs gtest-devel hdf5-devel lapack-devel libtool libxml2-devel libzstd-devel \
     make openssl-devel protobuf-devel pugixml-devel readline-devel subversion systemd-devel wcslib-devel wget \
-    zlib-devel libuuid-devel zfp-devel patchelf file && \
+    zlib-devel libuuid-devel patchelf file zfp-devel && \
   ln -s /usr/bin/cmake3 /usr/bin/cmake
+
+# We use some custom RPMs that we host of Fedora Copr, Unfortunately Fedora Copr does not support el7 aarch64.
+# So we now included the aarch64 carta-gsl, protobuf, and zfp RPMs in the aarch64-RPM folder and install them on aarch64 only..
+COPY aarch64-RPMs/* /aarch64-RPMs/
+RUN if [ "$ARCH_TYPE" = "aarch64" ]; then \
+        yum -y remove protobuf protobuf-devel && \
+        yum -y localinstall /aarch64-RPMs/*.rpm; \
+    fi
 
 # Get the latest geodetic and ephemerides measures data
 RUN \
@@ -96,7 +104,7 @@ RUN \
   git submodule update --init --recursive && \
   mkdir build && cd build && \
   cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-           -DCartaUserFolderPrefix=".carta" \
+           -DCartaUserFolderPrefix=".carta-beta" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
            -DGSL_LIBRARY=/opt/carta-gsl/lib \
            -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
