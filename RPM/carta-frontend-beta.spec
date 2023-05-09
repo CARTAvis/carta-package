@@ -6,11 +6,12 @@
 %define my_prefix  %{_prefix}
 %define debug_package %{nil}
 %undefine _disable_source_fetch
+%define beta_install_path /opt/carta-beta
 
 Name:           carta-frontend-beta
 Version:        4.0+2023.5.4
 Release:        1
-Summary:        carta-frontend as needed by carta
+Summary:        carta-frontend-beta as needed by carta-beta
 
 License:        GPL-3+
 URL:            https://github.com/CARTAvis/carta-frontend
@@ -18,7 +19,7 @@ Source0:        carta-frontend-beta-4.0+2023.5.4.tgz
 
 %description
 A production built carta-frontend component simply extracted from an npm package.
-Requires a carta-backend.
+Requires a carta-backend-beta.
 
 %prep
 %setup -q
@@ -26,17 +27,16 @@ Requires a carta-backend.
 %build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/opt/carta-backend-beta/share/carta/frontend
-cp -r build/* $RPM_BUILD_ROOT/opt/carta-backend-beta/share/carta/frontend
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{beta_install_path}/share/carta/frontend
+cp -r build/* %{buildroot}%{beta_install_path}/share/carta/frontend
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
-/opt/carta-backend-beta/share/carta/frontend
+%{beta_install_path}/share/carta/frontend
 
 %changelog
 * Thu May 4 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.0+2023.5.4
   - Custom carta-frontend-beta component for the CARTA 4.0-beta.1 release
-

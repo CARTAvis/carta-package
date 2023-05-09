@@ -17,10 +17,15 @@ Most of our RPM SPEC files can be built interchangeably on `el7, el8`,`el9`, and
 | carta-gsl | 2.5 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-gsl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-gsl/) |
 | protobuf | 3.6.0 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/protobuf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/protobuf/) |
 | gtest | 1.10 | el7 / el8 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/) |
+| | | |
+| carta-beta | 4.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-beta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-beta/) |
+| carta-backend-beta | 4.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend-beta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend-beta/) |
+| carta-frontend-beta | 4.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend-beta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend-beta/) |
 
-The **carta**, **carta-backend**, and **carta-frontend** packages would be updated regularly for each CARTA release.
-The **carta-casacore**, **measures-data**, and **fits2idia** packages would be updated occasionally.
-The other packages would not need to be updated.
+The **carta**, **carta-backend**, and **carta-frontend** packages are updated regularly for each mainline CARTA release.
+The **carta-beta**, **carta-backend-beta**, and **carta-frontend-beta** packages are experimental and may be updated for each CARTA 'beta' release (The beta release installs independently to /opt/carta-beta and can be run with `carta-beta`).
+The **carta-casacore**, **measures-data**, and **fits2idia** packages are updated occasionally.
+The other packages do not require updates.
 
  **Note**: Copr does not support el7 aarch64
 

@@ -9,6 +9,7 @@
 %define my_prefix  %{_prefix}
 %define debug_package %{nil}
 %define datadirbeta /opt/carta-backend-beta/share
+%define beta_install_path /opt/carta-beta
 
 Name:           carta-backend-beta
 Version:        4.0+2023.5.4
@@ -77,7 +78,7 @@ cd build
 # Only el7/rhel7 requires carta-gsl and devtoolset
 %if 0%{?rhel} == 7
 . /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/opt/carta-backend-beta -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta" \
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta" \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
@@ -90,12 +91,12 @@ cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/op
 
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/opt/carta-backend-beta -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/opt/carta-backend-beta -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
+cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 make
@@ -106,32 +107,33 @@ cd build
 
 cd ..
 
-mkdir -p %{buildroot}%{datadirbeta}/applications
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/16x16/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/22x22/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/24x24/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/32x32/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/48x48/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/64x64/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/128x128/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/256x256/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/512x512/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/scalable/apps
-mkdir -p %{buildroot}%{datadirbeta}/icons/hicolor/symbolic/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/applications
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/16x16/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/22x22/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/24x24/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/32x32/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/48x48/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/64x64/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/128x128/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/256x256/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/512x512/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/scalable/apps
+mkdir -p %{buildroot}%{beta_install_path}/share/icons/hicolor/symbolic/apps
 
-cp static/carta.desktop %{buildroot}%{datadirbeta}/applications
-cp static/icons/16x16/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/16x16/apps
-cp static/icons/22x22/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/22x22/apps
-cp static/icons/24x24/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/24x24/apps
-cp static/icons/32x32/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/32x32/apps
-cp static/icons/48x48/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/48x48/apps
-cp static/icons/64x64/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/64x64/apps
-cp static/icons/128x128/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/128x128/apps
-cp static/icons/256x256/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/256x256/apps
-cp static/icons/512x512/cartaviewer.png %{buildroot}%{datadirbeta}/icons/hicolor/512x512/apps
-cp static/icons/scalable/cartaviewer.svg %{buildroot}%{datadirbeta}/icons/hicolor/scalable/apps
-cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{datadirbeta}/icons/hicolor/symbolic/apps
+cp static/carta.desktop %{buildroot}%{beta_install_path}/share/applications
+cp static/icons/16x16/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/16x16/apps
+cp static/icons/22x22/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/22x22/apps
+cp static/icons/24x24/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/24x24/apps
+cp static/icons/32x32/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/32x32/apps
+cp static/icons/48x48/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/48x48/apps
+cp static/icons/64x64/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/64x64/apps
+cp static/icons/128x128/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/128x128/apps
+cp static/icons/256x256/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/256x256/apps
+cp static/icons/512x512/cartaviewer.png %{buildroot}%{beta_install_path}/share/icons/hicolor/512x512/apps
+cp static/icons/scalable/cartaviewer.svg %{buildroot}%{beta_install_path}/share/icons/hicolor/scalable/apps
+cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{beta_install_path}/share/icons/hicolor/symbolic/apps
 
+# Create the carta-beta startup script
 mkdir -p %{buildroot}%{_bindir}
 cat > %{buildroot}%{_bindir}/carta-beta << 'EOF'
 #!/bin/bash
@@ -151,10 +153,9 @@ if [ -x "$(command -v casa_data_autoupdate)" ]; then
     casa_data_autoupdate
 fi
 
-/opt/carta-backend-beta/bin/carta_backend "$@"
+/opt/carta-beta/bin/carta_backend "$@"
 EOF
 chmod +x %{buildroot}%{_bindir}/carta-beta
-
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -163,36 +164,35 @@ rm -rf $RPM_BUILD_ROOT
 %postun -p /sbin/ldconfig
 
 %files
-/opt/carta-backend-beta/bin/carta_backend
-/opt/carta-backend-beta/bin/carta
-/opt/carta-backend-beta/share/carta/default.fits
+%{beta_install_path}/bin/carta_backend
+%{beta_install_path}/bin/carta
+%{beta_install_path}/share/carta/default.fits
 %{_bindir}/carta-beta
 
-%{datadirbeta}/applications/carta.desktop
-%{datadirbeta}/icons/hicolor/16x16/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/22x22/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/24x24/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/32x32/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/48x48/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/64x64/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/128x128/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/256x256/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/512x512/apps/cartaviewer.png
-%{datadirbeta}/icons/hicolor/scalable/apps/cartaviewer.svg
-%{datadirbeta}/icons/hicolor/symbolic/apps/cartaviewer.svg
+%{beta_install_path}/share/applications/carta.desktop
+%{beta_install_path}/share/icons/hicolor/16x16/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/22x22/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/24x24/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/32x32/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/48x48/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/64x64/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/128x128/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/256x256/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/512x512/apps/cartaviewer.png
+%{beta_install_path}/share/icons/hicolor/scalable/apps/cartaviewer.svg
+%{beta_install_path}/share/icons/hicolor/symbolic/apps/cartaviewer.svg
 
 # Bug found in the carta-backend relating to the pugixml third-party library creating uneeded files.
 # It should be addressed in the next release.
-%exclude /opt/carta-backend-beta/include/pugiconfig.hpp
-%exclude /opt/carta-backend-beta/include/pugixml.hpp
-%exclude /opt/carta-backend-beta/lib64/cmake/pugixml/pugixml-config-version.cmake
-%exclude /opt/carta-backend-beta/lib64/cmake/pugixml/pugixml-config.cmake
-%exclude /opt/carta-backend-beta/lib64/cmake/pugixml/pugixml-targets-release.cmake
-%exclude /opt/carta-backend-beta/lib64/cmake/pugixml/pugixml-targets.cmake
-%exclude /opt/carta-backend-beta/lib64/libpugixml.a
-%exclude /opt/carta-backend-beta/lib64/pkgconfig/pugixml.pc
+%exclude %{beta_install_path}/include/pugiconfig.hpp
+%exclude %{beta_install_path}/include/pugixml.hpp
+%exclude %{beta_install_path}/lib64/cmake/pugixml/pugixml-config-version.cmake
+%exclude %{beta_install_path}/lib64/cmake/pugixml/pugixml-config.cmake
+%exclude %{beta_install_path}/lib64/cmake/pugixml/pugixml-targets-release.cmake
+%exclude %{beta_install_path}/lib64/cmake/pugixml/pugixml-targets.cmake
+%exclude %{beta_install_path}/lib64/libpugixml.a
+%exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
 * Thu May 4 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.0+2023.5.4
   - Custom carta-backend-beta component for the CARTA 4.0-beta.1 release
-
