@@ -13,7 +13,7 @@
 
 Name:           carta-backend-beta
 Version:        4.0+2023.5.4
-Release:        1
+Release:        2
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
 URL:            https://github.com/CARTAvis/carta-backend
@@ -57,9 +57,16 @@ Requires: blas
 Requires: cfitsio
 Requires: carta-casacore
 Requires: hdf5
+%if 0%{?suse_version} >= 1500
+Requires: libaec0
+Requires: libwcs7
+%else
 Requires: libaec
 Requires: wcslib
+%endif
 Requires: zfp
+
+%define NVdir %{name}-%{version}
 
 %description
 CARTA is a next generation image visualization and analysis tool designed for ALMA, VLA, and SKA pathfinders.
@@ -69,9 +76,13 @@ This package provides the release version of the backend component.
 %define _bin /bin
 
 %prep
-%setup -q
+rm -rf %{NVdir}
+git clone %{url}.git %{NVdir}
+cd %{NVdir}
+git submodule update --init --recursive
 
 %build
+cd %{NVdir}
 mkdir build
 cd build
 
@@ -99,10 +110,10 @@ export CC=gcc-9 CXX=g++-9 FC=gfortran-9
 cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
-make
+make -j 2
 %install
 rm -rf %{buildroot}
-cd build
+cd %{NVdir}/build
 %make_install
 
 cd ..
@@ -133,7 +144,6 @@ cp static/icons/512x512/cartaviewer.png %{buildroot}%{beta_install_path}/share/i
 cp static/icons/scalable/cartaviewer.svg %{buildroot}%{beta_install_path}/share/icons/hicolor/scalable/apps
 cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{beta_install_path}/share/icons/hicolor/symbolic/apps
 
-# Create the carta-beta startup script
 mkdir -p %{buildroot}%{_bindir}
 cat > %{buildroot}%{_bindir}/carta-beta << 'EOF'
 #!/bin/bash
@@ -194,5 +204,8 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
+* Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 4.0+2023.5.4-2
+  - Pulls source directly from scm
+
 * Thu May 4 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.0+2023.5.4
   - Custom carta-backend-beta component for the CARTA 4.0-beta.1 release
