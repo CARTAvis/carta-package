@@ -4,7 +4,7 @@
 
 Name:           carta-casacore
 Version:        3.4.0+6.5.0+2022.5.11
-Release:        4
+Release:        5
 Summary:        carta-casacore library files as needed by the CARTA image viewer
 
 License:        GPL-3+
@@ -45,6 +45,7 @@ BuildRequires: gsl-devel
 Requires: measures-data
 
 %define _lib /lib
+%define NVdir %{name}-%{version}
 
 %description
 The casacore and casacode image analysis library files (carta-casacore).
@@ -60,9 +61,13 @@ The casacore and casacode image analysis development packages (carta-casacore).
 Required to develop the CARTA image viewer (https://cartavis.org).
 
 %prep
-%setup -q
+rm -rf %{NVdir}
+git clone %{url}.git %{NVdir} --recursive
+cd %{NVdir}
+git checkout -b %{version} tags/%{version}
 
 %build
+cd %{NVdir}
 mkdir build
 cd build
 
@@ -93,7 +98,7 @@ source /opt/rh/devtoolset-8/enable
                  -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
 %make_build
 %install
-cd build
+cd %{NVdir}/build
 %make_install
 %endif
 
@@ -112,7 +117,7 @@ cd build
           -DENABLE_RPATH=NO
 %cmake_build
 %install
-cd build
+cd %{NVdir}/build
 %cmake_install
 %endif
 
@@ -130,9 +135,9 @@ cmake .. -DUSE_THREADS=ON \
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
           -DENABLE_RPATH=NO
-make
+make -j 2
 %install
-cd build
+cd %{NVdir}/build
 %make_install
 %endif
 
@@ -197,6 +202,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 3.4.0+6.5.0+2022.5.11-5
+- Pulls source directly from scm
+
 * Thu Mar 2 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.4.0+6.5.0+2022.5.11-4
 - spec file modified to work with rhel 7/8/9
 
