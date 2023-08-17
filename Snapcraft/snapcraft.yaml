@@ -19,6 +19,7 @@ apps:
     environment:
       LD_LIBRARY_PATH: $SNAP/opt/carta-casacore/lib:$SNAP/usr/lib/x86_64-linux-gnu/lapack:$SNAP/usr/lib/x86_64-linux-gnu/blas:$LD_LIBRARY_PATH
       PATH: $SNAP/usr/local/bin:/usr/bin
+      DEPLOYMENT_TYPE: snapcraft
     plugs:
       - desktop      
       - home

@@ -8,6 +8,7 @@ finish-args:
   - --socket=session-bus
   - --share=network
   - --share=ipc
+  - --env=DEPLOYMENT_TYPE=flatpak
 
 modules:
   - name: gsl
