@@ -19,7 +19,6 @@ apps:
     environment:
       LD_LIBRARY_PATH: $SNAP/opt/carta-casacore/lib:$SNAP/usr/lib/x86_64-linux-gnu/lapack:$SNAP/usr/lib/x86_64-linux-gnu/blas:$LD_LIBRARY_PATH
       PATH: $SNAP/usr/local/bin:/usr/bin
-      DEPLOYMENT_TYPE: snapcraft
     plugs:
       - desktop      
       - home
@@ -97,7 +96,7 @@ parts:
     after: 
       - carta-casacore
     cmake-parameters: 
-      - -DCMAKE_CXX_FLAGS="-I$SNAPCRAFT_STAGE/opt/carta-casacore/include -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacode -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacore" -DCMAKE_CXX_STANDARD_LIBRARIES="-L$SNAPCRAFT_STAGE/opt/carta-casacore/lib" -DCartaUserFolderPrefix=.carta
+      - -DCMAKE_CXX_FLAGS="-I$SNAPCRAFT_STAGE/opt/carta-casacore/include -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacode -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacore" -DCMAKE_CXX_STANDARD_LIBRARIES="-L$SNAPCRAFT_STAGE/opt/carta-casacore/lib" -DCartaUserFolderPrefix=.carta -DDEPLOYMENT_TYPE=snapcraft
     build-packages:
       - bison  
       - fftw3-dev

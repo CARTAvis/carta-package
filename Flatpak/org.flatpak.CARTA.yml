@@ -8,7 +8,6 @@ finish-args:
   - --socket=session-bus
   - --share=network
   - --share=ipc
-  - --env=DEPLOYMENT_TYPE=flatpak
 
 modules:
   - name: gsl
@@ -156,6 +155,7 @@ modules:
     config-opts:
       - -DCARTA_CASACORE_ROOT=/app
       - -DCartaUserFolderPrefix=.carta
+      - -DDEPLOYMENT_TYPE=flatpak
     sources:
       - type: git
         url: https://github.com/CARTAvis/carta-backend.git
