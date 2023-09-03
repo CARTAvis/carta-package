@@ -3,7 +3,7 @@
 
 Name:           zfp
 Version:        0.5.5
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Compressed numerical arrays that support high-speed random access
 
 License:        BSD-3-Clause
@@ -32,23 +32,31 @@ ZFP 0.5.5 needed by the carta-backend.
 Summary: ZFP 0.5.5 development files
 Provides: zfp-devel
 
+%define NVdir %{name}-%{version}
+
 %description devel
 Development package of ZFP 0.5.5 containing the lib and header files.
 
 %prep
-%setup -q
+rm -rf %{NVdir}
+git clone %{url} %{NVdir}
+cd %{NVdir}
+git checkout -b %{version} tags/%{version}
 
 %build
+cd %{NVdir}
 
 %if 0%{?suse_version} >= 1500
 %cmake -DCMAKE_INSTALL_PREFIX=/usr
 %cmake_build
 %install
+cd %{NVdir}
 %cmake_install
 %else
 %cmake3 -DCMAKE_INSTALL_PREFIX=/usr 
 %cmake3_build
 %install
+cd %{NVdir}
 %cmake3_install
 %endif
 
@@ -70,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %postun -p /sbin/ldconfig
 
 %changelog
+* Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 0.5.5-3
+  - Pulls source directly from scm
+
 * Tue Feb 7 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 0.5.5-2
   - Rebuilt for opensuse 15.4
 
