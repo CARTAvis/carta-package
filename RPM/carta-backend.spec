@@ -86,16 +86,17 @@ cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/us
            -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" \
+           -DDEPLOYMENT_TYPE=rpm
 %endif
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta"
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9 
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta"
+cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
 make

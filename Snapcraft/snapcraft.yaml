@@ -96,7 +96,7 @@ parts:
     after: 
       - carta-casacore
     cmake-parameters: 
-      - -DCMAKE_CXX_FLAGS="-I$SNAPCRAFT_STAGE/opt/carta-casacore/include -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacode -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacore" -DCMAKE_CXX_STANDARD_LIBRARIES="-L$SNAPCRAFT_STAGE/opt/carta-casacore/lib" -DCartaUserFolderPrefix=.carta
+      - -DCMAKE_CXX_FLAGS="-I$SNAPCRAFT_STAGE/opt/carta-casacore/include -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacode -I$SNAPCRAFT_STAGE/opt/carta-casacore/include/casacore" -DCMAKE_CXX_STANDARD_LIBRARIES="-L$SNAPCRAFT_STAGE/opt/carta-casacore/lib" -DCartaUserFolderPrefix=.carta -DDEPLOYMENT_TYPE=snapcraft
     build-packages:
       - bison  
       - fftw3-dev
