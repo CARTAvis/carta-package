@@ -4,7 +4,7 @@
 %define debug_package %{nil}
 
 Name:           carta-backend
-Version:        3.0.1
+Version:        4.0.0
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -12,6 +12,9 @@ URL:            https://github.com/CARTAvis/carta-backend
 Source0:        %{name}-%{version}.tgz
 
 BuildArch: %{_arch}
+
+Obsoletes: carta-backend <= 3.0.1
+Obsoletes: carta-backend = 4.0.0~rc.0
 
 BuildRequires: blas-devel
 BuildRequires: carta-casacore-devel
@@ -52,11 +55,9 @@ Requires: carta-casacore
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0
-Requires: libpugixml1
 Requires: libwcs7
 %else
 Requires: libaec
-Requires: pugixml
 Requires: wcslib
 %endif
 Requires: zfp
@@ -78,7 +79,8 @@ cd build
 # Only el7/rhel7 requires carta-gsl and devtoolset
 %if 0%{?rhel} == 7
 . /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta" \
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+           -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
@@ -86,17 +88,18 @@ cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/us
            -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" \
-           -DDEPLOYMENT_TYPE=rpm
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
 %endif
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+           -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
 %if 0%{?suse_version} >= 1500
-export CC=gcc-9 CXX=g++-9 FC=gfortran-9 
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
+export CC=gcc-9 CXX=g++-9 FC=gfortran-9
+cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
 make
@@ -158,6 +161,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/icons/hicolor/symbolic/apps/cartaviewer.svg
 
 %changelog
+* Tue Sep 5 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.0.0
+  - carta-backend component for the CARTA 4.0 release
+
 * Tue Mar 7 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.0.1-1
   - Backported security fix
 
