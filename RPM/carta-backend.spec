@@ -4,7 +4,7 @@
 %define debug_package %{nil}
 
 Name:           carta-backend
-Version:        3.0.1
+Version:        4.0.0
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -52,14 +52,14 @@ Requires: carta-casacore
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0
-Requires: libpugixml1
 Requires: libwcs7
 %else
 Requires: libaec
-Requires: pugixml
 Requires: wcslib
 %endif
 Requires: zfp
+
+%define NVdir %{name}-%{version}
 
 %description
 CARTA is a next generation image visualization and analysis tool designed for ALMA, VLA, and SKA pathfinders.
@@ -69,9 +69,14 @@ This package provides the release version of the backend component.
 %define _bin /bin
 
 %prep
-%setup -q
+rm -rf %{NVdir}
+git clone %{url}.git %{NVdir}
+cd %{NVdir}
+git checkout -b %{version} tags/%{version}
+git submodule update --init --recursive
 
 %build
+cd %{NVdir}
 mkdir build 
 cd build
 
@@ -102,7 +107,7 @@ cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr
 make
 %install
 rm -rf %{buildroot}
-cd build
+cd %{NVdir}/build
 %make_install
 
 cd ..
@@ -158,6 +163,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/icons/hicolor/symbolic/apps/cartaviewer.svg
 
 %changelog
+* Wed Sep 21 2023 William Davey <wdavey@pawsey.org.au> 4.0.0
+  - carta-backend component for the CARTA 4.0.0 release
+  - Pulls source directly from scm
+
 * Tue Mar 7 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.0.1-1
   - Backported security fix
 
