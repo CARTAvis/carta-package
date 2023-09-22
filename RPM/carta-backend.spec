@@ -9,13 +9,13 @@ Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
 URL:            https://github.com/CARTAvis/carta-backend
-Source0:        %{name}-%{version}.tgz
 
 BuildArch: %{_arch}
 
 Obsoletes: carta-backend <= 3.0.1
 Obsoletes: carta-backend = 4.0.0~rc.0
 
+BuildRequires: git
 BuildRequires: blas-devel
 BuildRequires: carta-casacore-devel
 %if 0%{?suse_version} >= 1500
@@ -62,6 +62,8 @@ Requires: wcslib
 %endif
 Requires: zfp
 
+%define NVdir %{name}-%{version}
+
 %description
 CARTA is a next generation image visualization and analysis tool designed for ALMA, VLA, and SKA pathfinders.
 .
@@ -70,10 +72,15 @@ This package provides the release version of the backend component.
 %define _bin /bin
 
 %prep
-%setup -q
+rm -rf %{NVdir}
+git clone %{url}.git %{NVdir}
+cd %{NVdir}
+git checkout v%{version}
+git submodule update --init --recursive
 
 %build
-mkdir build 
+cd %{NVdir}
+mkdir build
 cd build
 
 # Only el7/rhel7 requires carta-gsl and devtoolset
@@ -105,7 +112,7 @@ cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr
 make
 %install
 rm -rf %{buildroot}
-cd build
+cd %{NVdir}/build
 %make_install
 
 cd ..

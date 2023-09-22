@@ -9,7 +9,6 @@ Summary:        carta-casacore library files as needed by the CARTA image viewer
 
 License:        GPL-3+
 URL:            https://github.com/CARTAvis/carta-casacore
-Source0:        %{name}-%{version}.tar.gz
 
 BuildArch: %{_arch}
 
