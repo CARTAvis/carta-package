@@ -24,11 +24,11 @@ Build the carta-backend with the `-DCartaUserFolderPrefix=` flag. If it is a bet
 ```
 git clone https://github.com/CARTAvis/carta-backend.git
 cd carta-backend
-git checkout release/3.0
+git checkout release/4.0
 git submodule update --init --recursive
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta"
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=electron
 make -j 4
 ```
 
@@ -66,8 +66,8 @@ cd build
 OR
 A pre-built package can be download from the NPM repository: e.g.
 ```
-wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0.tgz
-tar -xvf carta-frontend-3.0.0.tgz
+wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-4.0.0.tgz
+tar -xvf carta-frontend-4.0.0.tgz
 And work in package/build
 cd package/build
 ```
@@ -116,11 +116,11 @@ Copy over all the files contained in this repo to the carta-frontend `build` fol
 
 Usually, the only files that would need modification for each release are:
 
-1.  `scripts/notarize.js`: The first time you add your Apple ID credentials.
+1. `scripts/notarize.js`: The first time you add your Apple ID credentials.
 2. `build/background.tiff`: A custom image in the DMG installer (optional).
 3. `package.json`: To update the release "name" and package versions.
 4. `carta-backend/etc/data`: To add the `geodetic` and `ephemerides` data.
-5.  `carta-backend/libs`: To add the packaged library files created in the "Package carta-backend" Stage 3 above.
+5. `carta-backend/libs`: To add the packaged library files created in the "Package carta-backend" Stage 3 above.
 6. `carta-backend/bin/carta_backend`: The packaged carta_backend executable created in the "Package carta-backend" Stage 3 above.
 
 ### 6. Create the Electron App ###
@@ -140,15 +140,8 @@ If not previously set up, get the code-signing certificate on your Mac with a pr
 3. Make sure `electron-builder` is installed and accessible:
 	```
 	npm install -g electron-builder
-	```
-	
-4. Currently, the `portscanner` package seems to run something called deasync and that gives errors about "The binary uses an SDK older than the 10.9 SDK." The easy fix is to just delete the problematic folders as they are not used:
-	```
-	rm -rf node_modules/deasync/bin/darwin-x64-node-0.10
-    rm -rf node_modules/deasync/bin/darwin-x64-node-0.11
-    rm -rf node_modules/deasync/bin/darwin-x64-node-0.12
-    ```
-5. Run the electron-builder:
+	```	
+4. Run the electron-builder:
 	**Note**: electron-builder can interchangeably build the Electron component (The app window that displays the frontend) on both an Intel or M1 Macs, but the **carta_backend** executable itself first needs to be built on either Intel *or* M1. For example, an M1 Mac can create the Electron component for Intel Macs, but you need to copy over a carta-backend packaged for Intel before issuing the electron-builder command.
 	
    When you have a carta-backend built and packaged on Intel x86 computer:
@@ -157,7 +150,7 @@ If not previously set up, get the code-signing certificate on your Mac with a pr
     When you have a carta-backend built and packaged on an M1 Mac:
 	``` electron-builder build --mac --arm64 ```
 
-If everything goes well, it will upload the package to Apple servers and after a few minutes, a final signed and notarized dmg will appear in the `dist` folder. It will have an additional number e.g. 3.0.0 (from the “version” line in the package.json, but you can rename the dmg file before uploading it to the carta repo on Github.
+If everything goes well, it will upload the package to Apple servers and after a few minutes, a final signed and notarized dmg will appear in the `dist` folder. It will have an additional number e.g. 4.0.0 (from the “version” line in the package.json, but you can rename the dmg file before uploading it to the carta repo on Github.
 
 If you see obscure errors, it can be hard to figure out what went wrong. A few common failures are:
 -   Terms and conditions have been updated, so you need to log in to the Developer Account to accept them.
