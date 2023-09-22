@@ -120,8 +120,8 @@ modules:
       - cp -R build/* $FLATPAK_DEST/share/carta/frontend
     sources:
       - type: archive
-        url: https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0.tgz
-        sha256: 56753940f0184cb66eb382032f8d82f425fc245e4b3656f5f38727582047e940
+        url: https://registry.npmjs.org/carta-frontend/-/carta-frontend-4.0.0.tgz
+        sha256: 9dcf21bdc030d7779e9e8c7db7a4b8e8222336466368d559055b5187f1190183
         path: build
 
   - name: zfp
@@ -159,5 +159,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/CARTAvis/carta-backend.git
-        tag: v3.0.1
+        tag: v4.0.0
         #branch: dev

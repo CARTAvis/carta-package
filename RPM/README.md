@@ -5,9 +5,9 @@ We host our CARTA RPMS on [Fedora Copr](https://copr.fedorainfracloud.org/). Cop
 Most of our RPM SPEC files can be built interchangeably on `el7, el8`,`el9`, and `x86_64` and `aarch64`.
 | Package name | Version | Platform | Copr build status |
 |--------------|---------|----------|-------------------|
-| carta | 3.0.1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta/) |
-| carta-backend | 3.0.1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/) |
-| carta-frontend | 3.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/) |
+| carta | 4.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta/) |
+| carta-backend | 4.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/) |
+| carta-frontend | 4.0.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/) |
 | | | |
 | carta-casacore| 3.4.0+6.5.0+2022.5.11 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore/) | 
 | measures-data | 2022.8.21-1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/) |

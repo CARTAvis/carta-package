@@ -1,6 +1,6 @@
 name: carta
 base: core20
-version: '3.0.1'
+version: '4.0.0'
 summary: CARTA - Cube Analysis and Rendering Tool for Astronomy
 description: |
   CARTA is a next generation image visualization and analysis tool designed for ALMA, VLA, and SKA pathfinders.      
@@ -91,7 +91,7 @@ parts:
       - opt/*        
   carta:
     source: https://github.com/CARTAvis/carta-backend.git
-    source-tag: v3.0.1
+    source-tag: v4.0.0
     plugin: cmake
     after: 
       - carta-casacore
@@ -137,7 +137,7 @@ parts:
 
   carta-frontend:
     plugin: nil
-    source: https://registry.npmjs.org/carta-frontend/-/carta-frontend-3.0.0.tgz
+    source: https://registry.npmjs.org/carta-frontend/-/carta-frontend-4.0.0.tgz
     #stage-packages:
     #      - coreutils
     #      - xdg-utils
