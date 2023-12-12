@@ -170,6 +170,25 @@ if (items.help) {
 
 }
 
+// Print the --version output from the carta_backend --version output
+if (items.version) {
+
+  var run = exec(path.join(__dirname, 'carta-backend/bin/carta_backend --version'));
+
+  run.stdout.on('data', (data) => {
+    console.log(`${data}`);
+  });
+
+  run.on('error', (err) => {
+    console.error('Error:', err);
+  });
+
+  run.on('exit', () => {
+    process.exit();
+  });
+
+}
+
 // Allow multiple instances of Electron
 const windows = new Set();
 
