@@ -3,8 +3,8 @@
 %define my_prefix  %{_prefix}
 
 Name:           carta-casacore
-Version:        3.4.0+6.5.0+2022.5.11
-Release:        5
+Version:        3.5.0+6.6.0+2024.1.18
+Release:        1
 Summary:        carta-casacore library files as needed by the CARTA image viewer
 
 License:        GPL-3+
@@ -14,10 +14,11 @@ BuildArch: %{_arch}
 
 BuildRequires:  bison
 BuildRequires:  cfitsio-devel
-BuildRequires:  cmake
+BuildRequires:  cmake3
 BuildRequires:  curl-devel
 BuildRequires:  fftw-devel
 BuildRequires:  flex
+BuildRequires:  git
 
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
@@ -73,36 +74,36 @@ cd build
 # Only el7/rhel7 requires carta-gsl and devtoolset
 %if 0%{?rhel} == 7
 source /opt/rh/devtoolset-8/enable
-%cmake .. -DUSE_THREADS=ON \
-                 -DUSE_FFTW3=ON \
-                 -DUSE_HDF5=ON \
-                 -DUSE_THREADS=ON \
-                 -DBUILD_PYTHON=OFF \
-                 -DBUILD_PYTHON3=OFF \
-                 -DBUILD_TESTING=OFF \
-                 -DCMAKE_BUILD_TYPE=Release \
-                 -DUSE_OPENMP=ON \
-                 -DUseCcache=1 \
-                 -DHAS_CXX11=1 \
-                 -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
-                 -DDATA_DIR=/usr/share/casacore/data \
-                 -DENABLE_RPATH=NO \
-                 -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-                 -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-                 -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
-                 -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
-                 -DGSL_LIBRARY=/opt/carta-gsl/lib \
-                 -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-                 -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-                 -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
-%make_build
+cmake3 .. -DUSE_THREADS=ON \
+          -DUSE_FFTW3=ON \
+          -DUSE_HDF5=ON \
+          -DUSE_THREADS=ON \
+          -DBUILD_PYTHON=OFF \
+          -DBUILD_PYTHON3=OFF \
+          -DBUILD_TESTING=OFF \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DUSE_OPENMP=ON \
+          -DUseCcache=1 \
+          -DHAS_CXX11=1 \
+          -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
+          -DDATA_DIR=/usr/share/casacore/data \
+          -DENABLE_RPATH=NO \
+          -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
+          -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
+          -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
+          -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
+          -DGSL_LIBRARY=/opt/carta-gsl/lib \
+          -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
+          -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
+          -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
+make %{?_smp_mflags}
 %install
 cd %{NVdir}/build
 %make_install
 %endif
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-%cmake .. -DUSE_THREADS=ON \
+%cmake3 .. -DUSE_THREADS=ON \
           -DUSE_FFTW3=ON \
           -DUSE_HDF5=ON \
           -DBUILD_PYTHON=OFF \
@@ -122,7 +123,7 @@ cd %{NVdir}/build
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc CXX=g++-9 FC=gfortran-9
-cmake .. -DUSE_THREADS=ON \
+cmake3 .. -DUSE_THREADS=ON \
           -DUSE_FFTW3=ON \
           -DUSE_HDF5=ON \
           -DBUILD_PYTHON=OFF \
@@ -185,22 +186,25 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %files
-/opt/carta-casacore/lib/libcasa_imageanalysis.so.3
-/opt/carta-casacore/lib/libcasa_measures.so.6
-/opt/carta-casacore/lib/libcasa_scimath.so.6
-/opt/carta-casacore/lib/libcasa_tables.so.6
-/opt/carta-casacore/lib/libcasa_mirlib.so.6
-/opt/carta-casacore/lib/libcasa_casa.so.6
-/opt/carta-casacore/lib/libcasa_images.so.6
-/opt/carta-casacore/lib/libcasa_lattices.so.6
-/opt/carta-casacore/lib/libcasa_coordinates.so.6
-/opt/carta-casacore/lib/libcasa_fits.so.6
-/opt/carta-casacore/lib/libcasa_scimath_f.so.6
+/opt/carta-casacore/lib/libcasa_imageanalysis.so.6
+/opt/carta-casacore/lib/libcasa_measures.so.7
+/opt/carta-casacore/lib/libcasa_scimath.so.7
+/opt/carta-casacore/lib/libcasa_tables.so.7
+/opt/carta-casacore/lib/libcasa_mirlib.so.7
+/opt/carta-casacore/lib/libcasa_casa.so.7
+/opt/carta-casacore/lib/libcasa_images.so.7
+/opt/carta-casacore/lib/libcasa_lattices.so.7
+/opt/carta-casacore/lib/libcasa_coordinates.so.7
+/opt/carta-casacore/lib/libcasa_fits.so.7
+/opt/carta-casacore/lib/libcasa_scimath_f.so.7
 /opt/carta-casacore/bin/casa_data_autoupdate
 
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Thu Jan 18 2024 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
+- Updating to casa 6.6.0
+
 * Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 3.4.0+6.5.0+2022.5.11-5
 - Pulls source directly from scm
 
