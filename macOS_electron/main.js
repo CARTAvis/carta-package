@@ -134,7 +134,7 @@ const button3 = new TouchBarButton({
     iconPosition: 'right',
     label: 'CARTA User Manual',
     click: () => {
-        shell.openExternal('https://carta.readthedocs.io/en/4.0');
+        shell.openExternal('https://carta.readthedocs.io/en/4.1');
     },
 });
 
