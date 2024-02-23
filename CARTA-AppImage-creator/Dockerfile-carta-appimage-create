@@ -141,12 +141,16 @@ RUN \
   cp /usr/lib64/libblas.so.3 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_casa.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_coordinates.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_derivedmscal.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_fits.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_imageanalysis.so.6 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_images.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_lattices.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_meas.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_measures.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_mirlib.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_msfits.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_ms.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_scimath.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_scimath_f.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_tables.so.7 /root/CARTA/lib && \
