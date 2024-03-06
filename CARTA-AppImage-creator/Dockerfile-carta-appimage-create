@@ -158,6 +158,8 @@ RUN \
   cp /usr/lib64/libgfortran.so.3 /root/CARTA/lib && \
   cp /usr/lib64/libgfortran.so.5 /root/CARTA/lib && \
   cp /usr/lib64/libgomp.so.1 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3.so.3 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3_threads.so.3 /root/CARTA/lib && \
   cp /opt/carta-gsl/lib/libgsl.so.23 /root/CARTA/lib && \
   cp /opt/carta-gsl/lib/libgslcblas.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libhdf5.so.8 /root/CARTA/lib && \
