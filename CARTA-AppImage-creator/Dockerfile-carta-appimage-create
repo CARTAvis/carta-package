@@ -25,9 +25,9 @@ RUN \
   yum -y install yum-plugin-copr && \
   yum -y copr enable cartavis/carta && \
   yum -y install epel-release && \
-  yum install -y autoconf automake bison carta-gsl-devel blas-devel bzip2 cfitsio-devel curl-devel cmake3 flex \
-    git git-lfs gtest-devel hdf5-devel lapack-devel libtool libxml2-devel libzstd-devel \
-    make openssl-devel protobuf-devel pugixml-devel readline-devel subversion systemd-devel wcslib-devel wget \
+  yum install -y autoconf automake bison boost boost-devel boost-python carta-gsl-devel blas blas-devel bzip2 cfitsio cfitsio-devel curl-devel cmake3 flex fftw fftw-devel \
+    git git-lfs gtest-devel hdf5 hdf5-devel lapack lapack-devel libtool libxml2-devel libzstd-devel \
+    make ncurses ncurses-devel numpy openssl-devel protobuf-devel pugixml-devel python-devel readline readline-devel subversion systemd-devel wcslib wcslib-devel wget \
     zlib-devel libuuid-devel patchelf file zfp-devel && \
   ln -s /usr/bin/cmake3 /usr/bin/cmake
 
@@ -141,12 +141,16 @@ RUN \
   cp /usr/lib64/libblas.so.3 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_casa.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_coordinates.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_derivedmscal.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_fits.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_imageanalysis.so.6 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_images.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_lattices.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_meas.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_measures.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_mirlib.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_msfits.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_ms.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_scimath.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_scimath_f.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_tables.so.7 /root/CARTA/lib && \
@@ -154,6 +158,8 @@ RUN \
   cp /usr/lib64/libgfortran.so.3 /root/CARTA/lib && \
   cp /usr/lib64/libgfortran.so.5 /root/CARTA/lib && \
   cp /usr/lib64/libgomp.so.1 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3.so.3 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3_threads.so.3 /root/CARTA/lib && \
   cp /opt/carta-gsl/lib/libgsl.so.23 /root/CARTA/lib && \
   cp /opt/carta-gsl/lib/libgslcblas.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libhdf5.so.8 /root/CARTA/lib && \
