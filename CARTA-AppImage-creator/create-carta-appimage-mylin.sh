@@ -76,4 +76,4 @@ docker rm grabappimage
 #Create AppImage in the Ubuntu 22.04
 wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
 chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
-ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VER}-${ARCH_TYPE}.AppImage CARTA/
+ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA/
