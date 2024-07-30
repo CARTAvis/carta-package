@@ -1,0 +1,182 @@
+# Dockerfile to build and package a universal Linux Appimage of CARTA.
+# Built on our oldest supported platform (CentOS7.9/RHEL7) to ensure full forward compatibility.
+# Requires BASE_IMAGE, ARCH_TYPE, CASACORE_TAG, BACKEND_TAG, FRONTEND_TAG, and VERSION arguments from the 'create-carta-appimage.sh' script.
+
+ARG BASE_IMAGE
+# On x86_64 it uses "centos:7.9.2009", on aarch64 it uses "arm64v8/centos:7.9.2009"
+FROM $BASE_IMAGE
+
+ARG ARCH_TYPE
+ARG CASACORE
+ARG NPM
+ARG FRONTEND
+ARG BACKEND
+ARG RELEASE_TAG
+ARG APPIMAGE_VER
+
+# FROM almalinux:8.10
+# Install the required packages
+RUN \
+  dnf -y install epel-release && \
+  dnf -y install 'dnf-command(config-manager)' && \
+  dnf -y config-manager --set-enabled powertools && \
+  dnf -y update && \
+  dnf -y install autoconf automake bison blas-devel bzip2 cfitsio-devel cmake curl-devel flex gcc \
+         gcc-c++ git git-lfs gsl-devel hdf5-devel lapack-devel libasan \
+         libtool libxml2-devel libzstd-devel libuuid-devel make openssl-devel patchelf protobuf-devel \
+         pugixml-devel python36 python3-pip readline-devel subversion \
+         wcslib-devel wget zlib-devel libuuid-devel zfp-devel && \
+  pip3 install numpy astropy
+
+# Install cfitsio
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  git clone --recursive https://github.com/HEASARC/cfitsio.git && \
+  cd cfitsio/ && \
+  ./configure --prefix=/opt/cfitsio && \
+  make && \
+  make install && \
+  cp /opt/cfitsio/lib/lib* /usr/lib64
+
+# Get the latest geodetic and ephemerides measures data
+RUN \
+  source /etc/bashrc && \
+  mkdir -p /usr/local/share/casacore/data/geodetic/Observatories && \
+  cd /root && \
+  wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar && \
+  tar -xzf WSRT_Measures.ztar && \
+  cp -r geodetic/Observatories/* /usr/local/share/casacore/data/geodetic/Observatories/
+
+# Install carta-casacore-devel and fits2idia from the Copr cartavis/carta repository
+RUN \
+  dnf -y install 'dnf-command(copr)' && \
+  dnf -y copr enable cartavis/carta && \
+  dnf -y install carta-casacore-devel fits2idia gmock-devel gtest-devel measures-data
+
+# Get libsofa.a for casacore
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  wget http://www.iausofa.org/2018_0130_F/sofa_f-20180130.tar.gz && \
+  tar xzf sofa_f-20180130.tar.gz && rm sofa_f-20180130.tar.gz && \
+  cd sofa/20180130/f77/src && make && cp libsofa.a /usr/lib/libsofa.a && \
+  cd /root && rm -rf sofa
+
+# Install carta-casacore from CARTAvis repo (with the floating CASAROOT)
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  ls -sort && \
+  git clone --recursive https://github.com/CARTAvis/carta-casacore.git && \
+  cd carta-casacore && \
+  git checkout ${CASACORE} && \
+  git submodule update --init --recursive && \
+  mkdir -p build && cd build && \
+  cmake .. -DUSE_FFTW3=ON \
+           -DUSE_HDF5=ON \
+           -DUSE_THREADS=ON \
+           -DUSE_OPENMP=ON \
+           -DCMAKE_BUILD_TYPE=Release \
+           -DBUILD_TESTING=OFF \
+           -DBUILD_PYTHON=OFF \
+           -DUseCcache=1 \
+           -DHAS_CXX11=1 \
+           -DDATA_DIR="%CASAROOT%/data" \
+           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
+           -DENABLE_RPATH=NO \
+  make -j4 && make install && \
+  cd /root && rm -rf carta-casacore && \
+  echo "/opt/carta-casacore/lib" >> /etc/ld.so.conf.d/carta-casacore.conf
+
+# Prepare the carta-backend
+# Adjust 'CMAKE_BUILD_TYPE' and 'CartaUserFolderPrefix' flags accordingly.
+# Parallel 'make' needs a lot of RAM. If you get this error "c++: fatal error: Killed signal terminated program cc1plus" 
+# assign more RAM to Docker. 4GB should be enough for make -j 2.
+RUN \
+  source /etc/bashrc && \
+  cd /root && \
+  git clone https://github.com/CARTAvis/carta-backend.git && \
+  cd carta-backend && \
+  # git checkout ${BACKEND} && \
+  git checkout -b angus/hips_remote_image_load remotes/origin/angus/hips_remote_image_load && \
+  git submodule update --init --recursive && \
+  mkdir build && cd build && \
+  cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+           -DCartaUserFolderPrefix=".carta-beta" \
+           -DDEPLOYMENT_TYPE=appimage \
+           -DCMAKE_PREFIX_PATH=/opt/cfitsio && \
+  make -j 2
+
+# Prepare the carta-frontend
+# Either copy in the production frontend build in the create-carta-appimage.sh script
+# OR Download the prebuilt version from npm (It will remove the folder the COPY command copies in from outside)
+COPY carta-frontend/build /root/package/build
+
+# Run patchelf on carta_backend executble and copy all required dependencies to the bundled lib folder
+RUN \
+  source /etc/bashrc && \
+  mkdir -p /root/CARTA/bin && \
+  cp /root/carta-backend/build/carta_backend /root/CARTA/bin && \
+  patchelf --set-rpath "\$ORIGIN/lib" /root/CARTA/bin/carta_backend && \
+  mkdir -p /root/CARTA/lib && \
+  cp /usr/lib64/libaec.so.0 /root/CARTA/lib && \
+  cp /usr/lib64/libblas.so.3 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_casa.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_coordinates.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_derivedmscal.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_fits.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_imageanalysis.so.6 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_images.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_lattices.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_meas.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_measures.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_mirlib.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_msfits.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_ms.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_scimath.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_scimath_f.so.7 /root/CARTA/lib && \
+  cp /opt/carta-casacore/lib/libcasa_tables.so.7 /root/CARTA/lib && \
+  cp /opt/cfitsio/lib/libcfitsio.so.10 /root/CARTA/lib && \
+  cp /usr/lib64/libcurl.so.4 /root/CARTA/lib && \
+  cp /usr/lib64/libgfortran.so.5 /root/CARTA/lib && \
+  cp /usr/lib64/libgomp.so.1 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3.so.3 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3_threads.so.3 /root/CARTA/lib && \
+  cp /usr/lib64/libfftw3f_threads.so.3 /root/CARTA/lib && \
+  cp /usr/lib64/libgsl.so.23 /root/CARTA/lib && \
+  cp /usr/lib64/libgslcblas.so.0 /root/CARTA/lib && \
+  cp /usr/lib64/libhdf5.so.103 /root/CARTA/lib && \
+  cp /usr/lib64/libhdf5_cpp.so.103 /root/CARTA/lib && \
+  cp /usr/lib64/libhdf5_hl.so.100 /root/CARTA/lib/ && \
+  cp /usr/lib64/liblapack.so.3 /root/CARTA/lib && \
+  cp /usr/lib64/libncurses.so.6 /root/CARTA/lib && \
+  cp /usr/lib64/libprotobuf.so.15 /root/CARTA/lib && \
+  cp /usr/lib64/libpugixml.so.1 /root/CARTA/lib && \
+  cp /usr/lib64/libreadline.so.7 /root/CARTA/lib && \
+  cp /usr/lib64/libssl.so.1.1 /root/CARTA/lib && \
+  cp /usr/lib64/libsz.so.2 /root/CARTA/lib && \
+  cp /usr/lib64/libtinfo.so.6 /root/CARTA/lib && \
+  cp /usr/lib64/libwcs.so.7 /root/CARTA/lib && \
+  cp /usr/lib64/libzfp.so.0 /root/CARTA/lib && \
+  cp /usr/lib64/libzstd.so.1 /root/CARTA/lib && \
+  if [ "$ARCH_TYPE" = "x86_64" ]; then cp /usr/lib64/libquadmath.so.0 /root/CARTA/lib; fi
+
+# Prepare the AppImage
+RUN \
+  source /etc/bashrc && \
+  cp /opt/carta-casacore/bin/casa_data_autoupdate /root/CARTA/bin && \
+  mkdir -p /root/CARTA/etc && \
+  cp -r /usr/local/share/casacore/data /root/CARTA/etc && \
+  mkdir -p /root/CARTA/share/carta/frontend && \
+  cp -r /root/package/build/* /root/CARTA/share/carta/frontend/ && \
+  mkdir -p /root/CARTA/usr/share/icons/hicolor/256x256/apps && \
+  mkdir -p /root/CARTA/usr/share/icons/hicolor/128x128/apps && \
+  cp -r /root/carta-backend/static/icons/256x256/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/256x256/apps/ && \
+  cp -r /root/carta-backend/static/icons/128x128/cartaviewer.png /root/CARTA/usr/share/icons/hicolor/128x128/apps/ && \
+  mkdir -p /root/CARTA/usr/share/metainfo
+
+COPY AppRun /root/CARTA
+COPY carta.desktop /root/CARTA
+COPY carta.png /root/CARTA
+COPY org.carta.desktop.appdata.xml /root/CARTA/usr/share/metainfo
