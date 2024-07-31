@@ -17,7 +17,7 @@ VERSION=v5.0.0-mylinTest-Hips
 # Currently we need to use the continuous build of go-appimage in order to have libfuse-3 support.
 # It updates regularly so please check https://github.com/probonopd/go-appimage/releases/tag/continuous 
 # first for the current version (e.g. 756) and enter it here:
-APPIMAGE_VERSION=838
+APPIMAGE_VERSION=840
 
 ARCH=$(arch)
 

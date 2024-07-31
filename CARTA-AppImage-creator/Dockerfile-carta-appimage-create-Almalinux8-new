@@ -1,9 +1,9 @@
 # Dockerfile to build and package a universal Linux Appimage of CARTA.
-# Built on our oldest supported platform (CentOS7.9/RHEL7) to ensure full forward compatibility.
+# Built on our oldest supported platform (Almalinux8.10/RHEL7) to ensure full forward compatibility.
 # Requires BASE_IMAGE, ARCH_TYPE, CASACORE_TAG, BACKEND_TAG, FRONTEND_TAG, and VERSION arguments from the 'create-carta-appimage.sh' script.
 
 ARG BASE_IMAGE
-# On x86_64 it uses "centos:7.9.2009", on aarch64 it uses "arm64v8/centos:7.9.2009"
+# On x86_64 it uses "almalinux:8.10", on aarch64 it uses "arm64v8/almalinux:8.10"
 FROM $BASE_IMAGE
 
 ARG ARCH_TYPE
