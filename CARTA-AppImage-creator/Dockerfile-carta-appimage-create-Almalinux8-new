@@ -21,7 +21,7 @@ RUN \
   dnf -y install 'dnf-command(config-manager)' && \
   dnf -y config-manager --set-enabled powertools && \
   dnf -y update && \
-  dnf -y install autoconf automake bison blas-devel bzip2 cfitsio-devel cmake curl-devel flex gcc \
+  dnf -y install autoconf automake bison blas-devel bzip2 cmake curl-devel flex gcc \
          gcc-c++ git git-lfs gsl-devel hdf5-devel lapack-devel libasan \
          libtool libxml2-devel libzstd-devel libuuid-devel make openssl-devel patchelf protobuf-devel \
          pugixml-devel python36 python3-pip readline-devel subversion \
@@ -48,11 +48,11 @@ RUN \
   tar -xzf WSRT_Measures.ztar && \
   cp -r geodetic/Observatories/* /usr/local/share/casacore/data/geodetic/Observatories/
 
-# Install carta-casacore-devel and fits2idia from the Copr cartavis/carta repository
+# Install fits2idia from the Copr cartavis/carta repository
 RUN \
   dnf -y install 'dnf-command(copr)' && \
   dnf -y copr enable cartavis/carta && \
-  dnf -y install carta-casacore-devel fits2idia gmock-devel gtest-devel measures-data
+  dnf -y install fits2idia gmock-devel gtest-devel measures-data
 
 # Get libsofa.a for casacore
 RUN \
@@ -85,6 +85,7 @@ RUN \
            -DDATA_DIR="%CASAROOT%/data" \
            -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
            -DENABLE_RPATH=NO \
+           -DCMAKE_PREFIX_PATH=/opt/cfitsio && \
   make -j4 && make install && \
   cd /root && rm -rf carta-casacore && \
   echo "/opt/carta-casacore/lib" >> /etc/ld.so.conf.d/carta-casacore.conf
@@ -138,7 +139,7 @@ RUN \
   cp /opt/carta-casacore/lib/libcasa_scimath_f.so.7 /root/CARTA/lib && \
   cp /opt/carta-casacore/lib/libcasa_tables.so.7 /root/CARTA/lib && \
   cp /opt/cfitsio/lib/libcfitsio.so.10 /root/CARTA/lib && \
-  cp /usr/lib64/libcurl.so.4 /root/CARTA/lib && \
+#   cp /usr/lib64/libcurl.so.4 /root/CARTA/lib && \
   cp /usr/lib64/libgfortran.so.5 /root/CARTA/lib && \
   cp /usr/lib64/libgomp.so.1 /root/CARTA/lib && \
   cp /usr/lib64/libfftw3.so.3 /root/CARTA/lib && \
@@ -154,7 +155,7 @@ RUN \
   cp /usr/lib64/libprotobuf.so.15 /root/CARTA/lib && \
   cp /usr/lib64/libpugixml.so.1 /root/CARTA/lib && \
   cp /usr/lib64/libreadline.so.7 /root/CARTA/lib && \
-  cp /usr/lib64/libssl.so.1.1 /root/CARTA/lib && \
+#   cp /usr/lib64/libssl.so.1.1 /root/CARTA/lib && \
   cp /usr/lib64/libsz.so.2 /root/CARTA/lib && \
   cp /usr/lib64/libtinfo.so.6 /root/CARTA/lib && \
   cp /usr/lib64/libwcs.so.7 /root/CARTA/lib && \

@@ -59,7 +59,7 @@ else
   mkdir -p carta-frontend/build
 fi
 
-docker build -f Dockerfile-carta-appimage-create-Almalinux8 \
+docker build -f Dockerfile-carta-appimage-create-Almalinux8-new \
              --build-arg ARCH_TYPE=$ARCH \
              --build-arg BASE_IMAGE=$IMAGE \
              --build-arg CASACORE=$CARTA_CASACORE_TAG \
