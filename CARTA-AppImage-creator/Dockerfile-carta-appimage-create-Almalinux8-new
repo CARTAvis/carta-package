@@ -33,8 +33,6 @@ RUN \
   source /etc/bashrc && \
   cd /root && \
   git clone --recursive https://github.com/HEASARC/cfitsio.git && \
-  # wget https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfit-3.47.zip && \
-  # unzip cfit-3.47.zip && \
   cd cfitsio/ && \
   ./configure --prefix=/opt/cfitsio && \
   make && \
