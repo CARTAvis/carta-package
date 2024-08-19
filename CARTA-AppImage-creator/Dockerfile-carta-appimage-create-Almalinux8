@@ -99,8 +99,7 @@ RUN \
   cd /root && \
   git clone https://github.com/CARTAvis/carta-backend.git && \
   cd carta-backend && \
-  # git checkout ${BACKEND} && \
-  git checkout -b angus/hips_remote_image_load remotes/origin/angus/hips_remote_image_load && \
+  git checkout ${BACKEND} && \
   git submodule update --init --recursive && \
   mkdir build && cd build && \
   cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \

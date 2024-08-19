@@ -47,8 +47,7 @@ if [ $FRONTEND_FROM_NPM = "False" ]; then
   echo 'Building a production frontend from Github using Docker.'
   git clone https://github.com/CARTAvis/carta-frontend.git
   cd carta-frontend 
- #git checkout $FRONTEND_TAG
-  git checkout -b angus/remote_file_requests remotes/origin/angus/remote_file_requests
+  git checkout $FRONTEND_TAG
   git submodule update --init --recursive
   npm install --legacy-peer-deps
   npm run build-libs-docker
