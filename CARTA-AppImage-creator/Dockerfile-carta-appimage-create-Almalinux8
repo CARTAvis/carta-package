@@ -24,9 +24,8 @@ RUN \
   dnf -y install autoconf automake bison blas-devel bzip2 cmake curl-devel flex fftw fftw-devel gcc \
          gcc-c++ gcc-gfortran git git-lfs gsl-devel hdf5-devel lapack-devel libasan \
          libtool libxml2-devel libzstd-devel libuuid-devel make ncurses-devel openssl-devel patchelf protobuf-devel \
-         pugixml-devel python36 python3-pip readline-devel subversion \
-         unzip wcslib-devel wget zlib-devel libuuid-devel zfp-devel && \
-  pip3 install numpy astropy
+         pugixml-devel readline-devel subversion \
+         unzip wcslib-devel wget zlib-devel libuuid-devel zfp-devel
 
 # Install cfitsio
 RUN \
@@ -47,12 +46,6 @@ RUN \
   wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar && \
   tar -xzf WSRT_Measures.ztar && \
   cp -r geodetic/Observatories/* /usr/local/share/casacore/data/geodetic/Observatories/
-
-# Install fits2idia from the Copr cartavis/carta repository
-RUN \
-  dnf -y install 'dnf-command(copr)' && \
-  dnf -y copr enable cartavis/carta && \
-  dnf -y install fits2idia gmock-devel gtest-devel measures-data
 
 # Get libsofa.a for casacore
 RUN \
