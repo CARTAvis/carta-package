@@ -12,7 +12,7 @@ BACKEND_TAG=v5.0.0
 CARTA_CASACORE_TAG=master
 FRONTEND_FROM_NPM=False # Set to True in order to take prebuilt carta-frontend from the npm repo
 FRONTEND_TAG=v5.0.0
-VERSION=v5.0.0-mylinTest-Hips
+VERSION=v5.0.0
 
 # Currently we need to use the continuous build of go-appimage in order to have libfuse-3 support.
 # It updates regularly so please check https://github.com/probonopd/go-appimage/releases/tag/continuous 
@@ -66,13 +66,14 @@ docker build -f Dockerfile-carta-appimage-create-Almalinux8 \
              --build-arg NPM=$FRONTEND_FROM_NPM \
              --build-arg BACKEND=$BACKEND_TAG \
              --build-arg RELEASE_TAG=$VERSION \
-	         --build-arg APPIMAGE_VER=$APPIMAGE_VERSION \
+             --build-arg APPIMAGE_VER=$APPIMAGE_VERSION \
              -t carta-appimage-create .
 docker run -d --name grabappimage carta-appimage-create
 docker cp grabappimage:/root/CARTA .
 docker rm grabappimage
 
-#Create AppImage in the Ubuntu 22.04
+# Create AppImage in the Ubuntu 22.04
 wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
 chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
-ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA/
+APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+
