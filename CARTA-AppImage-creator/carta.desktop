@@ -1,8 +1,9 @@
 [Desktop Entry]
 Name=carta
 Exec=AppRun
-Icon=carta
+Icon=carta.png
 Type=Application
 Comment=Cube Analysis and Rendering Tool for Astronomy
-Categories=Science;
-X-AppImage-Version=4.1.0
+Categories=Science;Utility;Application;
+Version=5.0.0
+Terminal=false
