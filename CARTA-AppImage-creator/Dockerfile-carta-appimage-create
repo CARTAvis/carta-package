@@ -141,7 +141,7 @@ RUN \
   cp /usr/lib64/libgslcblas.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libhdf5.so.103 /root/CARTA/lib && \
   cp /usr/lib64/libhdf5_cpp.so.103 /root/CARTA/lib && \
-  cp /usr/lib64/libhdf5_hl.so.100 /root/CARTA/lib/ && \
+  cp /usr/lib64/libhdf5_hl.so.100 /root/CARTA/lib && \
   cp /usr/lib64/liblapack.so.3 /root/CARTA/lib && \
   cp /usr/lib64/libncurses.so.6 /root/CARTA/lib && \
   cp /usr/lib64/libprotobuf.so.15 /root/CARTA/lib && \
@@ -152,6 +152,7 @@ RUN \
   cp /usr/lib64/libwcs.so.7 /root/CARTA/lib && \
   cp /usr/lib64/libzfp.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libzstd.so.1 /root/CARTA/lib && \
+  rm /root/CARTA/lib/libcurl.so.4 && \
   if [ "$ARCH_TYPE" = "x86_64" ]; then cp /usr/lib64/libquadmath.so.0 /root/CARTA/lib; fi
 
 # Prepare the AppImage
