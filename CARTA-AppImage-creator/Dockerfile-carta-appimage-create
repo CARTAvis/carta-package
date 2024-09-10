@@ -152,8 +152,12 @@ RUN \
   cp /usr/lib64/libwcs.so.7 /root/CARTA/lib && \
   cp /usr/lib64/libzfp.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libzstd.so.1 /root/CARTA/lib && \
-  rm /root/CARTA/lib/libcurl.so.4 && \
   if [ "$ARCH_TYPE" = "x86_64" ]; then cp /usr/lib64/libquadmath.so.0 /root/CARTA/lib; fi
+
+# Remove "/root/CARTA/lib/libcurl.so.4" if it exists
+RUN \
+  source /etc/bashrc && \
+  if [[ -f "/root/CARTA/lib/libcurl.so.4" ]]; then rm -f /root/CARTA/lib/libcurl.so.4; fi
 
 # Prepare the AppImage
 RUN \

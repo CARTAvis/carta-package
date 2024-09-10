@@ -8,10 +8,10 @@
 #        To build any frontend commit/tag from https://github.com/CARTAvis/carta-frontend
 # 'VERSION' is the part of the name applied to the final AppImage.
 
-CARTA_CASACORE_TAG=master
-FRONTEND_FROM_NPM=False # Set to True in order to take prebuilt carta-frontend from the npm repo
-BACKEND_TAG=dev # Set the branch or release version from the backend repository
-FRONTEND_TAG=dev # Set the branch or release version from the frontend repository
+FRONTEND_FROM_NPM=False   # Set to True in order to take prebuilt carta-frontend from the npm repo
+CARTA_CASACORE_TAG=master # Set the branch from the carta-casacore repository
+BACKEND_TAG=dev           # Set the branch or release version from the backend repository
+FRONTEND_TAG=dev          # Set the branch or release version from the frontend repository
 VERSION=v5.0.0
 
 # Currently we need to use the continuous build of go-appimage in order to have libfuse-3 support.
