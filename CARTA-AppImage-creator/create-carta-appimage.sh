@@ -77,3 +77,8 @@ wget https://github.com/probonopd/go-appimage/releases/download/continuous/appim
 chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
 APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
 
+# Extract a unique Embedded Signature
+if [ -x ./carta-${VERSION}-${ARCH}.AppImage ]; then
+    ./carta-${VERSION}-${ARCH}.AppImage --appimage-signature > Embedded-Signature
+fi
+
