@@ -48,6 +48,14 @@ if [ $FRONTEND_FROM_NPM = "False" ]; then
   git clone https://github.com/CARTAvis/carta-frontend.git
   cd carta-frontend 
   git checkout $FRONTEND_TAG
+
+  # Modifications (hopefully temporary) so that the carta-frontend can build on arm64/aarch64
+  if [ $ARCH = "aarch64" ]; then
+    sed -i '30s|-s WASM=1|-s WASM=1 -flto|' wasm_libs/build_zstd.sh # Add the -flto flag to build_zstd.sh
+    sed -i 's|2.0.14|3.1.47-arm64|g' build_wasm_wrappers_docker.sh # Use newer native arm64 version of emsdk
+    sed -i 's|2.0.14|3.1.47-arm64|g' build_wasm_libs_docker.sh
+  fi
+
   git submodule update --init --recursive
   npm install
   npm run build-libs-docker
