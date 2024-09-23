@@ -17,7 +17,7 @@ VERSION=v5.0.0
 # Currently we need to use the continuous build of go-appimage in order to have libfuse-3 support.
 # It updates regularly so please check https://github.com/probonopd/go-appimage/releases/tag/continuous 
 # first for the current version (e.g. 756) and enter it here:
-APPIMAGE_VERSION=842
+APPIMAGE_VERSION=851
 
 ARCH=$(arch)
 
@@ -49,7 +49,7 @@ if [ $FRONTEND_FROM_NPM = "False" ]; then
   cd carta-frontend 
   git checkout $FRONTEND_TAG
   git submodule update --init --recursive
-  npm install --legacy-peer-deps
+  npm install
   npm run build-libs-docker
   npm run build-docker
   cd ..
@@ -74,11 +74,13 @@ docker rm grabappimage
 
 # Create AppImage in the Ubuntu 22.04
 wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
-chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
-APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+if [ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]; then
+    chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
+    APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+fi
 
 # Extract a unique Embedded Signature
-if [ -x ./carta-${VERSION}-${ARCH}.AppImage ]; then
+if [ -x carta-${VERSION}-${ARCH}.AppImage ]; then
     ./carta-${VERSION}-${ARCH}.AppImage --appimage-signature > Embedded-Signature
 fi
 
