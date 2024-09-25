@@ -131,6 +131,12 @@ If not previously set up, get the code-signing certificate on your Mac with a pr
 	```
 	npm install
 	```
+	Currently, when building on arm64, the “portscanner” package seems to run something called deasync and that gives errors about "The binary uses an SDK older than the 10.9 SDK." The easy fix is to just delete the problematic folders as they are not used first:
+	```
+	rm -rf node_modules/deasync/bin/darwin-x64-node-0.10
+	rm -rf node_modules/deasync/bin/darwin-x64-node-0.11
+	rm -rf node_modules/deasync/bin/darwin-x64-node-0.12
+	```
 2. Double-check that it works:
 	```
 	npm start
@@ -140,8 +146,18 @@ If not previously set up, get the code-signing certificate on your Mac with a pr
 3. Make sure `electron-builder` is installed and accessible:
 	```
 	npm install -g electron-builder
-	```	
-4. Run the electron-builder:
+	```
+4. Export a few variables for notarizing:
+	```
+	export DEBUG=electron-notarize*
+	export APPLE_APP_SPECIFIC_PASSWORD=<Your app specific password generated on https://developer.apple.com>
+	export APPLE_ID=<Your Apple Developer email address>
+	export APPLE_TEAM_ID=<Your Apple Team ID assigned by Apple>
+	export API_KEY_ID=<Your app key ID generated on https://appstoreconnect.apple.com>
+	export API_KEY_ISSUER_ID=<Your app issuer ID generated on https://appstoreconnect.apple.com>
+	```
+5. Create a key file "AuthKey_<API_KEY_ID>.p8", save a private key (generated on https://appstoreconnect.apple.com) in this file, and then put it under directories "/Users/<user_name>/private_keys" and "/Users/<user_name>".
+6. Run the electron-builder:
 	**Note**: electron-builder can interchangeably build the Electron component (The app window that displays the frontend) on both an Intel or M1 Macs, but the **carta_backend** executable itself first needs to be built on either Intel *or* M1. For example, an M1 Mac can create the Electron component for Intel Macs, but you need to copy over a carta-backend packaged for Intel before issuing the electron-builder command.
 	
    When you have a carta-backend built and packaged on Intel x86 computer:
