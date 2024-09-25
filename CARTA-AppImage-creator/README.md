@@ -8,9 +8,11 @@
 
 ### Basic usage:
 
-Execute the `./create-carta-appimage.sh` script. It will build a CentOS 7.9 (RHEL7) Docker container, create a CARTA AppImage using the latest carta-backend and carta-frontend 'dev' commits (and carta-casacore 'master' branch) automatically, and copy it on to your local computer.
+Execute the `./create-carta-appimage.sh` script. It will build a Almalinux8.10 Docker container, create a CARTA AppImage using the latest carta-backend and carta-frontend 'dev' commits (and carta-casacore 'master' branch) automatically, and copy it on to your local computer.
 
 ### Advanced usage:
+
+0. Generate a public/private key with the command `gpg --full-generate-key`, then export the public key `gpg --armor --export YOUR-EMAIL-OR-KEYID > pubkey.asc` to a file. Put this public key file under the folder `carta-package`, i.e., up one level folder.
 
 1. Open the script `./create-carta-appimage.sh` script for editing.
 
