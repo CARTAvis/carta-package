@@ -72,7 +72,7 @@ docker run -d --name grabappimage carta-appimage-create
 docker cp grabappimage:/root/CARTA .
 docker rm grabappimage
 
-# Create AppImage in the Ubuntu 22.04
+# Create an AppImage on Linux distributions
 wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
 if [ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]; then
     chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
