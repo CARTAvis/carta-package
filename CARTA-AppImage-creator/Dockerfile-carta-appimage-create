@@ -31,7 +31,8 @@ RUN \
 RUN \
   source /etc/bashrc && \
   cd /root && \
-  git clone --recursive https://github.com/HEASARC/cfitsio.git && \
+  wget https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio4_5_0_20240826.tar.gz && \
+  tar -xvzf cfitsio4_5_0_20240826.tar.gz && mv cfitsio-cfitsio4_5_0_20240826 cfitsio && \
   cd cfitsio/ && \
   ./configure --prefix=/opt/cfitsio && \
   make && \
