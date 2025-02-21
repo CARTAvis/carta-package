@@ -14,7 +14,6 @@ RUN \
 
 # Set up initial images directory and initial preferences
 RUN mkdir -p /images && \
-    cp /usr/share/carta/default.fits /images/ && \
     mkdir -p /home/cartauser/.carta/config && \
     echo '{"telemetryConsentShown": true, "telemetryMode":"none"}' > /home/cartauser/.carta/config/preferences.json
 
