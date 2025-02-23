@@ -12,15 +12,15 @@
 %define beta_install_path /opt/carta-beta
 
 Name:           carta-backend-beta
-Version:        4.0+2023.5.4
-Release:        2
+Version:        5.0+2025.2.14
+Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
 URL:            https://github.com/CARTAvis/carta-backend
-Source0:        %{name}-%{version}.tgz
 
 BuildArch: %{_arch}
 
+BuildRequires: git
 BuildRequires: blas-devel
 BuildRequires: carta-casacore-devel
 %if 0%{?suse_version} >= 1500
@@ -79,6 +79,7 @@ This package provides the release version of the backend component.
 rm -rf %{NVdir}
 git clone %{url}.git %{NVdir}
 cd %{NVdir}
+git checkout v5.0.0-beta.1
 git submodule update --init --recursive
 
 %build
@@ -204,6 +205,9 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
+* Fri Feb 14 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 5.0+2025.2.14
+  - carta-backend-beta component for the CARTA 5.0 release
+
 * Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 4.0+2023.5.4-2
   - Pulls source directly from scm
 
