@@ -3,32 +3,23 @@
 
 Name:           zfp
 Version:        0.5.5
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Compressed numerical arrays that support high-speed random access
 
 License:        BSD-3-Clause
 URL:            https://github.com/LLNL/zfp.git
 Source0:        https://github.com/LLNL/zfp/releases/download/0.5.5/zfp-0.5.5.tar.gz
 
-%if 0%{?suse_version} >= 1500
-BuildRequires: cmake
-%else
-BuildRequires: cmake3
-%endif
-
+BuildRequires:  cmake3
 BuildRequires:  gcc-c++
+BuildRequires:  git
 
-%if 0%{?suse_version} >= 1500
-Requires:  libgomp1
-%else
 Requires:  libgomp
-%endif
 
 %description
 ZFP 0.5.5 needed by the carta-backend.
 
 %package devel
-#Requires:
 Summary: ZFP 0.5.5 development files
 Provides: zfp-devel
 
@@ -46,19 +37,12 @@ git checkout -b %{version} tags/%{version}
 %build
 cd %{NVdir}
 
-%if 0%{?suse_version} >= 1500
-%cmake -DCMAKE_INSTALL_PREFIX=/usr
-%cmake_build
-%install
-cd %{NVdir}
-%cmake_install
-%else
 %cmake3 -DCMAKE_INSTALL_PREFIX=/usr 
 %cmake3_build
+
 %install
 cd %{NVdir}
 %cmake3_install
-%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -78,6 +62,9 @@ rm -rf $RPM_BUILD_ROOT
 %postun -p /sbin/ldconfig
 
 %changelog
+* Wed Feb 19 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 0.5.5-4
+  - Remove the build for CentOS 7 and openSUSE
+
 * Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 0.5.5-3
   - Pulls source directly from scm
 

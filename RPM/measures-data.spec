@@ -2,7 +2,7 @@
 %undefine _disable_source_fetch
 
 Name:           measures-data
-Version:        2024.1.20
+Version:        2025.2.13
 Release:        1%{?dist}
 Summary:        CASA ephemerides and geodetic data
 License:        GPL-3+
@@ -31,7 +31,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/casacore/data/geodetic/
 
 %changelog
-* Sat Jan 20 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 2024.1.20
+* Mon Feb 17 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 2025.2.17
+- Download latest geodeditc and ephemerides direct from ftp.astron.nl
+
+* Sat Jan 20 2024 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 2024.1.20
 - Download latest geodeditc and ephemerides direct from ftp.astron.nl
 
 * Sun Aug 21 2022 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 2022.8.21
