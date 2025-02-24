@@ -30,5 +30,5 @@ ENV CARTA_DOCKER_DEPLOYMENT=1
 USER cartauser
 WORKDIR /home/cartauser
 
-ENTRYPOINT ["/usr/bin/carta_backend", "--no_browser", "--top_level_folder", "/images", "/images"]
+ENTRYPOINT ["/usr/bin/carta_backend", "--no_browser", "/images"]
 CMD ["$@"]
