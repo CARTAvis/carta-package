@@ -99,7 +99,7 @@ Copy over all the files contained in this repo to the carta-frontend `build` fol
 	- This is the bundled carta-backend. It consists of 3 folders:
 		- **etc/data**
 			- This should contain the **`geodetic`** and **`ephemerides`** folders required by carta-casacore. Grab the latest version from Astron when making a package: 
-			`wget ftp://[ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar`
+			`wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar`
 			`tar -czvf WSRT_Measures.ztar`
 			`rm WSRT_Measures.ztar`
 		- **libs/**
@@ -166,7 +166,7 @@ If not previously set up, get the code-signing certificate on your Mac with a pr
     When you have a carta-backend built and packaged on an M1 Mac:
 	``` electron-builder build --mac --arm64 ```
 
-If everything goes well, it will upload the package to Apple servers and after a few minutes, a final signed and notarized dmg will appear in the `dist` folder. It will have an additional number e.g. 4.0.0 (from the “version” line in the package.json, but you can rename the dmg file before uploading it to the carta repo on Github.
+If everything goes well, it will upload the package to Apple servers and after a few minutes, a final signed and notarized dmg will appear in the `dist` folder. It will have an additional number e.g. 4.0.0 (from the “version” line in the package.json, but you can rename the dmg file before uploading it to the carta repo on Github).
 
 If you see obscure errors, it can be hard to figure out what went wrong. A few common failures are:
 -   Terms and conditions have been updated, so you need to log in to the Developer Account to accept them.

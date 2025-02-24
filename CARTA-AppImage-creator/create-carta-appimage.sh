@@ -17,7 +17,7 @@ VERSION=v5.0.0
 # Currently we need to use the continuous build of go-appimage in order to have libfuse-3 support.
 # It updates regularly so please check https://github.com/probonopd/go-appimage/releases/tag/continuous 
 # first for the current version (e.g. 756) and enter it here:
-APPIMAGE_VERSION=851
+APPIMAGE_VERSION=869 # 2025/02/19
 
 ARCH=$(arch)
 
@@ -63,7 +63,13 @@ if [ $FRONTEND_FROM_NPM = "False" ]; then
   cd ..
 else
   echo 'Will use pre-built frontend with tag ' $FRONTEND_TAG ' from the carta-frontend npm repo.'
-  mkdir -p carta-frontend/build
+  ## see frontend version: https://www.npmjs.com/package/carta-frontend?activeTab=versions
+  rm -r package carta-frontend
+  if [ ! -f carta-frontend-${FRONTEND_TAG}.tgz ]; then
+      wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-${FRONTEND_TAG}.tgz
+  fi
+  tar -xvf carta-frontend-${FRONTEND_TAG}.tgz
+  cp -r package/build carta-frontend
 fi
 
 docker build -f Dockerfile-carta-appimage-create \
@@ -81,11 +87,12 @@ docker cp grabappimage:/root/CARTA .
 docker rm grabappimage
 
 # Create an AppImage on Linux distributions
-wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
-if [ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]; then
-    chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
-    APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+if [ ! -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]; then
+    wget https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
 fi
+chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
+APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+
 
 # Extract a unique Embedded Signature
 if [ -x carta-${VERSION}-${ARCH}.AppImage ]; then
