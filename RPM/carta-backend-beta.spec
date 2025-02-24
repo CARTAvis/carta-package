@@ -7,7 +7,6 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 %define my_prefix  %{_prefix}
-%define debug_package %{nil}
 %define datadirbeta /opt/carta-backend-beta/share
 %define beta_install_path /opt/carta-beta
 
@@ -22,13 +21,13 @@ BuildArch: %{_arch}
 
 BuildRequires: git
 BuildRequires: blas-devel
-BuildRequires: carta-casacore-devel
+BuildRequires: carta-casacore-nocurl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires: cmake
 %else
 BuildRequires: cmake3
 %endif
-BuildRequires: cfitsio-devel
+BuildRequires:  carta-cfitsio-v450-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
 BuildRequires:  gcc9-fortran
@@ -54,8 +53,8 @@ BuildRequires: gsl-devel
 %{?rhel7:Requires: carta-gsl}
 
 Requires: blas
-Requires: cfitsio
-Requires: carta-casacore
+Requires: carta-casacore-nocurl
+Requires: carta-cfitsio-v450
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0

@@ -20,8 +20,9 @@ BuildRequires: pkgconf
 BuildRequires: pkgconf-m4
 BuildRequires: pkgconf-pkg-config
 BuildRequires: zlib-devel
-BuildRequires: curl-devel
 BuildRequires: bzip2-devel
+BuildRequires: libtool
+BuildRequires: autoconf
 
 %description
 CFITSIO is a C library for reading and writing data files in the Flexible Image
@@ -45,8 +46,9 @@ git checkout -b %{version} tags/cfitsio-%{version}
 
 %build
 cd %{NVdir}
+autoreconf -f -i
 ./configure --prefix=%{_prefix} --libdir=%{_libdir} --includedir=%{_includedir}/cfitsio
-make
+make -j 2
 
 %install
 cd %{NVdir}
