@@ -90,7 +90,7 @@ cd build
 # Only el7/rhel7 requires carta-gsl and devtoolset
 %if 0%{?rhel} == 7
 . /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta" \
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta" \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
@@ -103,12 +103,12 @@ cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{b
 
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
+cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 make -j 2
