@@ -7,3 +7,4 @@ It includes:
 - RPM spec files
 - Flatpak version
 - Snapcraft version
+- cartavis/carta Docker image
