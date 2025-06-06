@@ -1,4 +1,4 @@
-Name:           carta-beta
+Name:           carta-beta-debug-test
 Version:        5.0+2025.2.14
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy

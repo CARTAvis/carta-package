@@ -4,6 +4,10 @@
 # It also creates a new startup script at /usr/bin/carta-beta that points
 # to the executable at /opt/carta-backend-beta/bin/carta_backend.
 #
+%global _enable_debug_packages 1
+%global debug_package %{?_debuginfo_subpackages:%{_debuginfo_subpackages}}%{!?_debuginfo_subpackages:%{nil}}
+%global optflags %{optflags} -g
+
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 %define my_prefix  %{_prefix}
@@ -27,7 +31,7 @@ BuildRequires: cmake
 %else
 BuildRequires: cmake3
 %endif
-BuildRequires:  carta-cfitsio-v450-devel
+BuildRequires:  carta-cfitsio-v450-curl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
 BuildRequires:  gcc9-fortran
@@ -54,7 +58,7 @@ BuildRequires: gsl-devel
 
 Requires: blas
 Requires: carta-casacore-nocurl
-Requires: carta-cfitsio-v450
+Requires: carta-cfitsio-v450-curl
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0
@@ -89,7 +93,7 @@ cd build
 # Only el7/rhel7 requires carta-gsl and devtoolset
 %if 0%{?rhel} == 7
 . /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta" \
+cmake3 ..  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta" \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
@@ -97,17 +101,20 @@ cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{b
            -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" \
+           -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" \
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" \
+           -DCMAKE_PREFIX_PATH=/opt/cfitsio
 %endif
 
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
+cmake ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 make -j 2
@@ -170,8 +177,16 @@ chmod +x %{buildroot}%{_bindir}/carta-beta
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
+%post
+echo "/opt/cfitsio/lib64" > /etc/ld.so.conf.d/cfitsio.conf
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+if [ $1 -eq 0 ]; then
+    rm -f /etc/ld.so.conf.d/cfitsio.conf
+    /sbin/ldconfig
+fi
 
 %files
 %{beta_install_path}/bin/carta_backend

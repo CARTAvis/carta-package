@@ -13,7 +13,7 @@ URL:            https://github.com/CARTAvis/carta-casacore
 BuildArch: %{_arch}
 
 BuildRequires:  bison
-BuildRequires:  carta-cfitsio-v450-devel
+BuildRequires:  carta-cfitsio-v450-nocurl-devel
 BuildRequires:  cmake3
 BuildRequires:  fftw-devel
 BuildRequires:  flex
@@ -94,7 +94,8 @@ cmake3 .. -DUSE_THREADS=ON \
           -DGSL_LIBRARY=/opt/carta-gsl/lib \
           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-          -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
+          -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" \
+          -DCMAKE_PREFIX_PATH=/opt/cfitsio
 make %{?_smp_mflags}
 %install
 cd %{NVdir}/build
@@ -113,7 +114,8 @@ cd %{NVdir}/build
           -DHAS_CXX11=1 \
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
-          -DENABLE_RPATH=NO
+          -DENABLE_RPATH=NO \
+          -DCMAKE_PREFIX_PATH=/opt/cfitsio
 %cmake_build
 %install
 cd %{NVdir}/build
@@ -133,7 +135,8 @@ cmake3 .. -DUSE_THREADS=ON \
           -DHAS_CXX11=1 \
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
-          -DENABLE_RPATH=NO
+          -DENABLE_RPATH=NO \
+          -DCMAKE_PREFIX_PATH=/opt/cfitsio
 make -j 2
 %install
 cd %{NVdir}/build
