@@ -1,5 +1,5 @@
 # Dockerfile to build and package a universal Linux Appimage of CARTA.
-# Built on our oldest supported platform (Almalinux8.10) to ensure full forward compatibility.
+# Built on our oldest supported platform (Almalinux8.10/RHEL7) to ensure full forward compatibility.
 # Requires BASE_IMAGE, ARCH_TYPE, CASACORE_TAG, BACKEND_TAG, FRONTEND_TAG, and VERSION arguments from the 'create-carta-appimage.sh' script.
 
 ARG BASE_IMAGE
@@ -24,16 +24,18 @@ RUN \
   dnf -y install autoconf automake bison blas-devel bzip2 cmake curl-devel flex fftw fftw-devel gcc \
          gcc-c++ gcc-gfortran git git-lfs gsl-devel hdf5-devel lapack-devel libasan \
          libtool libxml2-devel libzstd-devel libuuid-devel make ncurses-devel openssl-devel patchelf protobuf-devel \
-         pugixml-devel readline-devel subversion \
-         unzip wcslib-devel wget zlib-devel libuuid-devel zfp-devel
+         pugixml-devel python36 python3-pip python3-devel readline-devel subversion \
+         unzip wcslib-devel wget zlib-devel libuuid-devel zfp-devel && \
+  pip3 install --upgrade pip && \
+  pip3 install numpy astropy
 
 # Install cfitsio
 RUN \
   source /etc/bashrc && \
   cd /root && \
-  wget https://github.com/HEASARC/cfitsio/archive/refs/tags/cfitsio4_5_0_20240826.tar.gz && \
-  tar -xvzf cfitsio4_5_0_20240826.tar.gz && mv cfitsio-cfitsio4_5_0_20240826 cfitsio && \
+  git clone --recursive https://github.com/HEASARC/cfitsio.git && \
   cd cfitsio/ && \
+  autoreconf -f -i && \
   ./configure --prefix=/opt/cfitsio && \
   make && \
   make install && \
@@ -47,6 +49,12 @@ RUN \
   wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar && \
   tar -xzf WSRT_Measures.ztar && \
   cp -r geodetic/Observatories/* /usr/local/share/casacore/data/geodetic/Observatories/
+
+# Install fits2idia from the Copr cartavis/carta repository
+RUN \
+  dnf -y install 'dnf-command(copr)' && \
+  dnf -y copr enable cartavis/carta && \
+  dnf -y install fits2idia gmock-devel gtest-devel measures-data
 
 # Get libsofa.a for casacore
 RUN \
@@ -80,7 +88,7 @@ RUN \
            -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
            -DENABLE_RPATH=NO \
            -DCMAKE_PREFIX_PATH=/opt/cfitsio && \
-  make -j4 && make install && \
+  make -j 4 && make install && \
   cd /root && rm -rf carta-casacore && \
   echo "/opt/carta-casacore/lib" >> /etc/ld.so.conf.d/carta-casacore.conf
 
@@ -106,6 +114,7 @@ RUN \
 # Either copy in the production frontend build in the create-carta-appimage.sh script
 # OR Download the prebuilt version from npm (It will remove the folder the COPY command copies in from outside)
 COPY carta-frontend/build /root/package/build
+# COPY ${FRONTEND}/carta-frontend/build /root/package/build
 
 # Run patchelf on carta_backend executble and copy all required dependencies to the bundled lib folder
 RUN \
@@ -142,7 +151,7 @@ RUN \
   cp /usr/lib64/libgslcblas.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libhdf5.so.103 /root/CARTA/lib && \
   cp /usr/lib64/libhdf5_cpp.so.103 /root/CARTA/lib && \
-  cp /usr/lib64/libhdf5_hl.so.100 /root/CARTA/lib && \
+  cp /usr/lib64/libhdf5_hl.so.100 /root/CARTA/lib/ && \
   cp /usr/lib64/liblapack.so.3 /root/CARTA/lib && \
   cp /usr/lib64/libncurses.so.6 /root/CARTA/lib && \
   cp /usr/lib64/libprotobuf.so.15 /root/CARTA/lib && \
@@ -154,11 +163,6 @@ RUN \
   cp /usr/lib64/libzfp.so.0 /root/CARTA/lib && \
   cp /usr/lib64/libzstd.so.1 /root/CARTA/lib && \
   if [ "$ARCH_TYPE" = "x86_64" ]; then cp /usr/lib64/libquadmath.so.0 /root/CARTA/lib; fi
-
-# Remove "/root/CARTA/lib/libcurl.so.4" if it exists
-RUN \
-  source /etc/bashrc && \
-  if [[ -f "/root/CARTA/lib/libcurl.so.4" ]]; then rm -f /root/CARTA/lib/libcurl.so.4; fi
 
 # Prepare the AppImage
 RUN \
