@@ -36,7 +36,7 @@ BuildRequires: libzstd-devel
 BuildRequires: protobuf-devel
 BuildRequires: pugixml-devel
 BuildRequires: wcslib-devel
-BuildRequires: zfp-devel >= 0.5.5
+BuildRequires: zfp-devel >= 1.0.1
 
 # Only el7 requires carta-gsl-devel and newer devtoolset
 %if 0%{?rhel} == 7
