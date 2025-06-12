@@ -204,6 +204,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Thu Feb 14 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2025.1.18
+- No curl version
+
 * Thu Jan 18 2024 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
 - Updating to casa 6.6.0
 

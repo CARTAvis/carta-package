@@ -220,7 +220,7 @@ fi
 
 %changelog
 * Fri Feb 14 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 5.0+2025.2.14
-  - carta-backend-beta component for the CARTA 5.0 release
+  - carta-backend component for the CARTA 5.0-beta.1 release
 
 * Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 4.0+2023.5.4-2
   - Pulls source directly from scm
