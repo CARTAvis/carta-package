@@ -32,15 +32,7 @@ BuildRequires:  lapack-devel
 BuildRequires:  pkgconfig
 BuildRequires:  readline-devel
 BuildRequires:  wcslib-devel
-
-# Only el7 requires carta-gsl-devel and newer devtoolset
-%if 0%{?rhel} == 7
-BuildRequires: carta-gsl-devel
-BuildRequires: devtoolset-8-gcc-c++
-Requires: carta-gsl
-%else
-BuildRequires: gsl-devel
-%endif
+BuildRequires:  gsl-devel
 
 Requires: measures-data
 
@@ -71,38 +63,7 @@ cd %{NVdir}
 mkdir build
 cd build
 
-# Only el7/rhel7 requires carta-gsl and devtoolset
-%if 0%{?rhel} == 7
-source /opt/rh/devtoolset-8/enable
-cmake3 .. -DUSE_THREADS=ON \
-          -DUSE_FFTW3=ON \
-          -DUSE_HDF5=ON \
-          -DUSE_THREADS=ON \
-          -DBUILD_PYTHON=OFF \
-          -DBUILD_PYTHON3=OFF \
-          -DBUILD_TESTING=OFF \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DUSE_OPENMP=ON \
-          -DUseCcache=1 \
-          -DHAS_CXX11=1 \
-          -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
-          -DDATA_DIR=/usr/share/casacore/data \
-          -DENABLE_RPATH=NO \
-          -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-          -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-          -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
-          -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
-          -DGSL_LIBRARY=/opt/carta-gsl/lib \
-          -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-          -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-          -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
-make %{?_smp_mflags}
-%install
-cd %{NVdir}/build
-%make_install
-%endif
 
-%if 0%{?rhel} == 8 || 0%{?rhel} == 9
 %cmake3 .. -DUSE_THREADS=ON \
           -DUSE_FFTW3=ON \
           -DUSE_HDF5=ON \
@@ -119,7 +80,6 @@ cd %{NVdir}/build
 %install
 cd %{NVdir}/build
 %cmake_install
-%endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc CXX=g++-9 FC=gfortran-9
@@ -141,13 +101,8 @@ cd %{NVdir}/build
 %make_install
 %endif
 
-
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 /bin/echo "/opt/carta-casacore/lib" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}.conf
-
-%if 0%{?rhel} == 7
-/bin/echo "/opt/carta-gsl/lib" >> %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}.conf
-%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -202,6 +157,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
+- Remove rhel7 specific requirements
+
 * Thu Jan 18 2024 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
 - Updating to casa 6.6.0
 

@@ -44,17 +44,7 @@ BuildRequires: libzstd-devel
 BuildRequires: protobuf-devel
 BuildRequires: wcslib-devel
 BuildRequires: zfp-devel >= 1.0.1
-
-# Only el7 requires carta-gsl-devel and newer devtoolset
-%if 0%{?rhel} == 7
-BuildRequires: carta-gsl-devel
-BuildRequires: devtoolset-8-gcc-c++
-%else
 BuildRequires: gsl-devel
-%endif
-
-# Only el7/rhel7 requires carta-gsl
-%{?rhel7:Requires: carta-gsl}
 
 Requires: blas
 Requires: carta-casacore-nocurl
@@ -90,27 +80,8 @@ cd %{NVdir}
 mkdir build
 cd build
 
-# Only el7/rhel7 requires carta-gsl and devtoolset
-%if 0%{?rhel} == 7
-. /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta" \
-           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
-           -DGSL_LIBRARY=/opt/carta-gsl/lib \
-           -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
-           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" \
-           -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" \
-           -DCMAKE_PREFIX_PATH=/opt/cfitsio
-%endif
-
-
-%if 0%{?rhel} == 8 || 0%{?rhel} == 9
 cmake3 ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
-%endif
+
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
@@ -219,6 +190,9 @@ fi
 %exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
+* Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 5.0+2025.2.14
+  - Remove rhel7 specific requirements and upgrade zfp to 1.0.1
+
 * Fri Feb 14 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 5.0+2025.2.14
   - carta-backend component for the CARTA 5.0-beta.1 release
 

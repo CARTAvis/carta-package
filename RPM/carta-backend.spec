@@ -4,7 +4,7 @@
 %define debug_package %{nil}
 
 Name:           carta-backend
-Version:        4.1.0
+Version:        5.0.0
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -12,18 +12,20 @@ URL:            https://github.com/CARTAvis/carta-backend
 
 BuildArch: %{_arch}
 
-Obsoletes: carta-backend <= 4.0.0
-Obsoletes: carta-backend = 4.0.0~rc.0
+Obsoletes: carta-backend <= 5.0.0
+Obsoletes: carta-backend = 5.0.0~rc.0
 
 BuildRequires: git
 BuildRequires: blas-devel
-BuildRequires: carta-casacore-devel
+# BuildRequires: carta-casacore-devel
+BuildRequires: carta-casacore-nocurl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires: cmake
 %else
 BuildRequires: cmake3
 %endif
 BuildRequires: cfitsio-devel
+# BuildRequires:  carta-cfitsio-v450-curl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
 BuildRequires:  gcc9-fortran
@@ -37,21 +39,13 @@ BuildRequires: protobuf-devel
 BuildRequires: pugixml-devel
 BuildRequires: wcslib-devel
 BuildRequires: zfp-devel >= 1.0.1
-
-# Only el7 requires carta-gsl-devel and newer devtoolset
-%if 0%{?rhel} == 7
-BuildRequires: carta-gsl-devel
-BuildRequires: devtoolset-8-gcc-c++
-%else
 BuildRequires: gsl-devel
-%endif
-
-# Only el7/rhel7 requires carta-gsl
-%{?rhel7:Requires: carta-gsl}
 
 Requires: blas
 Requires: cfitsio
-Requires: carta-casacore
+# Requires: carta-casacore
+# Requires: carta-cfitsio-v450-curl
+Requires: carta-casacore-nocurl
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0
@@ -62,11 +56,11 @@ Requires: wcslib
 %endif
 Requires: zfp
 
+
 %define NVdir %{name}-%{version}
 
 %description
 CARTA is a next generation image visualization and analysis tool designed for ALMA, VLA, and SKA pathfinders.
-.
 This package provides the release version of the backend component.
 
 %define _bin /bin
@@ -75,7 +69,7 @@ This package provides the release version of the backend component.
 rm -rf %{NVdir}
 git clone %{url}.git %{NVdir}
 cd %{NVdir}
-git checkout v%{version}
+git checkout dev
 git submodule update --init --recursive
 
 %build
@@ -83,25 +77,8 @@ cd %{NVdir}
 mkdir build
 cd build
 
-# Only el7/rhel7 requires carta-gsl and devtoolset
-%if 0%{?rhel} == 7
-. /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-           -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm \
-           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
-           -DGSL_LIBRARY=/opt/carta-gsl/lib \
-           -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
-           -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
-           -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
-%endif
-
-%if 0%{?rhel} == 8 || 0%{?rhel} == 9
 cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
            -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
-%endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
@@ -168,6 +145,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/icons/hicolor/symbolic/apps/cartaviewer.svg
 
 %changelog
+* Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 5.0.0
+  - Remove rhel7 specific requirements
+  - Upgrade zfp to 1.0.1
+  - carta-backend component for the CARTA 5.0 release
+
 * Fri Jan 19 2024 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.1.0
   - carta-backend component for the CARTA 4.1 release
 

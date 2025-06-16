@@ -1,5 +1,6 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
+%define _unpackaged_files_terminate_build 0
 
 Name:           zfp
 Version:        1.0.1
@@ -49,7 +50,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %{_includedir}/zfp*
-%{_includedir}/bitstream.h
 %{_libdir}/cmake/zfp
 %{_libdir}/lib*
 
@@ -62,7 +62,7 @@ rm -rf $RPM_BUILD_ROOT
 %postun -p /sbin/ldconfig
 
 %changelog
-* Wed Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 1.0.1
+* Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 1.0.1
   - Upgrade to version 1.0.1
 
 * Wed Feb 19 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 0.5.5-4
