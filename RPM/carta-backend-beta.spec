@@ -4,31 +4,34 @@
 # It also creates a new startup script at /usr/bin/carta-beta that points
 # to the executable at /opt/carta-backend-beta/bin/carta_backend.
 #
+%global _enable_debug_packages 1
+%global debug_package %{?_debuginfo_subpackages:%{_debuginfo_subpackages}}%{!?_debuginfo_subpackages:%{nil}}
+%global optflags %{optflags} -g
+
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 %define my_prefix  %{_prefix}
-%define debug_package %{nil}
 %define datadirbeta /opt/carta-backend-beta/share
 %define beta_install_path /opt/carta-beta
 
 Name:           carta-backend-beta
-Version:        4.0+2023.5.4
-Release:        2
+Version:        5.0+2025.2.14
+Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
 URL:            https://github.com/CARTAvis/carta-backend
-Source0:        %{name}-%{version}.tgz
 
 BuildArch: %{_arch}
 
+BuildRequires: git
 BuildRequires: blas-devel
-BuildRequires: carta-casacore-devel
+BuildRequires: carta-casacore-nocurl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires: cmake
 %else
 BuildRequires: cmake3
 %endif
-BuildRequires: cfitsio-devel
+BuildRequires:  carta-cfitsio-v450-curl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
 BuildRequires:  gcc9-fortran
@@ -54,8 +57,8 @@ BuildRequires: gsl-devel
 %{?rhel7:Requires: carta-gsl}
 
 Requires: blas
-Requires: cfitsio
-Requires: carta-casacore
+Requires: carta-casacore-nocurl
+Requires: carta-cfitsio-v450-curl
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0
@@ -79,6 +82,7 @@ This package provides the release version of the backend component.
 rm -rf %{NVdir}
 git clone %{url}.git %{NVdir}
 cd %{NVdir}
+git checkout v5.0.0-beta.1
 git submodule update --init --recursive
 
 %build
@@ -89,7 +93,7 @@ cd build
 # Only el7/rhel7 requires carta-gsl and devtoolset
 %if 0%{?rhel} == 7
 . /opt/rh/devtoolset-8/enable
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta" \
+cmake3 ..  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta" \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
            -DGSL_INCLUDE_DIR=/opt/carta-gsl/include \
@@ -97,17 +101,20 @@ cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{b
            -DGSL_CBLAS_LIBRARY=/opt/carta-gsl/lib \
            -DGSL_CONFIG=/opt/carta-gsl/bin/gsl-config \
            -DCMAKE_CXX_FLAGS="-I/opt/carta-gsl/include" \
-           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib"
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/carta-gsl/lib" \
+           -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" \
+           -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" \
+           -DCMAKE_PREFIX_PATH=/opt/cfitsio
 %endif
 
 
 %if 0%{?rhel} == 8 || 0%{?rhel} == 9
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=Release -DCartaUserFolderPrefix=".carta-beta"
+cmake ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=%{beta_install_path} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta-beta"
 %endif
 
 make -j 2
@@ -170,8 +177,16 @@ chmod +x %{buildroot}%{_bindir}/carta-beta
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
+%post
+echo "/opt/cfitsio/lib64" > /etc/ld.so.conf.d/cfitsio.conf
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+if [ $1 -eq 0 ]; then
+    rm -f /etc/ld.so.conf.d/cfitsio.conf
+    /sbin/ldconfig
+fi
 
 %files
 %{beta_install_path}/bin/carta_backend
@@ -204,6 +219,9 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
+* Fri Feb 14 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 5.0+2025.2.14
+  - carta-backend-beta component for the CARTA 5.0 release
+
 * Wed Jul 26 2023 William Davey <wdavey@pawsey.org.au> 4.0+2023.5.4-2
   - Pulls source directly from scm
 

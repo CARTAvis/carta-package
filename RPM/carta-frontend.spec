@@ -14,6 +14,8 @@ Source0:        https://registry.npmjs.org/carta-frontend/-/carta-frontend-%{ver
 Obsoletes: carta-frontend <= 4.0.0
 Obsoletes: carta-frontend = 4.0.0~rc.0
 
+BuildArch: noarch
+
 %description
 A production built carta-frontend component simply extracted from an npm package.
 Requires a carta-backend.
