@@ -12,7 +12,7 @@ URL:            https://github.com/CARTAvis/carta-backend
 
 BuildArch: %{_arch}
 
-Obsoletes: carta-backend <= 5.0.0
+Obsoletes: carta-backend < 5.0.0
 Obsoletes: carta-backend = 5.0.0~rc.0
 
 BuildRequires: git

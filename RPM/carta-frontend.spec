@@ -12,7 +12,7 @@ License:        GPL-3+
 URL:            https://github.com/CARTAvis/carta-frontend
 Source0:        https://registry.npmjs.org/carta-frontend/-/carta-frontend-%{frontend_version}.tgz
 
-Obsoletes: carta-frontend <= 5.0.0
+Obsoletes: carta-frontend < 5.0.0
 Obsoletes: carta-frontend = 5.0.0~rc.0
 
 BuildArch: noarch
