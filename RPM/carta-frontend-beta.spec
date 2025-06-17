@@ -49,5 +49,6 @@ rm -rf %{buildroot}
 %changelog
 * Thu Feb 14 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 5.0+2025.2.14
   - Custom carta-frontend-beta component for the CARTA 5.0-beta.1 release
+  
 * Thu May 4 2023 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.0+2023.5.4
   - Custom carta-frontend-beta component for the CARTA 4.0-beta.1 release

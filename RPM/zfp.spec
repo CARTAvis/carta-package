@@ -1,14 +1,15 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
+%define _unpackaged_files_terminate_build 0
 
 Name:           zfp
-Version:        0.5.5
-Release:        4%{?dist}
+Version:        1.0.1
+Release:        1%{?dist}
 Summary:        Compressed numerical arrays that support high-speed random access
 
 License:        BSD-3-Clause
 URL:            https://github.com/LLNL/zfp.git
-Source0:        https://github.com/LLNL/zfp/releases/download/0.5.5/zfp-0.5.5.tar.gz
+Source0:        https://github.com/LLNL/zfp/releases/download/1.0.1/zfp-1.0.1.tar.gz
 
 BuildRequires:  cmake3
 BuildRequires:  gcc-c++
@@ -17,16 +18,16 @@ BuildRequires:  git
 Requires:  libgomp
 
 %description
-ZFP 0.5.5 needed by the carta-backend.
+ZFP 1.0.1 needed by the carta-backend.
 
 %package devel
-Summary: ZFP 0.5.5 development files
+Summary: ZFP 1.0.1 development files
 Provides: zfp-devel
 
 %define NVdir %{name}-%{version}
 
 %description devel
-Development package of ZFP 0.5.5 containing the lib and header files.
+Development package of ZFP 1.0.1 containing the lib and header files.
 
 %prep
 rm -rf %{NVdir}
@@ -49,19 +50,21 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %{_includedir}/zfp*
-%{_includedir}/bitstream.h
 %{_libdir}/cmake/zfp
 %{_libdir}/lib*
 
 %files
 %{_libdir}/libzfp.so
-%{_libdir}/libzfp.so.0
-%{_libdir}/libzfp.so.0.5.5
+%{_libdir}/libzfp.so.1
+%{_libdir}/libzfp.so.1.0.1
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
 
 %changelog
+* Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 1.0.1
+  - Upgrade to version 1.0.1
+
 * Wed Feb 19 2025 Cheng-Chin Chiang <chcchiang@asiaa.sinica.edu.tw> 0.5.5-4
   - Remove the build for CentOS 7 and openSUSE
 

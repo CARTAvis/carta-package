@@ -7,8 +7,8 @@ Version:        0.1.15
 Release:        1
 Summary:        C++ implementation of FITS to IDIA-HDF5 converter, optimised using OpenMP
 License:        GPL-3+
-URL:            https://github.com/idia-astro/fits2idia
-Source0:        %{name}-%{version}.tgz
+URL:            https://github.com/CARTAvis/fits2idia
+Source0:        https://github.com/CARTAvis/fits2idia/archive/refs/tags/v%{version}.tar.gz
 
 BuildArch: %{_arch}
 
@@ -16,12 +16,8 @@ BuildArch: %{_arch}
 %{?el7:BuildRequires: devtoolset-8-gcc-c++}
 
 BuildRequires: bzip2-devel
-%{?el7:BuildRequires: carta-cfitsio-devel}
-%{?el7:BuildRequires: carta-cfitsio-static}
-%{?el8:BuildRequires: cfitsio-devel}
-%{?el8:BuildRequires: cfitsio-static}
-%{?el9:BuildRequires: cfitsio-devel}
-%{?el9:BuildRequires: cfitsio-static}
+BuildRequires: cfitsio-devel
+BuildRequires: cfitsio-static
 BuildRequires: cmake3
 BuildRequires: curl-devel
 BuildRequires: gcc-c++
@@ -59,6 +55,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/fits2idia
 
 %changelog
+* Fri Jun 13 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 0.1.15
+- Modify URL
+- Remove el7 specific requirements
+
 * Tue Sep 13 2022 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 0.1.15
 - fits2idia rebuilt on Copr
 
