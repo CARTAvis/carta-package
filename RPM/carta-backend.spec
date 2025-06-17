@@ -17,15 +17,13 @@ Obsoletes: carta-backend = 5.0.0~rc.0
 
 BuildRequires: git
 BuildRequires: blas-devel
-# BuildRequires: carta-casacore-devel
 BuildRequires: carta-casacore-nocurl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires: cmake
 %else
 BuildRequires: cmake3
 %endif
-BuildRequires: cfitsio-devel
-# BuildRequires:  carta-cfitsio-v450-curl-devel
+BuildRequires:  carta-cfitsio-v450-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
 BuildRequires:  gcc9-fortran
@@ -42,9 +40,7 @@ BuildRequires: zfp-devel >= 1.0.1
 BuildRequires: gsl-devel
 
 Requires: blas
-Requires: cfitsio
-# Requires: carta-casacore
-# Requires: carta-cfitsio-v450-curl
+Requires: carta-cfitsio-v450
 Requires: carta-casacore-nocurl
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
@@ -77,16 +73,16 @@ cd %{NVdir}
 mkdir build
 cd build
 
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
            -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/usr/include/cfitsio" -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+cmake ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
-make
+make -j 2
 %install
 rm -rf %{buildroot}
 cd %{NVdir}/build
@@ -123,8 +119,16 @@ cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{_datadir}/icons/hicolor/s
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
+%post
+echo "/opt/cfitsio/lib64" > /etc/ld.so.conf.d/cfitsio.conf
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+if [ $1 -eq 0 ]; then
+    rm -f /etc/ld.so.conf.d/cfitsio.conf
+    /sbin/ldconfig
+fi
 
 %files
 %{_bindir}/carta_backend

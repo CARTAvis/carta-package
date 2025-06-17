@@ -1,7 +1,7 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 
-Name:           carta-cfitsio-v450
+Name:           carta-cfitsio-v450-nocurl
 Version:        4.5.0
 Release:        1%{?dist}
 Summary:        Library for reading and writing FITS data files
@@ -23,8 +23,6 @@ BuildRequires: zlib-devel
 BuildRequires: bzip2-devel
 BuildRequires: libtool
 BuildRequires: autoconf
-BuildRequires: curl
-BuildRequires: libcurl-devel
 
 %description
 CFITSIO is a C library for reading and writing data files in the Flexible Image
@@ -32,8 +30,8 @@ Transport System (FITS) format. It provides an efficient, self-documenting inter
 to FITS files and is widely used in astronomy and related fields.
 
 %package devel
-Summary: Development files for carta-cfitsio-v450
-Provides: carta-cfitsio-v450-devel
+Summary: Development files for carta-cfitsio-v450-nocurl
+Provides: carta-cfitsio-v450-nocurl-devel
 
 %description devel
 Development package of carta-cfitsio-v450 containing the lib and header files.
