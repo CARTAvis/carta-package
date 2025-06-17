@@ -1,0 +1,5 @@
+FROM fedora:latest
+
+RUN \
+    dnf install -y rpm-build wget && \
+    mkdir -p /root/rpmbuild/{SOURCES,SPECS}
