@@ -20,8 +20,6 @@ else
     COPR_REPO=carta-dev
 fi
 
-source ~/python_venv/python3.11/bin/activate
-
 ## check the requirements ##
 # check copr-cli is installed
 if ! command -v copr-cli &> /dev/null; then
@@ -70,5 +68,3 @@ for SPEC in $(cat build_spec_files.txt); do
 done
 
 echo "All builds submitted to COPR repository $COPR_REPO."
-
-deactivate
