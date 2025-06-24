@@ -3,8 +3,8 @@
 #!/bin/bash
 
 ## choose the release type ##
-# RELEASE=TRUE # set to TRUE to release a new version, or FALSE to publish a dev version
-RELEASE=FALSE # set to TRUE to release a new version, or FALSE to publish a dev version
+RELEASE=TRUE # set to TRUE to release a new version, or FALSE to publish a dev version
+# RELEASE=FALSE # set to TRUE to release a new version, or FALSE to publish a dev version
 
 if [ "$RELEASE" = TRUE ]; then
     echo "You are about to release a new version of the RPM package."

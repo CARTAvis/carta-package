@@ -65,7 +65,8 @@ This package provides the release version of the backend component.
 rm -rf %{NVdir}
 git clone %{url}.git %{NVdir}
 cd %{NVdir}
-git checkout dev
+git checkout v%{version}
+# git checkout dev
 git submodule update --init --recursive
 
 %build

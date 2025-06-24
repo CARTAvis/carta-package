@@ -2,7 +2,8 @@
 %define debug_package %{nil}
 %undefine _disable_source_fetch
 
-%define frontend_version 5.0.0-dev
+# %define frontend_version 5.0.0-dev
+%define frontend_version 5.0.0
 
 Name:           carta-frontend
 Version:        5.0.0
