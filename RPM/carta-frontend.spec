@@ -1,18 +1,20 @@
-%define my_prefix  %{_prefix}
+# %define my_prefix  %{_prefix}
 %define debug_package %{nil}
 %undefine _disable_source_fetch
 
+# %define frontend_version 5.0.0-dev
+%define frontend_version 5.0.0
+
 Name:           carta-frontend
-Version:        4.1.0
+Version:        5.0.0
 Release:        1
 Summary:        carta-frontend as needed by carta
-
 License:        GPL-3+
 URL:            https://github.com/CARTAvis/carta-frontend
-Source0:        https://registry.npmjs.org/carta-frontend/-/carta-frontend-%{version}.tgz
+Source0:        https://registry.npmjs.org/carta-frontend/-/carta-frontend-%{frontend_version}.tgz
 
-Obsoletes: carta-frontend <= 4.0.0
-Obsoletes: carta-frontend = 4.0.0~rc.0
+Obsoletes: carta-frontend < 5.0.0
+Obsoletes: carta-frontend = 5.0.0~rc.0
 
 BuildArch: noarch
 
@@ -22,16 +24,17 @@ Requires a carta-backend.
 
 %prep
 %setup -q -c -T
-tar -xzf %{_sourcedir}/carta-frontend-%{version}.tgz
-mv package carta-frontend-%{version}
-cd carta-frontend-%{version}
+tar -xzf %{_sourcedir}/carta-frontend-%{frontend_version}.tgz
+rm -rf carta-frontend-%{frontend_version}
+mv package carta-frontend-%{frontend_version}
+cd carta-frontend-%{frontend_version}
 
 %build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_datadir}/carta/frontend
-cp -r carta-frontend-%{version}/build/* $RPM_BUILD_ROOT/%{_datadir}/carta/frontend
+cp -r carta-frontend-%{frontend_version}/build/* $RPM_BUILD_ROOT/%{_datadir}/carta/frontend
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -40,6 +43,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/carta/frontend
 
 %changelog
+* Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 5.0.0
+  - carta-frontend component for the CARTA 5.0 release
+
 * Fri Jan 19 2024 Anthony Moraghan <ajm@asiaa.sinica.edu.tw> 4.1.0
   - carta-frontend component for the CARTA 4.1 release
   - pull the source directly from the npm registry
