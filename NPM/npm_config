@@ -1,0 +1,10 @@
+# set to FALSE to release a new version, or TRUE to publish a dev version
+# DEV_RELEASE=TRUE
+DEV_RELEASE=FALSE
+
+# set release version tag to publish; modify this to the desired release version
+BRANCH=v5.0.2
+
+# For debug
+DEBUG_MODE=TRUE
+# DEBUG_MODE=FALSE

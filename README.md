@@ -8,3 +8,4 @@ It includes:
 - Flatpak version
 - Snapcraft version
 - cartavis/carta Docker image
+- NPM
