@@ -1,6 +1,7 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 %define _unpackaged_files_terminate_build 0
+%global _hardened_build 0
 
 Name:           zfp
 Version:        1.0.1
@@ -12,7 +13,12 @@ URL:            https://github.com/LLNL/zfp.git
 Source0:        https://github.com/LLNL/zfp/releases/download/1.0.1/zfp-1.0.1.tar.gz
 
 BuildRequires:  cmake3
+%if 0%{?rhel} == 8
+BuildRequires:  gcc-toolset-11-gcc-c++
+BuildRequires:  gcc-toolset-11-libgccjit-devel
+%else
 BuildRequires:  gcc-c++
+%endif
 BuildRequires:  git
 
 Requires:  libgomp
@@ -37,13 +43,24 @@ git checkout -b %{version} tags/%{version}
 
 %build
 cd %{NVdir}
-
-%cmake3 -DCMAKE_INSTALL_PREFIX=/usr 
+%if 0%{?rhel} == 8
+mkdir build
+cd build
+scl enable gcc-toolset-11 -- cmake3 -DCMAKE_INSTALL_PREFIX=/usr ..
+scl enable gcc-toolset-11 -- /usr/bin/cmake --build .
+%else
+%cmake3 -DCMAKE_INSTALL_PREFIX=/usr
 %cmake3_build
+%endif
 
 %install
 cd %{NVdir}
+%if 0%{?rhel} == 8
+cd build
+DESTDIR=%{buildroot} cmake3 --install .
+%else
 %cmake3_install
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
