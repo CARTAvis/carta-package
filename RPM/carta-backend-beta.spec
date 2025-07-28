@@ -15,7 +15,7 @@
 %define beta_install_path /opt/carta-beta
 
 Name:           carta-backend-beta
-Version:        5.0+2025.2.14
+Version:        5.0+2025.7.22
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -72,8 +72,8 @@ This package provides the release version of the backend component.
 rm -rf %{NVdir}
 git clone %{url}.git %{NVdir}
 cd %{NVdir}
-git checkout v5.0.0-beta.1
-git submodule update --init --recursive
+git checkout v5.0.1
+git submodule update --init
 
 %build
 cd %{NVdir}
@@ -190,6 +190,9 @@ fi
 %exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
+* Tue Jul 22 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0+2025.7.22
+  - carta-backend v5.0.1 for CARTA 5.0-beta.2025.7.22 release
+
 * Thu Jun 12 2025 Kuan-Chou Hou <kchou@asiaa.sinica.edu.tw> 5.0+2025.2.14
   - Remove rhel7 specific requirements and upgrade zfp to 1.0.1
 
