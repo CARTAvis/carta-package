@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Can be branch, tag or commit
+FRONTEND_VERSION=5.0.2
+BACKEND_VERSION=5.0.1
+
+RELEASE=FALSE
+# RELEASE=TRUE
+
+# Release version, for naming the AppImage
+RELEASE_VERSION=5.0.0
+
+# NPM_FRONTEND=FALSE
+NPM_FRONTEND=TRUE
+
+# Set to TRUE if it is a beta release
+# BETA_RELEASE=TRUE
+BETA_RELEASE=FALSE
+
+
+# for debug purposes
+PREPARE_FRONTEND=TRUE
+# PREPARE_FRONTEND=FALSE
+
+PREPARE_BACKEND=TRUE
+# PREPARE_BACKEND=FALSE
