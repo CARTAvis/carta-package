@@ -8,35 +8,24 @@
 
 ### Basic usage:
 
-Execute the `./create-carta-appimage.sh` script. It will build a Almalinux8.10 Docker container, create a CARTA AppImage using the latest carta-backend and carta-frontend 'dev' commits (and carta-casacore 'master' branch) automatically, and copy it on to your local computer.
+0. If there is no packaging docker image existing, run the `./build_docker_image.sh` script to build the Docker image that will be used to create the CARTA AppImage. This image contains the `carta-casacore` and `emsdk`.
+
+1. Edit the `appimage_config` file to set the `FRONTEND_RELEASE_VERSION` and `BACKEND_RELEASE_VERSION` to the versions of carta-frontend and carta-backend you want to use. Default is to use a pre-built carta-frontend from [carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend), set `NPM_FRONTEND=True`. If you want to build it from source, set `NPM_FRONTEND=False`.
+
+2. Execute the `./run_docker_package.sh` script. It will open the container, create a CARTA AppImage using the pointed versions of carta-backend and carta-frontend automatically, copy it on to your local computer, and do the final packaging using `appimagetool`.
+
+3. The appimagetool is not allowed to run inside a Docker container, and it runs on your local computer. To package the arm64 AppImage, either run the script on an Apple Silicon Mac, copy folder `CARTA` to an arm64 architecture linux machine and run `./appimagetool.sh` or execute the `./run_docker_package.sh` script on an arm64 architecture linux machine directly.
 
 ### Advanced usage:
 
 0. Generate a public/private key with the command `gpg --full-generate-key`, then export the public key `gpg --armor --export YOUR-EMAIL-OR-KEYID > pubkey.asc` to a file. Put this public key file under the folder `carta-package`, i.e., up one level folder.
 
-1. Open the script `./create-carta-appimage.sh` script for editing.
-
-2. Modify the `BACKEND_TAG`, `FRONTEND_TAG`, `VERSION`, (and optionally the `CARTA_CASACORE_TAG`) with the branch/commit/tag that you would like to use.
-
- The pre-built production carta-frontends can be directly downloaded from the 
-[carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend) by setting `FRONTEND_FROM_NPM=True`, or built from source by 
-setting `FRONTEND_FROM_NPM=False`. 
-
- In both cases, the appropriate `FRONTEND_TAG` will also need to be set.
-
- The carta-frontend NPM repository option can save build time, but only a few carta-frontends are available there - only the official releases and beta versions. 
-
- If using the option to build carta-frontend from source (`FRONTEND_FROM_NPM=False`), note that it is built separately in the first section of `./create-carta-appimage.sh` script. 
- This is because one way to build the carta-frontend is using Emscripten, but Emscripten appears to no longer work in RHEL7. Therefore, we need to use the Docker method to build the carta-frontend. However, we can not run Docker commands inside a Dockerfile. So that is why it must be first built separately outside of the main Docker container. In this case, the `npm install` command is necessary, so `node` and `npm` also need to be installed on your local computer.
+1. The carta-frontend NPM repository option can save build time, but only a few carta-frontends are available there - only the official releases and beta versions. Set `NPM_FRONTEND=False` in the `appImage_config` file to build the carta-frontend from source.
 
 ### Additional notes:
 
-- This will only work with carta-backends from June 14th 2022 and onward because the curl dependency was removed at that point. The presence of curl made it difficult to have universal AppImage that would work on both RedHat and Ubuntu due to the different ways SSL certificates were handled on the different OSs.
-
 - To run an AppImage inside a Docker container (or a system without FUSE enabled): `APPIMAGE_EXTRACT_AND_RUN=1 ./CARTA.AppImage`
-
-- The `./create-carta-appimage.sh` script will build an `x86_64` version if run on an `x86_64` computer (or Intel Mac), and an `aarch64` version if run on an `aarch64` computer (or M1 Mac).
 
 - We are currently using the Continuous build from [probonopd/go-appimage](https://github.com/probonopd/go-appimage) as that is the only version of 
 Appimagetool that supports running on Ubuntu 22.04 without the need to install the older libfuse-2. The Continuous build regularly changes the version 
-number, so you many need to adjust the URL/filename in the Dockerfile before running the script e.g. 715, 718, 722 etc.
+number, the script will automatically download the latest version of appimagetool.
