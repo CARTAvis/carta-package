@@ -1,19 +1,33 @@
 #!/bin/bash
 
+source ./appimage_config
+
+# If it is a release, set the version to the release version, otherwise set it to the combination of backend and frontend versions
+if [ "${RELEASE}" = "TRUE" ]; then
+    VERSION=${RELEASE_VERSION}
+else
+    VERSION="${BACKEND_VERSION}-${FRONTEND_VERSION}"
+fi
+
 ARCH=$(arch)
 if [ ${ARCH} = "arm64" ]; then
     ARCH="aarch64"
 fi
 
-# download the latest appimagetool
-echo "Downloading appimagetool for ${ARCH} architecture..."
-wget -c https://github.com/`wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-${ARCH}.AppImage" | head -n 1 | awk '{print $2}' | cut -d '"' -f 2`
-if [ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]; then
+APPIMAGE_VERSION=$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-aarch64.AppImage" | head -n 1 | awk '{print $2}' | grep -o '[[:digit:]]\+' | head -n 1)
+
+if [[ ! -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]]; then
+    rm -f appimagetool-*-${ARCH}.AppImage
+    echo "appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage not found. Downloading..."
+    wget -c https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
+fi
+
+if [[ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]]; then
     chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
     APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
 fi
 
 # Extract a unique Embedded Signature
-if [ -x carta-${VERSION}-${ARCH}.AppImage ]; then
+if [[ -x carta-${VERSION}-${ARCH}.AppImage ]]; then
     ./carta-${VERSION}-${ARCH}.AppImage --appimage-signature > Embedded-Signature
 fi

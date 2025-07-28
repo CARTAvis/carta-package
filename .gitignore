@@ -2,3 +2,5 @@
 /CARTA-AppImage-creator/CARTA
 /CARTA-AppImage-creator/*.AppImage
 /CARTA-AppImage-creator/*.tgz
+/CARTA-AppImage-creator/Embedded-Signature
+/CARTA-AppImage-creator/index.html

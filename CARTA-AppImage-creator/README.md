@@ -10,7 +10,7 @@
 
 0. If there is no packaging docker image existing, run the `./build_docker_image.sh` script to build the Docker image that will be used to create the CARTA AppImage. This image contains the `carta-casacore` and `emsdk`.
 
-1. Edit the `appimage_config` file to set the `FRONTEND_RELEASE_VERSION` and `BACKEND_RELEASE_VERSION` to the versions of carta-frontend and carta-backend you want to use. Default is to use a pre-built carta-frontend from [carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend), set `NPM_FRONTEND=True`. If you want to build it from source, set `NPM_FRONTEND=False`.
+1. Edit the `appimage_config` file to set the `FRONTEND_VERSION` and `BACKEND_VERSION` to the versions of carta-frontend and carta-backend you want to use. Default is to use a pre-built carta-frontend from [carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend), set `NPM_FRONTEND=True`. If you want to build it from source, set `NPM_FRONTEND=False`.
 
 2. Execute the `./run_docker_package.sh` script. It will open the container, create a CARTA AppImage using the pointed versions of carta-backend and carta-frontend automatically, copy it on to your local computer, and do the final packaging using `appimagetool`.
 
