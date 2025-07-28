@@ -1,7 +1,7 @@
 # This script is run in the docker container to build the CARTA AppImage.
 #!/bin/bash
 
-source /root/appImage_config
+source /root/appimage_config
 echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_RELEASE_VERSION}"
 echo "Frontend release version: ${FRONTEND_RELEASE_VERSION}"

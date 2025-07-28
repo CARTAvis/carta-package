@@ -33,6 +33,7 @@ sleep 5
 
 # copy files to the container
 echo "Copying files to the container..."
+docker cp ./appimage_config ${CONTAINER_NAME}:/root/appimage_config
 docker cp ./cp_libs.sh ${CONTAINER_NAME}:/root/cp_libs.sh
 docker cp ./run_pack.sh ${CONTAINER_NAME}:/root/run_pack.sh
 
