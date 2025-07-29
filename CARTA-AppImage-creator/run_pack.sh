@@ -11,35 +11,66 @@ if [[ "$confirm" != "y" ]]; then
     exit 1
 fi
 
+# Parameters check 
+if [ "${NPM_FRONTEND}" = "TRUE" && "${RELEASE}" = "FALSE" ]; then
+    echo "NPM pre-build frontend is only for release version."
+    echo "Set NPM_FRONTEND to FALSE if it is Auto App Assembler or test build."
+    exit 1
+fi
+
 cd /root
+
+if [ "$UPDATE_MEASURES_DATA" = "TRUE" ]; then
+    echo "Updating Measures data..."
+    if [ -d /usr/local/share/casacore/data ]; then
+        echo "Removing existing Measures data..."
+        rm -rf /usr/local/share/casacore/data
+    fi
+    mkdir -p /usr/local/share/casacore/data
+    wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
+    tar -xzf WSRT_Measures.ztar
+    cp -r geodetic /usr/local/share/casacore/data
+    cp -r ephemerides /usr/local/share/casacore/data
+    rm -rf WSRT_Measures.ztar geodetic ephemerides
+fi
 
 ## prepare frontend ##
 if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
     echo "Frontend release version: ${FRONTEND_VERSION}"
     echo "Preparing frontend..."
-    rm -rf package
+    
+    if [ -d package ]; then
+        echo "Removing existing package directory..."
+        rm -rf package
+    fi
 
     if [ "${NPM_FRONTEND}" = "TRUE" ]; then
         ## see frontend version: https://www.npmjs.com/package/carta-frontend?activeTab=versions
         echo "Downloading carta-frontend version ${FRONTEND_VERSION}..."
-        wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-${FRONTEND_VERSION}.tgz
+        NPM_FRONTEND_VERSION=${FRONTEND_VERSION#v}
+        wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-${NPM_FRONTEND_VERSION}.tgz
         if [ $? -ne 0 ]; then
             echo "Failed to download carta-frontend version ${FRONTEND_VERSION}."
             exit 1
         fi
-        tar -xvf carta-frontend-${FRONTEND_VERSION}.tgz
-        rm carta-frontend-${FRONTEND_VERSION}.tgz
+
+        if [ ! -f carta-frontend-${NPM_FRONTEND_VERSION}.tgz ]; then
+            echo "Downloaded file not found. Please check the version."
+            exit 1
+        fi
+        tar -xvf carta-frontend-${NPM_FRONTEND_VERSION}.tgz
+        rm carta-frontend-${NPM_FRONTEND_VERSION}.tgz
     else
         # activate emsdk
         echo "Activating emsdk..."
-        ./emsdk install latest
+        ./emsdk/emsdk install latest
         ./emsdk/emsdk activate latest
         source ./emsdk/emsdk_env.sh
 
         echo "Cloning carta-frontend repository..."
         git clone https://github.com/CARTAvis/carta-frontend.git package
         cd package
-        git checkout v${FRONTEND_VERSION}
+        git checkout ${FRONTEND_VERSION}
         git submodule update --init --recursive
         npm install
         npm run build-libs
@@ -59,7 +90,10 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
         FOLDER_PREFIX=".carta-beta"
     fi
 
-    rm -rf carta-backend
+    if [ -d carta-backend ]; then
+        echo "Removing existing carta-backend directory..."
+        rm -rf carta-backend
+    fi
 
     git clone https://github.com/CARTAvis/carta-backend.git
     cd /root/carta-backend

@@ -1,6 +1,16 @@
+.DS_Store
+
 /NPM/carta-frontend-temp/
 /CARTA-AppImage-creator/CARTA
 /CARTA-AppImage-creator/*.AppImage
 /CARTA-AppImage-creator/*.tgz
 /CARTA-AppImage-creator/Embedded-Signature
 /CARTA-AppImage-creator/index.html
+/CARTA-AppImage-creator/carta-backend
+/CARTA-AppImage-creator/package
+
+/macOS_electron/files/etc/data/ephemerides
+/macOS_electron/files/etc/data/geodetic
+/macOS_electron/pack
+/macOS_electron/package
+/macOS_electron/carta-backend
