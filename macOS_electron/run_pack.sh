@@ -39,13 +39,14 @@ cp -r ${PACKAGING_PATH}/files/pack/* ${PACKAGING_PATH}/pack
 # if there no ephemerides and geodetic in ${PACKAGING_PATH}/files/etc/data
 if [ ! -d ${PACKAGING_PATH}/files/etc/data/ephemerides ] || [ ! -d ${PACKAGING_PATH}/files/etc/data/geodetic ] || [ "${UPDATE_MEASURES_DATA}" = "TRUE" ]; then
     echo "Downloading ephemerides and geodetic data..."
+    mkdir -p ${PACKAGING_PATH}/files/etc/data
     cd ${PACKAGING_PATH}/files/etc/data
     wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
     tar -xvf WSRT_Measures.ztar
     rm -f WSRT_Measures.ztar
-    cd ${PACKAGING_PATH}
 fi
 
+cd ${PACKAGING_PATH}
 
 cp -r ${PACKAGING_PATH}/files/etc ${PACKAGING_PATH}/pack/carta-backend/
 
