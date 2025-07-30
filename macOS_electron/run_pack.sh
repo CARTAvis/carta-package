@@ -14,7 +14,7 @@ NAME=CARTA
 YEAR=$(date +%Y)
 
 # Parameters check 
-if [ "${NPM_FRONTEND}" = "TRUE" && "${RELEASE}" = "FALSE" ]; then
+if [[ "${NPM_FRONTEND}" = "TRUE" && "${RELEASE}" = "FALSE" ]]; then
     echo "NPM pre-build frontend is only for release version."
     echo "Set NPM_FRONTEND to FALSE if it is Auto App Assembler or test build."
     exit 1
@@ -42,17 +42,15 @@ if [ ! -d ${PACKAGING_PATH}/files/etc/data/ephemerides ] || [ ! -d ${PACKAGING_P
     mkdir -p ${PACKAGING_PATH}/files/etc/data
     cd ${PACKAGING_PATH}/files/etc/data
     wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
-    tar -xvf WSRT_Measures.ztar
-    rm -f WSRT_Measures.ztar
+    tar -xvf WSRT_Measures.ztar*
+    rm -f WSRT_Measures.ztar*
 fi
 
 cd ${PACKAGING_PATH}
-
-cp -r ${PACKAGING_PATH}/files/etc ${PACKAGING_PATH}/pack/carta-backend/
+cp -r ./files/etc ./pack/carta-backend/
 
 # prepare frontend
 if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
-    # sh ${PACKAGING_PATH}/build_frontend.sh ${PACKAGING_PATH} ${RELEASE_VERSION}
     
     if [ -d package ]; then
         echo "Removing existing package directory..."
@@ -136,7 +134,8 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
 fi
 
 echo "Running Apple notarization..."
-sh ${PACKAGING_PATH}/pack_n_notarize.sh
+cd ${PACKAGING_PATH}
+sh ./pack_n_notarize.sh
 
 
 # clean frontend
