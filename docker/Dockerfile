@@ -6,7 +6,7 @@ RUN \
     apt-get -y upgrade && \
     DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-suggests --no-install-recommends software-properties-common && \
-    apt-add-repository -y -s ppa:kernsuite/kern-7 && \
+    apt-add-repository -s ppa:kernsuite/kern-10 && \
     add-apt-repository -y ppa:cartavis-team/carta && \
     apt-get -y install carta casacore-data && \
     apt-get -y remove --auto-remove software-properties-common && \
