@@ -4,7 +4,7 @@ The macOS Electron version of CARTA uses [Electron](https://www.electronjs.org/)
 
 The following are instructions on how to package the macOS Electron version for CARTA:
 
-### 1. Build carta-casacore with floating CASAROOT ###
+### Build carta-casacore with floating CASAROOT before packaging ###
 
 It is essential that carta-casacore is built and installed with a floating root flag: `-DDATA_DIR="%CASAROOT%/data"`. This ensures casacore will be able to look for the measures data that we bundle with the package:
 ```
@@ -13,12 +13,25 @@ git clone https://github.com/CARTAvis/carta-casacore.git --recursive
 cd carta-casacore
 mkdir -p build
 cd build
-cmake .. -DUSE_FFTW3=ON -DUSE_HDF5=ON -DUSE_THREADS=ON -DUSE_OPENMP=ON -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_PYTHON=OFF -DUseCcache=1 -DHAS_CXX11=1 -DDATA_DIR="%CASAROOT%/data" -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore
-make -j4
+cmake .. -DUSE_FFTW3=ON -DUSE_HDF5=ON -DUSE_THREADS=ON -DUSE_OPENMP=ON -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_PYTHON=OFF -DUseCcache=1 -DHAS_CXX11=1 -DDATA_DIR="%CASAROOT%/data" -DCMAKE_INSTALL_PREFIX=/opt/casaroot-carta-casacore
+make -j 4
 sudo make install
 ```
 
-### 2. Build carta-backend ###
+### Package macOS electron CARTA ###
+
+1. **Modify parameters in `dmg_config`**: 
+   - `EMSDK_PATH` is required if you are building the frontend from source.
+   - `BACKGROUND_FIGURE` is the background image for the DMG installer. It should be a TIFF, PNG, and JPEG file. The figure should be under the `/files/build` folder.
+
+2. **Run the `run_pack.sh` script**:
+   - This script will build/prepare the carta-frontend and carta-backend, copy necessary files and libs, package them, and create the DMG.
+   - The script should execute on a Mac that can run the notarization process if you want to stamp the DMG.
+   - Copy built `carta-backend` from other architectures (e.g., Intel x86) to the packaging folder and do the following packaging and notarizing process.
+
+### Details of the packaging process ###
+
+#### 1. Build carta-backend ####
 
 Build the carta-backend with the `-DCartaUserFolderPrefix=` flag. If it is a beta-release, use `.carta-beta`, if it is a normal release, use `.carta`. Also, make sure to ‘checkout’ the correct branch/tag.
 ```
@@ -32,47 +45,35 @@ cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=".carta" -DDE
 make -j 4
 ```
 
-### 3. Package carta-backend ###
+#### 2. Package carta-backend ####
 
 This step makes the `carta_backend` executable distributable on other systems. 
 
-Run the [dylibbundler](https://github.com/auriamg/macdylibbundler) package on it (easily installed with Homebrew).
-```
-dylibbundler -od -of -b -x carta_backend -d libs
-```
-If you see errors like this: 
-```
-/!\ WARNING : can't get path for '@rpath/libzfp.0.dylib'
-Please specify the directory where this library is located (or enter 'quit' to abort):
-```
-Then type in **`/usr/local/lib`** and press ‘enter’.
-(That is the usual location of most library files. Or you can find where it should be with, for example, `locate libzfp.0.dylib`).
+Run the `cp_libs.sh` script to copy the necessary libraries to the `libs` folder.
+The `cp_libs.sh` script produces a modified `carta_backend` executable and a `libs` folder.
+The modified `carta_backend` will look for library files in `../libs`, so the `carta_backend` executable needs to be relative to that, usually in a `bin` folder.
 
-The dylibbundler process produces a modified `carta_backend` executable and a `libs` folder. 
-The modified carta_backend will look for library files in `../libs`, so the carta_backend executable needs to be relative to that, usually in a `bin` folder.
+#### 3. Get a production carta-frontend ####
 
-### 4. Get a production carta-frontend ###
 
 A production carta-frontend can either be built from source (Assuming you have Docker installed):
+This requires EMSDK installed and set `EMSDK_PATH` to the EMSDK path.
 ```
 git clone https://github.com/CARTAvis/carta-frontend.git
 cd carta-frontend
 git submodule update --init --recursive
 npm install
-npm run build-libs-docker
-npm run build-docker
-cd build
+npm run build-libs
+npm run build
 ```
 OR
 A pre-built package can be download from the NPM repository: e.g.
 ```
-wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-4.0.0.tgz
-tar -xvf carta-frontend-4.0.0.tgz
-And work in package/build
-cd package/build
+wget https://registry.npmjs.org/carta-frontend/-/carta-frontend-5.0.0.tgz
+tar -xvf carta-frontend-5.0.0.tgz
 ```
 
-### 5. Prepare the package ###
+#### 4. Prepare the package ####
 
 Copy over all the files contained in this repo to the carta-frontend `build` folder. A description of the files are as follows:
 
@@ -123,7 +124,7 @@ Usually, the only files that would need modification for each release are:
 5. `carta-backend/libs`: To add the packaged library files created in the "Package carta-backend" Stage 3 above.
 6. `carta-backend/bin/carta_backend`: The packaged carta_backend executable created in the "Package carta-backend" Stage 3 above.
 
-### 6. Create the Electron App ###
+#### 5. Create the Electron App ####
 
 If not previously set up, get the code-signing certificate on your Mac with a private key etc. e.g. using Xcode > Accounts to “Import Apple ID and Code Signing Assets”. It is difficult to figure out how initially create the certificate and private keys etc., but you can find the information on Google.
 
@@ -166,7 +167,7 @@ If not previously set up, get the code-signing certificate on your Mac with a pr
     When you have a carta-backend built and packaged on an M1 Mac:
 	``` electron-builder build --mac --arm64 ```
 
-If everything goes well, it will upload the package to Apple servers and after a few minutes, a final signed and notarized dmg will appear in the `dist` folder. It will have an additional number e.g. 4.0.0 (from the “version” line in the package.json, but you can rename the dmg file before uploading it to the carta repo on Github.
+If everything goes well, it will upload the package to Apple servers and after a few minutes, a final signed and notarized dmg will appear in the `dist` folder. It will have an additional number e.g. 5.0.0 (from the “version” line in the package.json, but you can rename the dmg file before uploading it to the carta repo on Github.
 
 If you see obscure errors, it can be hard to figure out what went wrong. A few common failures are:
 -   Terms and conditions have been updated, so you need to log in to the Developer Account to accept them.
