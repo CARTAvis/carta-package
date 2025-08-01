@@ -148,3 +148,18 @@ if [ "${CLEAN_BACKEND}" = "TRUE" ]; then
     echo "Cleaning backend..."  
     rm -rf ${PACKAGING_PATH}/carta-backend
 fi
+
+
+# rename dmg file
+cd ${PACKAGING_PATH}/pack/dist
+if [ -f ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ]; then
+    if [ $RELEASE = "TRUE" ]; then
+        echo "Renaming dmg to CARTA-$ARCH.dmg..."
+        mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$ARCH.dmg
+    else
+        echo "Renaming dmg to CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg..."
+        mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
+    fi
+else
+    echo "CARTA dmg not found. Please check the build process."
+fi 
