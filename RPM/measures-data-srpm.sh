@@ -10,8 +10,8 @@ fi
 if ! docker info &> /dev/null; then
     echo "Docker is not running. Please start Docker and try again."
     exit 1
-fi
-
+fi  
+    
 # if no carta-rpmbuild image exists, build it
 if ! docker images | grep -q carta-rpmbuild; then
     echo "Building carta-rpmbuild image..."
@@ -56,15 +56,14 @@ docker start srpm_file
 docker cp $SPEC srpm_file:/root/rpmbuild/SPECS/
 docker cp $SOURCE_FILE srpm_file:/root/rpmbuild/SOURCES/
 docker exec -it srpm_file /bin/bash -c "rpmbuild -bs /root/rpmbuild/SPECS/$SPEC"
-srpm_output=$(docker exec srpm_file ls /root/rpmbuild/SRPMS)
+srpm_output=$(docker exec srpm_file bash -c 'ls /root/rpmbuild/SRPMS/measures*.rpm | xargs -n 1 basename')
 docker cp srpm_file:/root/rpmbuild/SRPMS/${srpm_output} .
 docker stop srpm_file
 docker rm -f srpm_file
 
 if [ -f "${srpm_output}" ]; then
-    echo "SRPM file ${srpm_output} created successfully."
+    echo "SRPM file SRPM file ${srpm_output}  created successfully."
 else
     echo "Failed to create SRPM file."
     exit 1
 fi
-
