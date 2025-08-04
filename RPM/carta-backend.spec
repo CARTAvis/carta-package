@@ -4,7 +4,7 @@
 %define debug_package %{nil}
 
 Name:           carta-backend
-Version:        5.0.1
+Version:        5.0.3
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -12,8 +12,8 @@ URL:            https://github.com/CARTAvis/carta-backend
 
 BuildArch: %{_arch}
 
-Obsoletes: carta-backend <= 5.0.1
-Obsoletes: carta-backend = 5.0.1~rc.0
+Obsoletes: carta-backend <= 5.0.3
+Obsoletes: carta-backend = 5.0.3~rc.0
 
 BuildRequires: git
 BuildRequires: blas-devel
@@ -150,6 +150,9 @@ fi
 %{_datadir}/icons/hicolor/symbolic/apps/cartaviewer.svg
 
 %changelog
+* Thu Jul 31 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0.3
+  - carta-backend component for the CARTA 5.0.3 release
+
 * Tue Jul 22 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0.1
   - carta-backend component for the CARTA 5.0 release
 

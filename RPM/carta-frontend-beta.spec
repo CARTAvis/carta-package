@@ -8,8 +8,8 @@
 %undefine _disable_source_fetch
 
 %define beta_install_path /opt/carta-beta
-%define frontend_version 5.0.2
-%define version_date 2025.7.22
+%define frontend_version 5.0.3
+%define version_date 2025.7.31
 
 Name:           carta-frontend-beta
 Version:        5.0+%{version_date}
@@ -47,6 +47,9 @@ rm -rf %{buildroot}
 %{beta_install_path}/share/carta/frontend
 
 %changelog
+* Thu Jul 31 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0+2025.7.31
+  - Custom carta-frontend-beta component for the CARTA 5.0-beta.2025.7.31 release
+
 * Tue Jul 22 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0+2025.7.22
   - Custom carta-frontend-beta component for the CARTA 5.0-beta.2025.7.22 release
 
