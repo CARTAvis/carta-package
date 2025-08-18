@@ -1,6 +1,8 @@
 #!/bin/bash
 
 EMSDK_PATH=../emsdk
+EMSDK_VERSION=4.0.3
+
 PACKAGING_PATH=$(pwd)
 
 ARCH=arm64

@@ -1,11 +1,13 @@
 #!/bin/bash
 
+source ~/.zshrc
+
 source ./dmg_config
 echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
 
-if [["${RELEASE}" = "TRUE" ]]; then
+if [[ "${RELEASE}" == "TRUE" ]]; then
     read -p "Are versions correct? (y/n): " confirm
     if [[ "$confirm" != "y" ]]; then
         echo "Exiting build process."
@@ -53,8 +55,8 @@ cd ${PACKAGING_PATH}
 cp -r ./files/etc ./pack/carta-backend/
 
 # prepare frontend
-if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
-    
+if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
+
     if [ -d package ]; then
         echo "Removing existing package directory..."
         rm -rf package
@@ -80,13 +82,12 @@ if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
         # check if emcc is installed
         if ! command -v emcc &> /dev/null; then
             echo "emcc is not installed. Please install Emscripten SDK."
-            exit 1
+            # activate emsdk
+            echo "Activating emsdk..."
+            ${EMSDK_PATH}/emsdk install ${EMSDK_VERSION}
+            ${EMSDK_PATH}/emsdk activate ${EMSDK_VERSION}
+            source ${EMSDK_PATH}/emsdk_env.sh
         fi
-        # activate emsdk
-        echo "Activating emsdk..."
-        ${EMSDK_PATH}/emsdk install latest
-        ${EMSDK_PATH}/emsdk activate latest
-        source ${EMSDK_PATH}/emsdk_env.sh
 
         git clone https://github.com/CARTAvis/carta-frontend.git package
         cd package
@@ -100,17 +101,17 @@ if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
     cp -r ${PACKAGING_PATH}/package/build/* ./pack
 fi
 
-
+cd ${PACKAGING_PATH}
 # prepare backend
-if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
+if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
     echo "Backend release version: ${BACKEND_VERSION}"
     echo "Preparing backend..."
     FOLDER_PREFIX=".carta"
-    if [ "${BETA_RELEASE}" = "TRUE" ]; then
+    if [ "${BETA_RELEASE}" == "TRUE" ]; then
         FOLDER_PREFIX=".carta-beta"
     fi
 
-    if [! -d /opt/casaroot-carta-casacore ]; then
+    if [ ! -d /opt/casaroot-carta-casacore ]; then
         echo "CARTA casacore root directory not found. Please install carta-casacore with floating CASAROOT first."
         exit 1
     fi
@@ -133,7 +134,6 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
     sh ${PACKAGING_PATH}/cp_libs.sh ${PACKAGING_PATH}/carta-backend/build
     cp -r ${PACKAGING_PATH}/carta-backend/build/libs ${PACKAGING_PATH}/pack/carta-backend/
     cp -r ${PACKAGING_PATH}/carta-backend/build/carta_backend ${PACKAGING_PATH}/pack/carta-backend/bin
-
 fi
 
 echo "Running Apple notarization..."
