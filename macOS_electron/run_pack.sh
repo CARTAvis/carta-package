@@ -4,10 +4,13 @@ source ./dmg_config
 echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
-read -p "Are versions correct? (y/n): " confirm
-if [[ "$confirm" != "y" ]]; then
-    echo "Exiting build process."
-    exit 1
+
+if [["${RELEASE}" = "TRUE" ]]; then
+    read -p "Are versions correct? (y/n): " confirm
+    if [[ "$confirm" != "y" ]]; then
+        echo "Exiting build process."
+        exit 1
+    fi
 fi
 
 NAME=CARTA
@@ -154,11 +157,11 @@ fi
 cd ${PACKAGING_PATH}/pack/dist
 if [ -f ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ]; then
     if [ $RELEASE = "TRUE" ]; then
-        echo "Renaming dmg to CARTA-$ARCH.dmg..."
         mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$ARCH.dmg
+        echo "Output file: CARTA-$ARCH.dmg"
     else
-        echo "Renaming dmg to CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg..."
         mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
+        echo "Output file: CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg"
     fi
 else
     echo "CARTA dmg not found. Please check the build process."
