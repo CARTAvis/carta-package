@@ -34,19 +34,20 @@ if [ -z "$FRONTEND_TAG" ] || [ -z "$BACKEND_TAG" ]; then
     exit 1
 fi
 
-# replace the ARCH line
-sed "s/^ARCH=.*/ARCH=${ARCH}/" "$CONFIG_FILE"
+
+# replace the ARCH line in-place
+sed -i '' "s/^ARCH=.*/ARCH=${ARCH}/" "$CONFIG_FILE"
 echo "ARCH set to ${ARCH}."
 
-sed "s/^FRONTEND_VERSION=.*/FRONTEND_VERSION=${FRONTEND_TAG}/" "$CONFIG_FILE"
+sed -i '' "s/^FRONTEND_VERSION=.*/FRONTEND_VERSION=${FRONTEND_TAG}/" "$CONFIG_FILE"
 echo "FRONTEND_VERSION set to ${FRONTEND_TAG}."
 
-sed "s/^BACKEND_VERSION=.*/BACKEND_VERSION=${BACKEND_TAG}/" "$CONFIG_FILE"
+sed -i '' "s/^BACKEND_VERSION=.*/BACKEND_VERSION=${BACKEND_TAG}/" "$CONFIG_FILE"
 echo "BACKEND_VERSION set to ${BACKEND_TAG}."
 
-sed "s/^RELEASE=.*/RELEASE=FALSE/" "$CONFIG_FILE"
+sed -i '' "s/^RELEASE=.*/RELEASE=FALSE/" "$CONFIG_FILE"
 echo "RELEASE set to FALSE."
 
-sed "s/^NPM_FRONTEND=.*/NPM_FRONTEND=FALSE/" "$CONFIG_FILE"
+sed -i '' "s/^NPM_FRONTEND=.*/NPM_FRONTEND=FALSE/" "$CONFIG_FILE"
 echo "NPM_FRONTEND set to FALSE."
 
