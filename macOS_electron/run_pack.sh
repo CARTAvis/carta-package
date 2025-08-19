@@ -14,8 +14,8 @@ fi
 nvm use "$NODE_VERSION"
 
 echo "Starting AppImage build process..."
-echo "Backend release version: ${BACKEND_VERSION}"
-echo "Frontend release version: ${FRONTEND_VERSION}"
+echo "Backend (branch, tag, or commit): ${BACKEND_VERSION}"
+echo "Frontend (branch, tag, or commit): ${FRONTEND_VERSION}"
 
 if [[ "${RELEASE}" == "TRUE" ]]; then
     read -p "Are versions correct? (y/n): " confirm
@@ -114,7 +114,7 @@ fi
 cd ${PACKAGING_PATH}
 # prepare backend
 if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
-    echo "Backend release version: ${BACKEND_VERSION}"
+    echo "Backend (branch, tag, or commit): ${BACKEND_VERSION}"
     echo "Preparing backend..."
     FOLDER_PREFIX=".carta"
     if [ "${BETA_RELEASE}" == "TRUE" ]; then

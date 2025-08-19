@@ -21,6 +21,10 @@ while [[ $# -gt 0 ]]; do
             BACKEND_TAG="$2"
             shift; shift
             ;;
+        --no_build_backend)
+            PREPARE_BACKEND="FALSE"
+            shift
+            ;;
         *)
             echo "Unknown argument: $1" >&2
             exit 1
@@ -51,3 +55,7 @@ echo "RELEASE set to FALSE."
 sed -i '' "s/^NPM_FRONTEND=.*/NPM_FRONTEND=FALSE/" "$CONFIG_FILE"
 echo "NPM_FRONTEND set to FALSE."
 
+if [ "$PREPARE_BACKEND" == "FALSE" ]; then
+    sed -i '' "s/^PREPARE_BACKEND=.*/PREPARE_BACKEND=FALSE/" "$CONFIG_FILE"
+    echo "PREPARE_BACKEND set to FALSE."
+fi
