@@ -1,8 +1,18 @@
 #!/bin/bash
 
 source ~/.zshrc
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 source ./dmg_config
+
+# Check if nvm has the node version
+if ! nvm ls "$NODE_VERSION" > /dev/null 2>&1; then
+    nvm install "$NODE_VERSION"
+fi
+nvm use "$NODE_VERSION"
+
 echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
@@ -52,7 +62,7 @@ if [ ! -d ${PACKAGING_PATH}/files/etc/data/ephemerides ] || [ ! -d ${PACKAGING_P
 fi
 
 cd ${PACKAGING_PATH}
-cp -r ./files/etc ./pack/carta-backend/
+cp -r ${PACKAGING_PATH}/files/etc ${PACKAGING_PATH}/pack/carta-backend/
 
 # prepare frontend
 if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
@@ -98,7 +108,7 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
         npm run build
     fi
 
-    cp -r ${PACKAGING_PATH}/package/build/* ./pack
+    cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 fi
 
 cd ${PACKAGING_PATH}
@@ -157,10 +167,10 @@ fi
 cd ${PACKAGING_PATH}/pack/dist
 if [ -f ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ]; then
     if [ $RELEASE = "TRUE" ]; then
-        mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$ARCH.dmg
+        mv CARTA-${RELEASE_VERSION}-$ARCH.dmg CARTA-$ARCH.dmg
         echo "Output file: CARTA-$ARCH.dmg"
     else
-        mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
+        mv CARTA-${RELEASE_VERSION}-$ARCH.dmg CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
         echo "Output file: CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg"
     fi
 else
