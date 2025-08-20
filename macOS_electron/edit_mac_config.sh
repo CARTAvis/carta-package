@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
             BACKEND_TAG="$2"
             shift; shift
             ;;
-        --no_build_backend)
+        --no_backend_build)
             PREPARE_BACKEND="FALSE"
             shift
             ;;

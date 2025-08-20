@@ -119,7 +119,7 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
             git checkout ${FRONTEND_VERSION}
             git submodule update
             npm install
-            
+
             if [ -d ${PACKAGING_PATH}/package/build ]; then
                 echo "Removing existing build directory..."
                 rm -rf ${PACKAGING_PATH}/package/build
@@ -157,16 +157,21 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
     if [ ! -d ${PACKAGING_PATH}/carta-backend ]; then
         echo "Cloning carta-backend repository..."
         git clone https://github.com/CARTAvis/carta-backend.git
-    fi
-    cd ${PACKAGING_PATH}/carta-backend
+        cd ${PACKAGING_PATH}/carta-backend
+        git checkout ${BACKEND_VERSION}
+        git submodule update --init
+    else 
+        cd ${PACKAGING_PATH}/carta-backend
+        git checkout ${BACKEND_VERSION}
+        git submodule update
 
-    if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
-        echo "Removing existing build directory..."
-        rm -rf ${PACKAGING_PATH}/carta-backend/build
-        mkdir -p ${PACKAGING_PATH}/carta-backend/build
+        if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
+            echo "Removing existing build directory..."
+            rm -rf ${PACKAGING_PATH}/carta-backend/build
+        fi
     fi
-    git checkout ${BACKEND_VERSION}
-    git submodule update --init
+
+    mkdir -p ${PACKAGING_PATH}/carta-backend/build
     cd ${PACKAGING_PATH}/carta-backend/build
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/casaroot-carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
     make -j 4

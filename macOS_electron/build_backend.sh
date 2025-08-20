@@ -38,10 +38,10 @@ else
     if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
         echo "Removing existing build directory..."
         rm -rf ${PACKAGING_PATH}/carta-backend/build
-        mkdir -p ${PACKAGING_PATH}/carta-backend/build
     fi
 fi
 
+mkdir -p ${PACKAGING_PATH}/carta-backend/build
 cd ${PACKAGING_PATH}/carta-backend/build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/casaroot-carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
 make -j 16
