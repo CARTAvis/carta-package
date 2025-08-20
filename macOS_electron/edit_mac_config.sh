@@ -25,6 +25,9 @@ while [[ $# -gt 0 ]]; do
             PREPARE_BACKEND="FALSE"
             shift
             ;;
+        --default)
+            ./generate_default_dmg_config.sh
+            ;;
         --arch)
             ARCH="$2"
             shift; shift
