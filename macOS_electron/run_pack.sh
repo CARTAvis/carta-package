@@ -188,12 +188,16 @@ sh ./pack_n_notarize.sh
 
 # rename dmg file
 cd ${PACKAGING_PATH}/pack/dist
-if [ -f ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ]; then
+SUFFIX=""
+if [ $ARCH == "arm64" ]; then
+    SUFFIX="-$ARCH"
+fi
+if [ -f ./CARTA-${RELEASE_VERSION}${SUFFIX}.dmg ]; then
     if [ $RELEASE = "TRUE" ]; then
-        mv CARTA-${RELEASE_VERSION}-$ARCH.dmg CARTA-$ARCH.dmg
+        mv CARTA-${RELEASE_VERSION}${SUFFIX}.dmg CARTA-$ARCH.dmg
         echo "Output file: CARTA-$ARCH.dmg"
     else
-        mv CARTA-${RELEASE_VERSION}-$ARCH.dmg CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
+        mv CARTA-${RELEASE_VERSION}${SUFFIX}.dmg CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
         echo "Output file: CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg"
     fi
 else
