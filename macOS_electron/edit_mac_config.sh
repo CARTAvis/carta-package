@@ -25,6 +25,10 @@ while [[ $# -gt 0 ]]; do
             PREPARE_BACKEND="FALSE"
             shift
             ;;
+        --arch)
+            ARCH="$2"
+            shift; shift
+            ;;
         *)
             echo "Unknown argument: $1" >&2
             exit 1
