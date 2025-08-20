@@ -1,11 +1,12 @@
 #!/bin/bash
 
-source ~/.zshrc
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 source ./dmg_config
+
+export PATH=$BIN_PATH:$PATH
 
 # Check if nvm has the node version
 if ! nvm ls "$NODE_VERSION" > /dev/null 2>&1; then
@@ -67,12 +68,18 @@ cp -r ${PACKAGING_PATH}/files/etc ${PACKAGING_PATH}/pack/carta-backend/
 # prepare frontend
 if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
 
-    if [ -d package ]; then
-        echo "Removing existing package directory..."
-        rm -rf package
+    # clean frontend
+    if [ "${CLEAN_FRONTEND}" = "TRUE" ]; then
+        echo "Cleaning frontend..."
+        rm -rf ${PACKAGING_PATH}/package
     fi
 
     if [ "${NPM_FRONTEND}" = "TRUE" ]; then
+        if [ -d ${PACKAGING_PATH}/package ]; then
+            echo "Removing existing package directory..."
+            rm -rf ${PACKAGING_PATH}/package
+        fi
+
         ## see frontend version: https://www.npmjs.com/package/carta-frontend?activeTab=versions
         echo "Downloading carta-frontend version ${FRONTEND_VERSION}..."
         NPM_FRONTEND_VERSION=${FRONTEND_VERSION#v}
@@ -99,12 +106,27 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
             source ${EMSDK_PATH}/emsdk_env.sh
         fi
 
-        git clone https://github.com/CARTAvis/carta-frontend.git package
-        cd package
-        git checkout ${FRONTEND_VERSION}
-        git submodule update --init --recursive
-        npm install
-        npm run build-libs
+        if [ ! -d ${PACKAGING_PATH}/package ]; then
+            echo "Cloning carta-frontend repository..."
+            git clone https://github.com/CARTAvis/carta-frontend.git package
+            cd ${PACKAGING_PATH}/package
+            git checkout ${FRONTEND_VERSION}
+            git submodule update --init --recursive
+            npm install
+            npm run build-libs
+        else
+            cd ${PACKAGING_PATH}/package
+            git checkout ${FRONTEND_VERSION}
+            git submodule update
+            npm install
+            
+            if [ -d ${PACKAGING_PATH}/package/build ]; then
+                echo "Removing existing build directory..."
+                rm -rf ${PACKAGING_PATH}/package/build
+                mkdir -p ${PACKAGING_PATH}/package/build
+            fi
+        fi
+
         npm run build
     fi
 
@@ -126,16 +148,25 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
         exit 1
     fi
 
-    if [ -d ${PACKAGING_PATH}/carta-backend ]; then
-        echo "Removing existing carta-backend directory..."
+    # clean backend
+    if [ "${CLEAN_BACKEND}" = "TRUE" ]; then
+        echo "Cleaning backend..."  
         rm -rf ${PACKAGING_PATH}/carta-backend
     fi
 
-    git clone https://github.com/CARTAvis/carta-backend.git
+    if [ ! -d ${PACKAGING_PATH}/carta-backend ]; then
+        echo "Cloning carta-backend repository..."
+        git clone https://github.com/CARTAvis/carta-backend.git
+    fi
     cd ${PACKAGING_PATH}/carta-backend
+
+    if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
+        echo "Removing existing build directory..."
+        rm -rf ${PACKAGING_PATH}/carta-backend/build
+        mkdir -p ${PACKAGING_PATH}/carta-backend/build
+    fi
     git checkout ${BACKEND_VERSION}
     git submodule update --init
-    mkdir build
     cd ${PACKAGING_PATH}/carta-backend/build
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/casaroot-carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
     make -j 4
@@ -149,19 +180,6 @@ fi
 echo "Running Apple notarization..."
 cd ${PACKAGING_PATH}
 sh ./pack_n_notarize.sh
-
-
-# clean frontend
-if [ "${CLEAN_FRONTEND}" = "TRUE" ]; then
-    echo "Cleaning frontend..."
-    rm -rf ${PACKAGING_PATH}/package
-fi
-# clean backend
-if [ "${CLEAN_BACKEND}" = "TRUE" ]; then
-    echo "Cleaning backend..."  
-    rm -rf ${PACKAGING_PATH}/carta-backend
-fi
-
 
 # rename dmg file
 cd ${PACKAGING_PATH}/pack/dist
