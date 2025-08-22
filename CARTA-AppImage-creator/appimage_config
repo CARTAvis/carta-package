@@ -1,29 +1,35 @@
 #!/bin/bash
+EMSDK_PATH=/root/emsdk
+EMSDK_VERSION=4.0.3
+NODE_VERSION=22
+BIN_PATH=/usr/local/bin:/usr/local/Homebrew/bin:$PATH
+
+PACKAGING_PATH=$(pwd)
+DOCKER_PACKAGING_PATH=/pack
+
+ARCH=arm64
+BACKGROUND_FIGURE=""
 
 # Can be branch, tag or commit
-FRONTEND_VERSION=5.0.2
-BACKEND_VERSION=5.0.1
+FRONTEND_VERSION=v5.0.2
+BACKEND_VERSION=v5.0.1
 
 RELEASE=FALSE
-# RELEASE=TRUE
 
-# Release version, for naming the AppImage
+# Naming the output file if it is a release packaging (RELEASE=TRUE)
 RELEASE_VERSION=5.0.0
 
-# NPM_FRONTEND=FALSE
-NPM_FRONTEND=TRUE
+NPM_FRONTEND=FALSE
 
 # Set to TRUE if it is a beta release
-# BETA_RELEASE=TRUE
 BETA_RELEASE=FALSE
 
-
-# for debug purposes
-PREPARE_FRONTEND=TRUE
-# PREPARE_FRONTEND=FALSE
-
-PREPARE_BACKEND=TRUE
-# PREPARE_BACKEND=FALSE
-
+# Set to TRUE to update the measurement data
 UPDATE_MEASURES_DATA=FALSE
-# UPDATE_MEASURES_DATA=TRUE
+
+PREPARE_FRONTEND=TRUE
+PREPARE_BACKEND=TRUE
+
+# Set to TRUE if it is a release packaging (RELEASE=TRUE)
+CLEAN_FRONTEND=TRUE
+CLEAN_BACKEND=TRUE
