@@ -93,8 +93,11 @@ RUN \
     cd /root && \
     git clone https://github.com/emscripten-core/emsdk.git && \
     cd emsdk && \
-    git pull
-
+    git pull && \
+    cd /root/emsdk && \
+    ./emsdk install 4.0.3 && \
+    ./emsdk activate 4.0.3 && \
+    source ./emsdk_env.sh
 
 RUN \
     mkdir -p /pack/CARTA && \

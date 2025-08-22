@@ -1,4 +1,8 @@
 #!/bin/bash
+# This script generates a default dmg_config file for the macOS Electron packaging process.
+
+cat > dmg_config <<EOL
+#!/bin/bash
 EMSDK_PATH=/root/emsdk
 EMSDK_VERSION=4.0.3
 NODE_VERSION=22
@@ -35,3 +39,7 @@ PREPARE_BACKEND=TRUE
 # Set to TRUE if it is a release packaging (RELEASE=TRUE)
 CLEAN_FRONTEND=TRUE
 CLEAN_BACKEND=TRUE
+
+EOL
+
+echo "Default appimage_config generated."

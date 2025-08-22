@@ -1,17 +1,22 @@
 # This script is run in the docker container to build the CARTA AppImage.
 #!/bin/bash
 
+. ${DOCKER_PACKAGING_PATH}/appimage_config
+
 echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
-read -p "Are versions correct? (y/n): " confirm
-if [[ "$confirm" != "y" ]]; then
-    echo "Exiting build process."
-    exit 1
+
+if [ RELEASE = "TRUE" ]; then
+    read -p "Are versions correct? (y/n): " confirm
+    if [[ "$confirm" != "y" ]]; then
+        echo "Exiting build process."
+        exit 1
+    fi
 fi
 
-# Parameters check 
-if [ "${NPM_FRONTEND}" = "TRUE" && "${RELEASE}" = "FALSE" ]; then
+# Parameters check
+if [ "${NPM_FRONTEND}" = "TRUE" ] && [ "${RELEASE}" = "FALSE" ]; then
     echo "NPM pre-build frontend is only for release version."
     echo "Set NPM_FRONTEND to FALSE if it is Auto App Assembler or test build."
     exit 1
