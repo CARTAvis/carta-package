@@ -47,22 +47,22 @@ fi
 
 
 # replace the ARCH line in-place
-sed -i '' "s/^ARCH=.*/ARCH=${ARCH}/" "$CONFIG_FILE"
+perl -i -pe"s/^ARCH=.*/ARCH=${ARCH}/" "$CONFIG_FILE"
 echo "ARCH set to ${ARCH}."
 
-sed -i '' "s/^FRONTEND_VERSION=.*/FRONTEND_VERSION=${FRONTEND_TAG}/" "$CONFIG_FILE"
+perl -i -pe"s/^FRONTEND_VERSION=.*/FRONTEND_VERSION=${FRONTEND_TAG}/" "$CONFIG_FILE"
 echo "FRONTEND_VERSION set to ${FRONTEND_TAG}."
 
-sed -i '' "s/^BACKEND_VERSION=.*/BACKEND_VERSION=${BACKEND_TAG}/" "$CONFIG_FILE"
+perl -i -pe"s/^BACKEND_VERSION=.*/BACKEND_VERSION=${BACKEND_TAG}/" "$CONFIG_FILE"
 echo "BACKEND_VERSION set to ${BACKEND_TAG}."
 
-sed -i '' "s/^RELEASE=.*/RELEASE=FALSE/" "$CONFIG_FILE"
+perl -i -pe"s/^RELEASE=.*/RELEASE=FALSE/" "$CONFIG_FILE"
 echo "RELEASE set to FALSE."
 
-sed -i '' "s/^NPM_FRONTEND=.*/NPM_FRONTEND=FALSE/" "$CONFIG_FILE"
+perl -i -pe"s/^NPM_FRONTEND=.*/NPM_FRONTEND=FALSE/" "$CONFIG_FILE"
 echo "NPM_FRONTEND set to FALSE."
 
 if [ "$PREPARE_BACKEND" == "FALSE" ]; then
-    sed -i '' "s/^PREPARE_BACKEND=.*/PREPARE_BACKEND=FALSE/" "$CONFIG_FILE"
+    perl -i -pe"s/^PREPARE_BACKEND=.*/PREPARE_BACKEND=FALSE/" "$CONFIG_FILE"
     echo "PREPARE_BACKEND set to FALSE."
 fi
