@@ -38,6 +38,9 @@ fi
 
 cd ${PACKAGING_PATH}
 
+# clean carta dmg
+rm -rf ${PACKAGING_PATH}/CARTA-*.dmg
+
 # modify name and version in files/pack/package.json
 jq --arg name "$NAME" --arg version "$RELEASE_VERSION" '.name = $name | .version = $version' files/pack/package.json > files/pack/package.json.tmp && mv files/pack/package.json.tmp files/pack/package.json
 jq --arg year "$YEAR" '.description = "\($year) CARTA Desktop"' files/pack/package.json > files/pack/package.json.tmp && mv files/pack/package.json.tmp files/pack/package.json

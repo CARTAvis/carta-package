@@ -6,6 +6,9 @@
 . ./appimage_config
 export PATH=$BIN_PATH:$PATH
 
+# clean carta appimage 
+rm -rf ${PACKAGING_PATH}/CARTA-*.AppImage
+
 # check if docker domain exists
 if ! docker info > /dev/null 2>&1; then
     echo "Docker is not running. Please start Docker and try again."
