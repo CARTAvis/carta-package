@@ -7,7 +7,7 @@
 export PATH=$BIN_PATH:$PATH
 
 # clean carta appimage 
-rm -rf ${PACKAGING_PATH}/CARTA-*.AppImage
+rm -rf ${PACKAGING_PATH}/carta-*.AppImage
 
 # check if docker domain exists
 if ! docker info > /dev/null 2>&1; then

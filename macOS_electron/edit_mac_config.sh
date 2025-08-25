@@ -27,6 +27,8 @@ while [[ $# -gt 0 ]]; do
             ;;
         --default)
             ./generate_default_dmg_config.sh
+            shift
+            exit 0
             ;;
         --arch)
             ARCH="$2"
