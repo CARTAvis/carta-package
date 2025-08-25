@@ -1,11 +1,12 @@
 #!/bin/bash
-# This script generates a default dmg_config file for the macOS Electron packaging process.
+# This script generates a default appimage_config file for the macOS Electron packaging process.
 
-cat > dmg_config <<EOL
+cat > appimage_config <<EOL
 #!/bin/bash
 EMSDK_PATH=/root/emsdk
 EMSDK_VERSION=4.0.3
 NODE_VERSION=22
+BIN_PATH=/usr/local/bin
 
 IMAGE_NAME="carta-appimage-create"
 CONTAINER_NAME="carta-appimage-container"

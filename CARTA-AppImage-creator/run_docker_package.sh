@@ -2,7 +2,9 @@
 
 #!/bin/bash
 
+
 . ./appimage_config
+export PATH=$BIN_PATH:$PATH
 
 # check if docker domain exists
 if ! docker info > /dev/null 2>&1; then
@@ -19,7 +21,7 @@ fi
 # check if container started
 if [ ! "$( docker container inspect -f '{{.State.Running}}' ${CONTAINER_NAME} )" = "true" ]; then
     echo "Docker container ${CONTAINER_NAME} is not running. Starting it..."
-    docker run -d -it -v ${PACKAGING_PATH}:${DOCKER_PACKAGING_PATH} --name ${CONTAINER_NAME} ${IMAGE_NAME}
+    docker run -d -it --env-file ./appimage_config -v ${PACKAGING_PATH}:${DOCKER_PACKAGING_PATH} --name ${CONTAINER_NAME} ${IMAGE_NAME}
     echo "Docker container ${CONTAINER_NAME} starting..."
 fi
 
