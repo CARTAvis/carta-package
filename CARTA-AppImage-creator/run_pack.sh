@@ -193,6 +193,7 @@ fi
 if [[ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]]; then
     chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
     APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+    echo "Output file: carta-${VERSION}-${ARCH}.AppImage"
 fi
 
 # Extract a unique Embedded Signature

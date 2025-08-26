@@ -33,5 +33,5 @@ sleep 5
 
 # run the build script inside the container
 echo "Running the build script inside the container..."
-docker exec -it ${CONTAINER_NAME} /bin/bash -c "sh ${DOCKER_PACKAGING_PATH}/run_pack.sh"
+docker exec -i ${CONTAINER_NAME} /bin/bash -c "sh ${DOCKER_PACKAGING_PATH}/run_pack.sh"
 ## Docker ##
