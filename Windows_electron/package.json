@@ -1,0 +1,60 @@
+{
+  "name": "CARTA",
+  "version": "5.0.3",
+  "description": "2024 CARTA Desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:dev": "cross-env NODE_ENV=development electron .",
+    "start:prod": "cross-env NODE_ENV=production electron .",
+    "build": "electron-builder --win --x64",
+    "build:prod": "cross-env NODE_ENV=production CARTA_SKIP_FILE_VALIDATION=true electron-builder --win --x64",
+    "test": "node test-simple.js",
+    "test:path": "node tests/PathUtils.test.js",
+    "test:config": "node tests/Config.test.js",
+    "lint": "echo 'No linter configured - add ESLint for production use'",
+    "validate": "node -e \"const config = require('./src/config/Config'); const errors = config.validate(); if (errors.length > 0) { console.error('Config errors:', errors); process.exit(1); } else { console.log('Configuration valid'); }\""
+  },
+  "repository": "https://github.com/CARTAvis/carta-package",
+  "keywords": [
+    "Electron",
+    "CARTA"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "@electron/packager": "^18.4.4",
+    "electron": "^37.4.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "electron-context-menu": "^4.1.1",
+    "electron-window-state": "^5.0.3",
+    "minimist": "^1.2.8",
+    "uuid": "^11.1.0"
+  },
+  "build": {
+    "appId": "cartavis.org",
+    "files": [
+      "main.js",
+      "package.json",
+      "node_modules/**/*",
+      "carta/**/*",
+      "src/**/*"
+    ],
+    "asarUnpack": [
+      "carta/**"
+    ],
+    "win": {
+      "icon": "icon.ico",
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
