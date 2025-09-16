@@ -4,6 +4,10 @@ EMSDK_VERSION=4.0.3
 NODE_VERSION=22
 BIN_PATH=/usr/local/bin
 
+# For Release
+RELEASE_DATE="2025-07-29"
+APPDATA_FILE="./org.carta.desktop.appdata.xml"
+
 IMAGE_NAME="carta-appimage-create"
 CONTAINER_NAME="carta-appimage-container"
 

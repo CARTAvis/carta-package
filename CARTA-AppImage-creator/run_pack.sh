@@ -7,11 +7,18 @@ echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
 
-if [ RELEASE = "TRUE" ]; then
+if [ "${RELEASE}" = "TRUE" ]; then
     read -p "Are versions correct? (y/n): " confirm
     if [[ "$confirm" != "y" ]]; then
         echo "Exiting build process."
         exit 1
+    fi
+    
+    echo "RELEASE_DATE: ${RELEASE_DATE}"
+    read -p "Is RELEASE_DATE correct? (y/n): " date_confirm
+    if [[ "$date_confirm" != "y" ]]; then
+        echo "Exiting build process."
+        exit 1 
     fi
 fi
 
@@ -173,6 +180,20 @@ cd ${DOCKER_PACKAGING_PATH}
 # If it is a release, set the version to the release version, otherwise set it to the combination of backend and frontend versions
 if [ "${RELEASE}" = "TRUE" ]; then
     VERSION=${RELEASE_VERSION}
+    
+    # Update org.carta.desktop.appdata.xml
+    RELEASE_VERSION_MAJOR_MINOR=$(echo "$RELEASE_VERSION" | cut -d. -f1-2)
+    RELEASE_VERSION_MAJOR_MINOR_DASH=$(echo "$RELEASE_VERSION_MAJOR_MINOR" | sed 's/\./-/')
+
+    # Construct docs URL
+    DOCS_URL="https://carta.readthedocs.io/en/${RELEASE_VERSION_MAJOR_MINOR}/appendix_a_version_history.html#version-${RELEASE_VERSION_MAJOR_MINOR_DASH}"
+
+    if [ -f "$APPDATA_FILE" ]; then
+        echo "Updating $APPDATA_FILE with version $RELEASE_VERSION and date $RELEASE_DATE"
+        perl -i -pe "s|<release version=.* date=.*>|<release version=\\\"$RELEASE_VERSION\\\" date=\\\"$RELEASE_DATE\\\">|" "$APPDATA_FILE"
+        perl -i -pe "s|<url>.*</url>|<url>$DOCS_URL</url>|" "$APPDATA_FILE"
+    fi
+
 else
     VERSION="${FRONTEND_VERSION}-${BACKEND_VERSION}"
 fi
