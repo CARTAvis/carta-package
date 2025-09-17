@@ -48,15 +48,41 @@ class WSLManager {
    * Kill CARTA backend processes in WSL
    * @returns {Promise<void>} Promise that resolves when cleanup is complete
    */
-  static async killBackendProcesses() {
+  static async killBackendProcesses(processes = [], options = {}) {
+    const trackedProcesses = Array.isArray(processes) ? processes.filter(Boolean) : [];
+
+    if (trackedProcesses.length > 0) {
+      const BackendManager = require('./BackendManager');
+
+      for (const process of trackedProcesses) {
+        try {
+          await BackendManager.terminateProcess(process);
+        } catch (error) {
+          logger.error('Error terminating tracked backend process', {
+            error: error.message,
+            stack: error.stack,
+          });
+        }
+      }
+
+      return;
+    }
+
+    if (!options.forceGlobalKill) {
+      logger.info('No backend processes supplied for cleanup; skipping global WSL termination.');
+      return;
+    }
+
     const { COMMANDS } = require('../config/constants');
-    
+
     return new Promise((resolve) => {
-      exec(COMMANDS.WSL_PKILL, (error, stdout, stderr) => {
+      exec(COMMANDS.WSL_PKILL, (error) => {
         if (error) {
           logger.info('pkill failed, trying taskkill...');
-          exec(COMMANDS.TASKKILL_WSL, (err, out, sterr) => {
-            if (err) logger.error('taskkill failed', { error: err.message });
+          exec(COMMANDS.TASKKILL_WSL, (err) => {
+            if (err) {
+              logger.error('taskkill failed', { error: err.message });
+            }
             resolve();
           });
         } else {

@@ -10,6 +10,7 @@ const logger = require('../utils/Logger');
 class WindowManager {
   constructor() {
     this.windows = new Set();
+    this.backendProcesses = new Set();
     this.mainWindowState = WindowStateManager({
       defaultWidth: DEFAULT_WINDOW_WIDTH,
       defaultHeight: DEFAULT_WINDOW_HEIGHT,
@@ -59,6 +60,36 @@ class WindowManager {
     this._hardenNavigation(newWindow);
 
     return newWindow;
+  }
+
+  /**
+   * Associate a backend process with a window so it can be managed centrally.
+   * @param {BrowserWindow} window - The window instance to associate with the backend.
+   * @param {ChildProcess} backendProcess - The backend process to track.
+   */
+  registerBackendProcess(window, backendProcess) {
+    if (!window || !backendProcess) {
+      return;
+    }
+
+    if (window.backendProcess && window.backendProcess !== backendProcess) {
+      this.backendProcesses.delete(window.backendProcess);
+    }
+
+    window.backendProcess = backendProcess;
+    this.backendProcesses.add(backendProcess);
+
+    const cleanupProcessReference = () => {
+      this.backendProcesses.delete(backendProcess);
+      if (window.backendProcess === backendProcess) {
+        window.backendProcess = null;
+      }
+    };
+
+    if (typeof backendProcess.once === 'function') {
+      backendProcess.once('exit', cleanupProcessReference);
+      backendProcess.once('close', cleanupProcessReference);
+    }
   }
 
   /**
@@ -175,9 +206,13 @@ class WindowManager {
    * @param {BrowserWindow} window - The window whose backend should be cleaned up
    */
   async _cleanupBackendProcess(window) {
-    if (window.backendProcess) {
+    const backendProcess = window.backendProcess;
+
+    if (backendProcess) {
       const BackendManager = require('./BackendManager');
-      await BackendManager.terminateProcess(window.backendProcess);
+      this.backendProcesses.delete(backendProcess);
+      window.backendProcess = null;
+      await BackendManager.terminateProcess(backendProcess);
     }
 
     // Now actually destroy the window
@@ -190,20 +225,43 @@ class WindowManager {
   async closeAllWindows() {
     logger.info('Closing all windows and cleaning up backend processes...');
 
-    const WSLManager = require('./WSLManager');
-    await WSLManager.killBackendProcesses();
-
-    // Close all windows
-    for (const window of this.windows) {
+    for (const window of Array.from(this.windows)) {
       if (window && !window.isDestroyed()) {
         await this._cleanupBackendProcess(window);
       }
+      this.windows.delete(window);
     }
 
+    await this.terminateAllBackendProcesses();
     this.windows.clear();
   }
 
   /**
+   * Terminate any remaining backend processes that are still tracked.
+   */
+  async terminateAllBackendProcesses() {
+    if (this.backendProcesses.size === 0) {
+      return;
+    }
+
+    const BackendManager = require('./BackendManager');
+    const processes = Array.from(this.backendProcesses);
+
+    for (const process of processes) {
+      try {
+        await BackendManager.terminateProcess(process);
+      } catch (error) {
+        logger.error('Error terminating backend process during global cleanup', {
+          error: error.message,
+          stack: error.stack,
+        });
+      } finally {
+        this.backendProcesses.delete(process);
+      }
+    }
+  }
+
+  /**  /**
    * Get all managed windows
    * @returns {Set<BrowserWindow>} Set of all windows
    */

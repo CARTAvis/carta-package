@@ -230,7 +230,7 @@ class CARTAApplication {
    */
   async onBeforeQuit() {
     logger.info('App quitting, final cleanup...');
-    await WSLManager.killBackendProcesses();
+    await this.windowManager.terminateAllBackendProcesses();
   }
 
   /**
@@ -262,7 +262,7 @@ class CARTAApplication {
       });
 
       // Store backend process reference on window
-      newWindow.backendProcess = backendProcess;
+      this.windowManager.registerBackendProcess(newWindow, backendProcess);
 
       // Handle backend errors
       backendProcess.on('error', (err) => {

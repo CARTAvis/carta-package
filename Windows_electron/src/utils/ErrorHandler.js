@@ -146,11 +146,31 @@ class ErrorHandler {
     // Kill any existing processes first
     try {
       const WSLManager = require('../managers/WSLManager');
-      await WSLManager.killBackendProcesses();
-      
+      const collectedProcesses = new Set();
+
+      if (options.backendProcess) {
+        collectedProcesses.add(options.backendProcess);
+      }
+
+      if (Array.isArray(options.backendProcesses)) {
+        for (const process of options.backendProcesses) {
+          if (process) {
+            collectedProcesses.add(process);
+          }
+        }
+      }
+
+      if (options.cleanupBackends && typeof options.cleanupBackends === 'function') {
+        await options.cleanupBackends();
+      } else {
+        await WSLManager.killBackendProcesses(Array.from(collectedProcesses), {
+          forceGlobalKill: options.forceGlobalKill === true,
+        });
+      }
+
       // Wait a moment for cleanup
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       return true; // Signal that cleanup was successful, caller can retry
     } catch (cleanupError) {
       logger.error('Backend cleanup failed during recovery', { 
