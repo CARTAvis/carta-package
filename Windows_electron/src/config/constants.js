@@ -4,7 +4,7 @@
 
 module.exports = {
   // Port configuration
-  DEFAULT_START_PORT: 3000,
+  DEFAULT_START_PORT: 3000,  // Start from 3000, will automatically find next available if occupied
   MAX_PORT: 65535,
 
   // Backend configuration

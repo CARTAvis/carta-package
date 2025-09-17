@@ -3,6 +3,7 @@
  */
 
 const net = require('net');
+const getPort = require('get-port');
 const { DEFAULT_START_PORT } = require('../config/constants');
 const logger = require('./Logger');
 
@@ -13,35 +14,34 @@ class NetworkUtils {
    * @returns {Promise<number>} Available port number
    * @throws {Error} If no available ports found
    */
-  static findAvailablePort(startPort = DEFAULT_START_PORT) {
+  static async findAvailablePort(startPort = DEFAULT_START_PORT) {
     const { MAX_PORT, ERROR_MESSAGES } = require('../config/constants');
-    let port = startPort;
-    
-    return new Promise((resolve, reject) => {
-      const tryPort = (currentPort) => {
-        if (currentPort >= MAX_PORT) {
-          reject(new Error(ERROR_MESSAGES.NO_AVAILABLE_PORTS));
-          return;
-        }
-        
-        const server = net.createServer();
-        server.unref();
-        
-        server.on('error', () => {
-          server.close();
-          tryPort(currentPort + 1);
-        });
-        
-        server.listen(currentPort, 'localhost', () => {
-          const actualPort = server.address().port;
-          server.close(() => {
-            resolve(actualPort);
-          });
-        });
-      };
-      
-      tryPort(port);
-    });
+
+    if (startPort >= MAX_PORT) {
+      throw new Error(ERROR_MESSAGES.NO_AVAILABLE_PORTS);
+    }
+
+    try {
+      const portRange = getPort.makeRange(startPort, MAX_PORT);
+      const port = await getPort({ port: portRange, host: '127.0.0.1' });
+
+      logger.info('Selected available port', { port });
+      return port;
+    } catch (error) {
+      const message = error && error.message ? error.message : String(error);
+
+      if (message.includes('No available ports')) {
+        throw new Error(ERROR_MESSAGES.NO_AVAILABLE_PORTS);
+      }
+
+      logger.error('Failed to acquire backend port', {
+        startPort,
+        maxPort: MAX_PORT,
+        error: message,
+      });
+
+      throw error;
+    }
   }
 
   /**
@@ -62,6 +62,25 @@ class NetworkUtils {
 
     client.on('connect', () => {
       logger.info(`Backend is ready on port ${port}`);
+
+      if (window && window.webContents) {
+        window.webContents
+          .executeJavaScript(
+            `
+              const loadingText = document.querySelector('.loading-text');
+              if (loadingText) {
+                loadingText.textContent = 'Backend ready. Loading CARTA UI??;
+              }
+            `
+          )
+          .catch(() => {});
+      }
+
+      if (window && window.retryTimeouts && window.retryTimeouts.length > 0) {
+        window.retryTimeouts.forEach((timeout) => clearTimeout(timeout));
+        window.retryTimeouts = [];
+      }
+
       client.destroy();
       callback(true);
     });
@@ -147,3 +166,7 @@ class NetworkUtils {
 }
 
 module.exports = NetworkUtils;
+
+
+
+

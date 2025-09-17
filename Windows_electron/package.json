@@ -1,14 +1,14 @@
 {
   "name": "CARTA",
   "version": "5.0.3",
-  "description": "2024 CARTA Desktop",
+  "description": "2025 CARTA Desktop",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "start:dev": "cross-env NODE_ENV=development electron .",
     "start:prod": "cross-env NODE_ENV=production electron .",
     "build": "electron-builder --win --x64",
-    "build:prod": "cross-env NODE_ENV=production CARTA_SKIP_FILE_VALIDATION=true electron-builder --win --x64",
+    "build:prod": "cross-env NODE_ENV=production electron-builder --win --x64",
     "test": "node test-simple.js",
     "test:path": "node tests/PathUtils.test.js",
     "test:config": "node tests/Config.test.js",
@@ -31,6 +31,7 @@
     "cross-env": "^7.0.3",
     "electron-context-menu": "^4.1.1",
     "electron-window-state": "^5.0.3",
+    "get-port": "^5.1.1",
     "minimist": "^1.2.8",
     "uuid": "^11.1.0"
   },
