@@ -92,7 +92,7 @@ class WSLManager {
     PowerShellUtils.checkFileExists(cartaPath).then((fileExists) => {
       if (!fileExists) {
         logger.error('CARTA binary not found', { path: cartaPath });
-        logger.info('Please ensure the carta_appimage file exists in the carta directory.');
+        logger.info('Please ensure the CARTA binary (AppRun) exists in carta/squashfs-root/.');
         process.exit(1);
         return;
       }
@@ -140,7 +140,7 @@ class WSLManager {
     PowerShellUtils.checkFileExists(cartaPath).then((fileExists) => {
       if (!fileExists) {
         logger.error('CARTA binary not found', { path: cartaPath });
-        logger.info('Please ensure the carta_appimage file exists in the carta directory.');
+        logger.info('Please ensure the CARTA binary (AppRun) exists in carta/squashfs-root/.');
         process.exit(1);
         return;
       }

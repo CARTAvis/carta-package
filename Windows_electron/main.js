@@ -174,12 +174,12 @@ class CARTAApplication {
 
         if (!fileValidation.allFilesReady) {
           const missingFiles = [];
-          if (!fileValidation.appImageExists) missingFiles.push('carta_appimage');
+          if (!fileValidation.binaryExists) missingFiles.push('CARTA binary (AppRun)');
           if (!fileValidation.runScriptExists) missingFiles.push('run.sh');
-          
+
           const error = new Error(`Missing required files: ${missingFiles.join(', ')}`);
           error.code = 'FILE_NOT_FOUND';
-          
+
           const result = await errorHandler.handleError(error, 'onAppReady:fileValidation');
           if (!result.recovered) {
             logger.error('Required files missing, cannot continue', { missingFiles });

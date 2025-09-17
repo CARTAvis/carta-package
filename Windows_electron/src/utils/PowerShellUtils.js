@@ -31,23 +31,23 @@ class PowerShellUtils {
   }
 
   /**
-   * Check if the CARTA AppImage exists using PowerShell
+   * Check if the CARTA binary (AppRun) exists using PowerShell
    * @param {string} dirname - Directory containing the application
-   * @returns {Promise<boolean>} Promise that resolves to AppImage existence status
+   * @returns {Promise<boolean>} Promise that resolves to binary existence status
    */
-  static async checkCartaAppImageExists(dirname) {
+  static async checkCartaBinaryExists(dirname) {
     const PathConfig = require('../config/paths');
-    const appImagePath = PathConfig.getCartaBinaryPath(dirname);
-    
-    logger.info(`Checking for CARTA AppImage at: ${appImagePath}`);
-    const exists = await this.checkFileExists(appImagePath);
-    
+    const binaryPath = PathConfig.getCartaBinaryPath(dirname);
+
+    logger.info(`Checking for CARTA binary at: ${binaryPath}`);
+    const exists = await this.checkFileExists(binaryPath);
+
     if (exists) {
-      logger.info('CARTA AppImage found');
+      logger.info('CARTA binary found');
     } else {
-      logger.info('CARTA AppImage not found');
+      logger.info('CARTA binary not found');
     }
-    
+
     return exists;
   }
 
@@ -127,18 +127,18 @@ class PowerShellUtils {
 
   /**
    * Validate required CARTA files exist before proceeding with WSL
-   * @param {string} dirname - Directory containing the application  
+   * @param {string} dirname - Directory containing the application
    * @returns {Promise<object>} Promise that resolves to validation results
    */
   static async validateCartaFiles(dirname) {
     const config = require('../config/Config');
-    
+
     logger.info('Validating CARTA files using PowerShell...');
     logger.info('Configuration', config.getConfigSummary());
-    
+
     const results = {
       powerShellAvailable: await this.checkPowerShellAvailability(),
-      appImageExists: false,
+      binaryExists: false,
       runScriptExists: false,
       allFilesReady: false
     };
@@ -148,15 +148,15 @@ class PowerShellUtils {
       return results;
     }
 
-    results.appImageExists = await this.checkCartaAppImageExists(dirname);
+    results.binaryExists = await this.checkCartaBinaryExists(dirname);
     results.runScriptExists = await this.checkRunScriptExists(dirname);
-    results.allFilesReady = results.appImageExists && results.runScriptExists;
+    results.allFilesReady = results.binaryExists && results.runScriptExists;
 
     if (results.allFilesReady) {
       logger.info('All required CARTA files are present');
     } else {
       logger.info('Some required CARTA files are missing:');
-      if (!results.appImageExists) logger.info('  - CARTA AppImage (carta_appimage)');
+      if (!results.binaryExists) logger.info('  - CARTA binary (AppRun in squashfs-root)');
       if (!results.runScriptExists) logger.info('  - Run script (run.sh)');
     }
 

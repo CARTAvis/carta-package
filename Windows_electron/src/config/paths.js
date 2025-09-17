@@ -9,12 +9,12 @@ class PathConfig {
   /**
    * Get the appropriate path for Carta binary
    * @param {string} dirname - The __dirname from the calling module
-   * @returns {string} Resolved path to carta_appimage
+   * @returns {string} Resolved path to AppRun in squashfs-root
    */
   static getCartaBinaryPath(dirname) {
     return (app && app.isPackaged)
-      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'carta', 'carta_appimage')
-      : path.join(dirname, 'carta', 'carta_appimage');
+      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'carta', 'squashfs-root', 'AppRun')
+      : path.join(dirname, 'carta', 'squashfs-root', 'AppRun');
   }
 
   /**
