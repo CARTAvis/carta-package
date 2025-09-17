@@ -6,7 +6,7 @@ source ./appimage_config
 if [ "${RELEASE}" = "TRUE" ]; then
     VERSION=${RELEASE_VERSION}
 else
-    VERSION="${BACKEND_VERSION}-${FRONTEND_VERSION}"
+    VERSION="${FRONTEND_VERSION}-${BACKEND_VERSION}"
 fi
 
 ARCH=$(arch)
@@ -25,6 +25,12 @@ fi
 if [[ -f appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage ]]; then
     chmod 755 appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage
     APPIMAGE_EXTRACT_AND_RUN=1 ARCH=${ARCH} VERSION=${VERSION} ./appimagetool-${APPIMAGE_VERSION}-${ARCH}.AppImage CARTA
+fi
+
+if [[ -f carta-${VERSION}-${ARCH}.AppImage ]]; then
+    if [[ $RELEASE = "TRUE" ]]; then
+        mv carta-${VERSION}-${ARCH}.AppImage carta-${ARCH}.AppImage
+    fi
 fi
 
 # Extract a unique Embedded Signature

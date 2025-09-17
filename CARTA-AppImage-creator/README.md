@@ -10,11 +10,9 @@
 
 0. If there is no packaging docker image existing, run the `./build_docker_image.sh` script to build the Docker image that will be used to create the CARTA AppImage. This image contains the `carta-casacore` and `emsdk`.
 
-1. Edit the `appimage_config` file to set the `FRONTEND_VERSION` and `BACKEND_VERSION` to the versions of carta-frontend and carta-backend you want to use. Default is to use a pre-built carta-frontend from [carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend), set `NPM_FRONTEND=True`. If you want to build it from source, set `NPM_FRONTEND=False`.
+1. Edit the `appimage_config` file to set the `FRONTEND_VERSION` and `BACKEND_VERSION` to the versions of carta-frontend and carta-backend you want to use. For the release version, you can use a pre-built carta-frontend from [carta-frontend NPM repository](https://www.npmjs.com/package/carta-frontend) with `NPM_FRONTEND=True`. If you want to build it from source, set `NPM_FRONTEND=False`. The `RELEASE_DATE` need to be set for the release version as well.
 
-2. Execute the `./run_docker_package.sh` script. It will open the container, create a CARTA AppImage using the pointed versions of carta-backend and carta-frontend automatically, copy it on to your local computer, and do the final packaging using `appimagetool`.
-
-3. The appimagetool is not allowed to run inside a Docker container, and it runs on your local computer. To package the arm64 AppImage, either run the script on an Apple Silicon Mac, copy folder `CARTA` to an arm64 architecture linux machine and run `./appimagetool.sh` or execute the `./run_docker_package.sh` script on an arm64 architecture linux machine directly.
+2. Execute the `./run_docker_package.sh` script. It will open the container and run `./run_pack.sh` inside the container, which creates a CARTA AppImage using the pointed versions of carta-backend and carta-frontend, and packages the CARTA using `appimagetool`.
 
 ### Advanced usage:
 
