@@ -2,9 +2,8 @@
  * Window creation and management
  */
 
-const { BrowserWindow } = require('electron');
+const { BrowserWindow, shell } = require('electron');
 const WindowStateManager = require('electron-window-state');
-const path = require('path');
 const { DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT } = require('../config/constants');
 const logger = require('../utils/Logger');
 
@@ -15,6 +14,7 @@ class WindowManager {
       defaultWidth: DEFAULT_WINDOW_WIDTH,
       defaultHeight: DEFAULT_WINDOW_HEIGHT,
     });
+    this.cspConfigured = false;
   }
 
   /**
@@ -44,6 +44,10 @@ class WindowManager {
       y: y,
       show: false,
       icon: require('../config/paths').getIconPath(__dirname),
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+      },
     });
 
     // Add window to tracking set
@@ -51,6 +55,8 @@ class WindowManager {
 
     // Set up window event handlers
     this._setupWindowEventHandlers(newWindow);
+    this._applyContentSecurityPolicy(newWindow.webContents.session);
+    this._hardenNavigation(newWindow);
 
     return newWindow;
   }
@@ -98,6 +104,69 @@ class WindowManager {
 
     // Handle backend process cleanup
     this._cleanupBackendProcess(window);
+  }
+
+  /**
+   * Apply a strict Content Security Policy to all renderer responses
+   * @private
+   * @param {Session} session - Browser session to secure
+   */
+  _applyContentSecurityPolicy(session) {
+    if (this.cspConfigured || !session || typeof session.webRequest?.onHeadersReceived !== 'function') {
+      return;
+    }
+
+    session.webRequest.onHeadersReceived(
+      { urls: ['http://localhost:*/*', 'https://localhost:*/*', 'http://127.0.0.1:*/*', 'https://127.0.0.1:*/*'] },
+      (details, callback) => {
+        const responseHeaders = details.responseHeaders || {};
+        const existingHeaderKey = Object.keys(responseHeaders).find(
+          (key) => key.toLowerCase() === 'content-security-policy'
+        );
+
+        if (existingHeaderKey) {
+          delete responseHeaders[existingHeaderKey];
+        }
+
+        responseHeaders['Content-Security-Policy'] = [
+          "default-src 'self' https:; script-src 'self' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: wss:; worker-src 'self' blob:; media-src 'self' blob: https:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+        ];
+
+        callback({ responseHeaders });
+      }
+    );
+
+    this.cspConfigured = true;
+  }
+
+  /**
+   * Restrict navigation and external link handling for a window
+   * @private
+   * @param {BrowserWindow} window - The window to secure
+   */
+  _hardenNavigation(window) {
+    if (!window || !window.webContents) {
+      return;
+    }
+
+    window.webContents.setWindowOpenHandler(({ url }) => {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    });
+
+    window.webContents.on('will-navigate', (event, url) => {
+      if (
+        url.startsWith('http://localhost:') ||
+        url.startsWith('https://localhost:') ||
+        url.startsWith('http://127.0.0.1:') ||
+        url.startsWith('https://127.0.0.1:')
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      shell.openExternal(url);
+    });
   }
 
   /**

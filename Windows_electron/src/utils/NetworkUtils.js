@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Network utility functions for port management and connection checking
  */
 
@@ -67,10 +67,12 @@ class NetworkUtils {
         window.webContents
           .executeJavaScript(
             `
-              const loadingText = document.querySelector('.loading-text');
-              if (loadingText) {
-                loadingText.textContent = 'Backend ready. Loading CARTA UI??;
-              }
+              (() => {
+                const loadingText = document.querySelector('.loading-text');
+                if (loadingText) {
+                  loadingText.textContent = 'Backend ready. Loading CARTA UI.';
+                }
+              })();
             `
           )
           .catch(() => {});
@@ -114,8 +116,13 @@ class NetworkUtils {
         window.webContents
           .executeJavaScript(
             `
-            document.querySelector('.loading-text').textContent = 'Starting CARTA backend... (${currentRetry + 1}/${maxRetries})';
-          `
+              (() => {
+                const loadingText = document.querySelector('.loading-text');
+                if (loadingText) {
+                  loadingText.textContent = 'Starting CARTA backend... (${currentRetry + 1}/${maxRetries})';
+                }
+              })();
+            `
           )
           .catch(() => {}); // Ignore errors if page hasn't loaded yet
       }
@@ -139,9 +146,17 @@ class NetworkUtils {
         window.webContents
           .executeJavaScript(
             `
-            document.querySelector('.loading-text').textContent = 'Backend startup failed';
-            document.querySelector('.sub-text').textContent = 'Please check WSL configuration or restart the application';
-          `
+              (() => {
+                const loadingText = document.querySelector('.loading-text');
+                if (loadingText) {
+                  loadingText.textContent = 'Backend startup failed';
+                }
+                const subText = document.querySelector('.sub-text');
+                if (subText) {
+                  subText.textContent = 'Please check WSL configuration or restart the application';
+                }
+              })();
+            `
           )
           .catch(() => {});
       }
@@ -166,6 +181,7 @@ class NetworkUtils {
 }
 
 module.exports = NetworkUtils;
+
 
 
 
