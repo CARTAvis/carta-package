@@ -187,16 +187,21 @@ class PathUtils {
       }
 
       if (inputPath === '' || inputPath === '.') {
-        // If launched by app icon (GUI), use home directory
-        // If launched from command line, use current working directory
-        fileMode = FILE_MODES.DIRECTORY; // Set default file mode for directory browsing
-        if (process.cwd() === path.dirname(process.execPath) || 
-            process.cwd() === process.env.USERPROFILE ||
-            process.cwd().endsWith('\\Windows\\System32')) {
-          baseDirectory = homedir; // Launched by app icon or from system directory
-        } else {
-          baseDirectory = process.cwd(); // Launched from command line with specific working directory
-        }
+        // Set default file mode for directory browsing
+        fileMode = FILE_MODES.DIRECTORY;
+
+        const normalizeForCompare = (value) => (value ? path.normalize(value).toLowerCase() : value);
+        const normalizedCwd = normalizeForCompare(process.cwd());
+        const normalizedExecDir = normalizeForCompare(path.dirname(process.execPath));
+        const normalizedUserProfile = normalizeForCompare(process.env.USERPROFILE);
+        const normalizedSystem32 = normalizeForCompare(path.join(process.env.WINDIR || 'C:\Windows', 'System32'));
+
+        const launchedFromCommandLine = normalizedCwd &&
+          normalizedCwd !== normalizedExecDir &&
+          normalizedCwd !== normalizedUserProfile &&
+          normalizedCwd !== normalizedSystem32;
+
+        baseDirectory = launchedFromCommandLine ? process.cwd() : homedir;
       } else if (fileStatus.isFile()) {
         fileMode = FILE_MODES.FILE;
         baseDirectory = path.dirname(inputPath); // Using command line to directly open an image
