@@ -5,8 +5,8 @@
 RELEASE=TRUE # set to TRUE to release a new version, or FALSE to publish a dev version
 # RELEASE=FALSE # set to TRUE to release a new version, or FALSE to publish a dev version
 VERSION=5.0.0
-BACKEND_VERSION=5.0.0
-FRONTEND_VERSION=5.0.0
+BACKEND_VERSION=5.0.1
+FRONTEND_VERSION=5.0.2
 OBSOLETE_VERSION=5.0.0
 
 
