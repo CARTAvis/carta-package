@@ -205,6 +205,24 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', (event) => {
+  // Close all windows forcefully
+  const allWindows = BrowserWindow.getAllWindows();
+  allWindows.forEach(win => {
+    win.destroy();
+  });
+});
+
+app.on('will-quit', (event) => {
+  // Force kill all backend processes synchronously
+  try {
+    const { execSync } = require('child_process');
+    execSync('pkill -9 -f carta_backend', { timeout: 1000 });
+  } catch (e) {
+    // Ignore errors
+  }
+});
+
 app.on('activate', (event, hasVisibleWindows) => {
   if (!hasVisibleWindows) { createWindow(); }
 });
@@ -287,10 +305,15 @@ const createWindow = exports.createWindow = () => {
 
   newWindow.on('close', () => {
     mainWindowState.saveState(newWindow);
-
-   // Make sure to stop the carta_backend process when finished
-   const pkill = require('child_process').spawn('/usr/bin/pkill', ['-P', run.pid]);
-
+    
+    // Kill the backend process immediately
+    if (run && run.pid) {
+      try {
+        process.kill(-run.pid, 'SIGKILL');
+      } catch (e) {
+        app.quit();
+      }
+    }
   });
 
   // Completely close Electron if no other windows are open
