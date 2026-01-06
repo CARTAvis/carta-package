@@ -191,6 +191,7 @@ if (items.version) {
 
 // Allow multiple instances of Electron
 const windows = new Set();
+const backendPorts = new Set();
 
 // Generate a UUID for the CARTA_AUTH_TOKEN
 const cartaAuthToken = uuid.v4();
@@ -211,6 +212,33 @@ app.on('before-quit', (event) => {
   allWindows.forEach(win => {
     win.destroy();
   });
+});
+
+app.on('will-quit', (event) => {
+  // Force kill backend processes by port
+  const { execSync } = require('child_process');
+  backendPorts.forEach(port => {
+    try {
+      const pid = execSync(`lsof -ti:${port}`, { timeout: 1000 }).toString().trim();
+      if (pid) {
+        execSync(`kill -9 ${pid}`, { timeout: 1000 });
+        console.log(`Killed backend PID ${pid} on port ${port}`);
+      }
+    } catch (e) {
+      console.error(`Error killing port ${port}:`, e.message);
+    }
+  });
+  
+  // Also kill any remaining carta_backend processes started by this app
+  try {
+    const appPath = __dirname.replace(/\//g, '\\/');
+    execSync(`pkill -9 -f "${appPath}/carta-backend/bin/carta_backend"`, { timeout: 1000 });
+    console.log('Killed any remaining carta_backend processes from this app');
+  } catch (e) {
+    // Ignore errors
+  }
+  
+  backendPorts.clear();
 });
 
 app.on('activate', (event, hasVisibleWindows) => {
@@ -264,6 +292,9 @@ const createWindow = exports.createWindow = () => {
   ];
 
   const run = exec(runArgs.join(' '));
+
+  // Store backend port
+  backendPorts.add(backendPort);
 
   // Correctly handle Electron window URL scenarios
   if (inputPath === '') {
