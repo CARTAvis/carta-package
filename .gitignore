@@ -14,3 +14,14 @@
 /macOS_electron/pack
 /macOS_electron/package
 /macOS_electron/carta-backend
+
+Tauri2.0/src-tauri/target/
+Tauri2.0/src-tauri/gen/schemas
+Tauri2.0/src-tauri/backend/bin/*
+Tauri2.0/src-tauri/backend/etc/*
+Tauri2.0/src-tauri/backend/libs/*
+Tauri2.0/src-tauri/frontend/*
+!Tauri2.0/src-tauri/backend/bin/.gitkeep
+!Tauri2.0/src-tauri/backend/etc/.gitkeep
+!Tauri2.0/src-tauri/backend/libs/.gitkeep
+!Tauri2.0/src-tauri/frontend/.gitkeep

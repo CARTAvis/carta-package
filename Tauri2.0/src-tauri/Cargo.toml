@@ -1,0 +1,27 @@
+[package]
+name = "CARTA"
+version = "5.0.3"
+description = "2025 CARTA Desktop"
+authors = ["CARTA Development team"]
+edition = "2024"  # Rust edition, not CARTA version
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "carta_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Enable devtools API so WebviewWindow has open/close/is_devtools_open in release.
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+portpicker = "0.1"
+uuid = { version = "1", features = ["v4"] }

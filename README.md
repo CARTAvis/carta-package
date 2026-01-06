@@ -9,3 +9,7 @@ It includes:
 - Snapcraft version
 - cartavis/carta Docker image
 - NPM
+- Tauri 2.0
+  - macOS dmg
+  - Windows NSIS installer
+  - Linux AppImage
