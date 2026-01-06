@@ -213,16 +213,6 @@ app.on('before-quit', (event) => {
   });
 });
 
-app.on('will-quit', (event) => {
-  // Force kill all backend processes synchronously
-  try {
-    const { execSync } = require('child_process');
-    execSync('pkill -9 -f carta_backend', { timeout: 1000 });
-  } catch (e) {
-    // Ignore errors
-  }
-});
-
 app.on('activate', (event, hasVisibleWindows) => {
   if (!hasVisibleWindows) { createWindow(); }
 });
