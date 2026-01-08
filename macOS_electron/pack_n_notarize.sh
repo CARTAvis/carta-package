@@ -20,7 +20,7 @@ rm -rf ${PACKAGING_PATH}/pack/dist
 password=$(/opt/homebrew/bin/openssl enc -aes-256-cbc -d -a -salt -iter 100 -pass pass:YOUR_PASS -in /WHERE_IS_YOUR_encrypted_password.enc)
 security unlock-keychain -p $password ~/Library/Keychains/login.keychain-db
 
-export DEBUG=electron-notarize*
+export DEBUG=@electron/notarize*
 export APPLE_APP_SPECIFIC_PASSWORD=
 export APPLE_ID=
 export APPLE_TEAM_ID=
