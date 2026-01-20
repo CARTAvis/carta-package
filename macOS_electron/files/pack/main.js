@@ -215,17 +215,13 @@ app.on('before-quit', (event) => {
 }); 
 
 app.on('will-quit', (event) => {
-  // Force kill backend processes by port
+  // Kill any remaining carta_backend processes started by this app
   const { execSync } = require('child_process');
-
-  // Also kill any remaining carta_backend processes started by this app
   try {
     const appPath = __dirname.replace(/\//g, '\\/');
     execSync(`pkill -9 -f "${appPath}/carta-backend/bin/carta_backend"`, { timeout: 1000 });
   } catch (e) {
-
   }
-
   backendPorts.clear();
 });
 
@@ -280,9 +276,6 @@ const createWindow = exports.createWindow = () => {
   ];
 
   const run = exec(runArgs.join(' '));
-
-  // Store backend port
-  backendPorts.add(backendPort);
 
   // Correctly handle Electron window URL scenarios
   if (inputPath === '') {
