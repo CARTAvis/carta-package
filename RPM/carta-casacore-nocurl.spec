@@ -159,6 +159,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Thu Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
+- Update measures-data which downloads the latest geodeditc and ephemerides
+
 * Thu Jul 24 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
 - Update measures-data which downloads the latest geodeditc and ephemerides
 
