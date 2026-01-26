@@ -49,6 +49,18 @@ if [ $SPEC = "measures-data.spec" ]; then
         echo "Failed to download $SOURCE_FILE. Please check your internet connection."
         exit 1
     fi
+
+    # Wait for file to be fully written to disk
+    echo "Sleeping 60 seconds to ensure $SOURCE_FILE is fully written..."
+    sleep 60
+
+    # Verify file exists and has content
+    if [ ! -s $SOURCE_FILE ]; then
+        echo "Error: Downloaded file is empty or missing"
+        exit 1
+    fi
+
+    echo "Successfully downloaded $SOURCE_FILE ($(du -h $SOURCE_FILE | cut -f1))"
 fi
 
 echo "Building SRPM for $SPEC..."
