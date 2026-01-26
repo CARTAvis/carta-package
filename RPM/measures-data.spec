@@ -1,5 +1,4 @@
 %define debug_package %{nil}
-%undefine _disable_source_fetch
 
 Name:           measures-data
 Version:        2026.1.23
