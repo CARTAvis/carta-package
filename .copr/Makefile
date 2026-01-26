@@ -1,2 +1,3 @@
 srpm:
-	rpmbuild -bs measures-data.spec
+	wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar -O WSRT_Measures.ztar
+	rpmbuild -bs RPM/measures-data.spec
