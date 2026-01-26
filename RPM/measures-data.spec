@@ -7,6 +7,7 @@ Summary:        CASA ephemerides and geodetic data
 License:        GPL-3+
 URL:            ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
 Source0:        WSRT_Measures.ztar
+NoSource:       0
 
 %description
 CASA ephemerides and geodetic data needed by CARTA downloaded from ftp.astron.nl.
