@@ -17,4 +17,4 @@ fi
 
 $dirname/casa_data_autoupdate
 
-CARTA_AUTH_TOKEN=$1 $dirname/carta_backend $2 --port=$3 --frontend_folder=$dirname/../../ --no_browser ${@:4}
+CARTA_AUTH_TOKEN="$1" "$dirname"/carta_backend "$2" --port="$3" --frontend_folder="$dirname"/../../ --no_browser "${@:4}"
