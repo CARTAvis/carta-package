@@ -1,13 +1,13 @@
 #!/bin/bash
+# This script generates a default dmg_config file for the macOS Electron packaging process.
+
+cat > dmg_config <<EOL
+#!/bin/bash
 
 EMSDK_PATH=../emsdk
-EMSDK_VERSION=4.0.3
-NODE_VERSION=22
-BIN_PATH=/usr/local/bin:/usr/local/Homebrew/bin:$PATH
-
 PACKAGING_PATH=$(pwd)
 
-ARCH=arm64
+ARCH=$(arch)
 BACKGROUND_FIGURE=""
 
 # Can be branch, tag or commit
@@ -16,7 +16,7 @@ BACKEND_VERSION=v5.0.1
 
 RELEASE=FALSE
 
-# Naming the output file if it is a release packaging (RELEASE=TRUE)
+# Release version, for naming the output
 RELEASE_VERSION=5.0.0
 
 NPM_FRONTEND=FALSE
@@ -24,12 +24,13 @@ NPM_FRONTEND=FALSE
 # Set to TRUE if it is a beta release
 BETA_RELEASE=FALSE
 
+# for debug purposes
 PREPARE_FRONTEND=TRUE
 PREPARE_BACKEND=TRUE
 
-# Set to TRUE if it is a release packaging (RELEASE=TRUE)
 CLEAN_FRONTEND=TRUE
 CLEAN_BACKEND=TRUE
 
+EOL
 
-
+echo "Default dmg_config generated."

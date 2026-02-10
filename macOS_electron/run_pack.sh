@@ -1,13 +1,29 @@
 #!/bin/bash
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 source ./dmg_config
+
+export PATH=$BIN_PATH:$PATH
+
+# Check if nvm has the node version
+if ! nvm ls "$NODE_VERSION" > /dev/null 2>&1; then
+    nvm install "$NODE_VERSION"
+fi
+nvm use "$NODE_VERSION"
+
 echo "Starting AppImage build process..."
-echo "Backend release version: ${BACKEND_VERSION}"
-echo "Frontend release version: ${FRONTEND_VERSION}"
-read -p "Are versions correct? (y/n): " confirm
-if [[ "$confirm" != "y" ]]; then
-    echo "Exiting build process."
-    exit 1
+echo "Backend (branch, tag, or commit): ${BACKEND_VERSION}"
+echo "Frontend (branch, tag, or commit): ${FRONTEND_VERSION}"
+
+if [[ "${RELEASE}" == "TRUE" ]]; then
+    read -p "Are versions correct? (y/n): " confirm
+    if [[ "$confirm" != "y" ]]; then
+        echo "Exiting build process."
+        exit 1
+    fi
 fi
 
 NAME=CARTA
@@ -21,6 +37,9 @@ if [[ "${NPM_FRONTEND}" = "TRUE" && "${RELEASE}" = "FALSE" ]]; then
 fi
 
 cd ${PACKAGING_PATH}
+
+# clean carta dmg
+rm -rf ${PACKAGING_PATH}/CARTA-*.dmg
 
 # modify name and version in files/pack/package.json
 jq --arg name "$NAME" --arg version "$RELEASE_VERSION" '.name = $name | .version = $version' files/pack/package.json > files/pack/package.json.tmp && mv files/pack/package.json.tmp files/pack/package.json
@@ -47,17 +66,23 @@ if [ ! -d ${PACKAGING_PATH}/files/etc/data/ephemerides ] || [ ! -d ${PACKAGING_P
 fi
 
 cd ${PACKAGING_PATH}
-cp -r ./files/etc ./pack/carta-backend/
+cp -r ${PACKAGING_PATH}/files/etc ${PACKAGING_PATH}/pack/carta-backend/
 
 # prepare frontend
-if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
-    
-    if [ -d package ]; then
-        echo "Removing existing package directory..."
-        rm -rf package
+if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
+
+    # clean frontend
+    if [ "${CLEAN_FRONTEND}" = "TRUE" ]; then
+        echo "Cleaning frontend..."
+        rm -rf ${PACKAGING_PATH}/package
     fi
 
     if [ "${NPM_FRONTEND}" = "TRUE" ]; then
+        if [ -d ${PACKAGING_PATH}/package ]; then
+            echo "Removing existing package directory..."
+            rm -rf ${PACKAGING_PATH}/package
+        fi
+
         ## see frontend version: https://www.npmjs.com/package/carta-frontend?activeTab=versions
         echo "Downloading carta-frontend version ${FRONTEND_VERSION}..."
         NPM_FRONTEND_VERSION=${FRONTEND_VERSION#v}
@@ -77,51 +102,79 @@ if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
         # check if emcc is installed
         if ! command -v emcc &> /dev/null; then
             echo "emcc is not installed. Please install Emscripten SDK."
-            exit 1
+            # activate emsdk
+            echo "Activating emsdk..."
+            ${EMSDK_PATH}/emsdk install ${EMSDK_VERSION}
+            ${EMSDK_PATH}/emsdk activate ${EMSDK_VERSION}
+            source ${EMSDK_PATH}/emsdk_env.sh
         fi
-        # activate emsdk
-        echo "Activating emsdk..."
-        ${EMSDK_PATH}/emsdk install latest
-        ${EMSDK_PATH}/emsdk activate latest
-        source ${EMSDK_PATH}/emsdk_env.sh
 
-        git clone https://github.com/CARTAvis/carta-frontend.git package
-        cd package
-        git checkout ${FRONTEND_VERSION}
-        git submodule update --init --recursive
-        npm install
-        npm run build-libs
+        if [ ! -d ${PACKAGING_PATH}/package ]; then
+            echo "Cloning carta-frontend repository..."
+            git clone https://github.com/CARTAvis/carta-frontend.git package
+            cd ${PACKAGING_PATH}/package
+            git checkout ${FRONTEND_VERSION}
+            git submodule update --init --recursive
+            npm install
+            npm run build-libs
+        else
+            cd ${PACKAGING_PATH}/package
+            git checkout ${FRONTEND_VERSION}
+            git submodule update
+            npm install
+
+            if [ -d ${PACKAGING_PATH}/package/build ]; then
+                echo "Removing existing build directory..."
+                rm -rf ${PACKAGING_PATH}/package/build
+                mkdir -p ${PACKAGING_PATH}/package/build
+            fi
+        fi
+
         npm run build
     fi
 
-    cp -r ${PACKAGING_PATH}/package/build/* ./pack
+    cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 fi
 
-
+cd ${PACKAGING_PATH}
 # prepare backend
-if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
-    echo "Backend release version: ${BACKEND_VERSION}"
+if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
+    echo "Backend (branch, tag, or commit): ${BACKEND_VERSION}"
     echo "Preparing backend..."
     FOLDER_PREFIX=".carta"
-    if [ "${BETA_RELEASE}" = "TRUE" ]; then
+    if [ "${BETA_RELEASE}" == "TRUE" ]; then
         FOLDER_PREFIX=".carta-beta"
     fi
 
-    if [! -d /opt/casaroot-carta-casacore ]; then
+    if [ ! -d /opt/casaroot-carta-casacore ]; then
         echo "CARTA casacore root directory not found. Please install carta-casacore with floating CASAROOT first."
         exit 1
     fi
 
-    if [ -d ${PACKAGING_PATH}/carta-backend ]; then
-        echo "Removing existing carta-backend directory..."
+    # clean backend
+    if [ "${CLEAN_BACKEND}" = "TRUE" ]; then
+        echo "Cleaning backend..."  
         rm -rf ${PACKAGING_PATH}/carta-backend
     fi
 
-    git clone https://github.com/CARTAvis/carta-backend.git
-    cd ${PACKAGING_PATH}/carta-backend
-    git checkout ${BACKEND_VERSION}
-    git submodule update --init
-    mkdir build
+    if [ ! -d ${PACKAGING_PATH}/carta-backend ]; then
+        echo "Cloning carta-backend repository..."
+        git clone https://github.com/CARTAvis/carta-backend.git
+        cd ${PACKAGING_PATH}/carta-backend
+        git checkout ${BACKEND_VERSION}
+        git submodule update --init
+    else 
+        cd ${PACKAGING_PATH}/carta-backend
+        git checkout ${BACKEND_VERSION}
+        git submodule update
+
+        if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
+            echo "Removing existing build directory..."
+            rm -rf ${PACKAGING_PATH}/carta-backend/build
+        fi
+    fi
+
+    mkdir -p ${PACKAGING_PATH}/carta-backend/build
     cd ${PACKAGING_PATH}/carta-backend/build
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/casaroot-carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
     make -j 4
@@ -130,35 +183,25 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
     sh ${PACKAGING_PATH}/cp_libs.sh ${PACKAGING_PATH}/carta-backend/build
     cp -r ${PACKAGING_PATH}/carta-backend/build/libs ${PACKAGING_PATH}/pack/carta-backend/
     cp -r ${PACKAGING_PATH}/carta-backend/build/carta_backend ${PACKAGING_PATH}/pack/carta-backend/bin
-
 fi
 
 echo "Running Apple notarization..."
 cd ${PACKAGING_PATH}
 sh ./pack_n_notarize.sh
 
-
-# clean frontend
-if [ "${CLEAN_FRONTEND}" = "TRUE" ]; then
-    echo "Cleaning frontend..."
-    rm -rf ${PACKAGING_PATH}/package
-fi
-# clean backend
-if [ "${CLEAN_BACKEND}" = "TRUE" ]; then
-    echo "Cleaning backend..."  
-    rm -rf ${PACKAGING_PATH}/carta-backend
-fi
-
-
 # rename dmg file
 cd ${PACKAGING_PATH}/pack/dist
-if [ -f ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ]; then
+SUFFIX=""
+if [ $ARCH == "arm64" ]; then
+    SUFFIX="-$ARCH"
+fi
+if [ -f ./CARTA-${RELEASE_VERSION}${SUFFIX}.dmg ]; then
     if [ $RELEASE = "TRUE" ]; then
-        echo "Renaming dmg to CARTA-$ARCH.dmg..."
-        mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$ARCH.dmg
+        mv CARTA-${RELEASE_VERSION}${SUFFIX}.dmg CARTA-$ARCH.dmg
+        echo "Output file: CARTA-$ARCH.dmg"
     else
-        echo "Renaming dmg to CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg..."
-        mv ./CARTA-${RELEASE_VERSION}-$ARCH.dmg ./CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
+        mv CARTA-${RELEASE_VERSION}${SUFFIX}.dmg CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg
+        echo "Output file: CARTA-$FRONTEND_VERSION-$BACKEND_VERSION-$ARCH.dmg"
     fi
 else
     echo "CARTA dmg not found. Please check the build process."

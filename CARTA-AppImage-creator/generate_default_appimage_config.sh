@@ -1,11 +1,18 @@
 #!/bin/bash
+# This script generates a default appimage_config file for the macOS Electron packaging process.
 
-EMSDK_PATH=../emsdk
+cat > appimage_config <<EOL
+#!/bin/bash
+EMSDK_PATH=/root/emsdk
 EMSDK_VERSION=4.0.3
 NODE_VERSION=22
-BIN_PATH=/usr/local/bin:/usr/local/Homebrew/bin:$PATH
+BIN_PATH=/usr/local/bin
+
+IMAGE_NAME="carta-appimage-create"
+CONTAINER_NAME="carta-appimage-container"
 
 PACKAGING_PATH=$(pwd)
+DOCKER_PACKAGING_PATH=/pack
 
 ARCH=arm64
 BACKGROUND_FIGURE=""
@@ -24,6 +31,9 @@ NPM_FRONTEND=FALSE
 # Set to TRUE if it is a beta release
 BETA_RELEASE=FALSE
 
+# Set to TRUE to update the measurement data
+UPDATE_MEASURES_DATA=FALSE
+
 PREPARE_FRONTEND=TRUE
 PREPARE_BACKEND=TRUE
 
@@ -31,5 +41,6 @@ PREPARE_BACKEND=TRUE
 CLEAN_FRONTEND=TRUE
 CLEAN_BACKEND=TRUE
 
+EOL
 
-
+echo "Default appimage_config generated."
