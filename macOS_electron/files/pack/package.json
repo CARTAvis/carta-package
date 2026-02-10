@@ -1,6 +1,6 @@
 {
   "name": "CARTA",
-  "version": "5.0.0-dev",
+  "version": "5.0.3",
   "description": "2025 CARTA Desktop",
   "main": "main.js",
   "scripts": {
@@ -13,26 +13,26 @@
   ],
   "author": "GitHub",
   "license": "CC0-1.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
-    "@electron/universal": "2.0.2",
-    "@electron/notarize": "^2.0.0",
-    "@electron/packager": "^18.3.6",
+    "@electron/notarize": "^3.1.1",
     "electron-builder-notarize": "1.5.2",
-    "electron": "^39.2.7",
+    "electron": "39.2.7",
+    "electron-packager": "^17.1.1",
     "electron-builder": "^26.0.12"
   },
   "dependencies": {
-    "@electron/universal": "2.0.2",
-    "deasync": "^0.1.31",
-    "electron-context-menu": "^0.12.0",
-    "electron-installer-dmg": "^3.0.0",
+    "@electron/universal": "3.0.2",
+    "electron-context-menu": "^4.1.1",
     "electron-window-state": "^5.0.3",
     "electron-window-state-manager": "^0.3.2",
-    "express": "^4.16.4",
+    "express": "^5.2.1",
     "find-free-port-sync": "^1.0.0",
-    "minimist": "^1.2.5",
-    "node-gyp": "^10.1.0",
-    "uuid": "^11.0.0"
+    "minimist": "^1.2.8",
+    "node-gyp": "^12.1.0",
+    "uuid": "^13.0.0"
   },
   "mac": {
     "hardenedRuntime": true,
@@ -44,7 +44,7 @@
     "appId": "cartavis.org",
     "afterSign": "electron-builder-notarize",
     "mac": {
-      "notarize": false
+      "notarize": true
     },
     "asar": "false"
   },
