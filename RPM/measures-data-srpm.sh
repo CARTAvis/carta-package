@@ -34,53 +34,37 @@ fi
 
 echo "Creating srpm_file container..."
 # create the srpm_file container
-docker run -d --name srpm_file -v ~/rpmbuild:/root/rpmbuild carta-rpmbuild /bin/bash -c "while true; do sleep 3600; done"
+docker run -d --name srpm_file -v ~/rpmbuild:/root/rpmbuild carta-rpmbuild /bin/bash -c "while true; do sleep 30; done;"
 
 # Wait for container to be fully running
 sleep 2
 
 SPEC=measures-data.spec
+EXPECTED_MD5=$(awk '/^# Source0MD5:/ {print $3}' "$SPEC")
 if [ $SPEC = "measures-data.spec" ]; then
-    SOURCE_FILE=WSRT_Measures.ztar
-    echo "Downloading latest $SOURCE_FILE from ftp.astron.nl..."
-    rm -f $SOURCE_FILE
+    SOURCE_FILE_Z=WSRT_Measures.ztar
+    SOURCE_FILE=WSRT_Measures.tar
+    echo "Downloading latest $SOURCE_FILE_Z from ftp.astron.nl..."
+    rm -f "$SOURCE_FILE_Z" "$SOURCE_FILE"
     wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
     if [ $? -ne 0 ]; then
-        echo "Failed to download $SOURCE_FILE. Please check your internet connection."
+        echo "Failed to download $SOURCE_FILE_Z. Please check your internet connection."
         exit 1
     fi
 
-    # Wait for file to be fully written to disk
-    echo "Sleeping 60 seconds to ensure $SOURCE_FILE is fully written..."
-    sleep 60
-
-    # Verify file exists and has content
-    if [ ! -s $SOURCE_FILE ]; then
-        echo "Error: Downloaded file is empty or missing"
-        exit 1
-    fi
-
-    echo "Successfully downloaded $SOURCE_FILE ($(du -h $SOURCE_FILE | cut -f1))"
+    # Decompress to match the MD5 expected by COPR (uncompressed tar hash)
+    echo "Decompressing $SOURCE_FILE_Z to $SOURCE_FILE..."
+    gunzip -c "$SOURCE_FILE_Z" > "$SOURCE_FILE"
 fi
 
 echo "Building SRPM for $SPEC..."
-
-# Ensure directories exist in container
 docker exec srpm_file /bin/bash -c "mkdir -p /root/rpmbuild/SPECS /root/rpmbuild/SOURCES /root/rpmbuild/SRPMS"
 
 docker cp $SPEC srpm_file:/root/rpmbuild/SPECS/
 docker cp $SOURCE_FILE srpm_file:/root/rpmbuild/SOURCES/
+docker exec srpm_file /bin/bash -c "rm -f /root/rpmbuild/SRPMS/measures*.src.rpm"
 docker exec srpm_file /bin/bash -c "rpmbuild -bs /root/rpmbuild/SPECS/$SPEC"
-
-# Get the most recently created SRPM file
-srpm_output=$(docker exec srpm_file bash -c 'ls -t /root/rpmbuild/SRPMS/measures*.rpm 2>/dev/null | head -1 | xargs -n 1 basename')
-
-if [ -z "$srpm_output" ]; then
-    echo "Failed to build SRPM."
-    docker rm -f srpm_file
-    exit 1
-fi
-
+srpm_output=$(docker exec srpm_file /bin/bash -c "rpmspec -q --qf '%{name}-%{version}-%{release}.src.rpm\n' /root/rpmbuild/SPECS/$SPEC")
 docker cp srpm_file:/root/rpmbuild/SRPMS/${srpm_output} .
 docker rm -f srpm_file
 

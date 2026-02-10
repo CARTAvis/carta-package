@@ -12,6 +12,8 @@ URL:            https://github.com/CARTAvis/carta-backend
 
 BuildArch: %{_arch}
 
+%define cfitsio_prefix /opt/carta-cfitsio-v450-curl
+
 Obsoletes: carta-backend <= 5.1.0
 Obsoletes: carta-backend = 5.1.0~rc.0
 
@@ -23,7 +25,7 @@ BuildRequires: cmake
 %else
 BuildRequires: cmake3
 %endif
-BuildRequires:  carta-cfitsio-v463-curl-devel
+BuildRequires:  carta-cfitsio-v450-curl-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires:  gcc9-c++
 BuildRequires:  gcc9-fortran
@@ -40,7 +42,7 @@ BuildRequires: zfp-devel >= 1.0.1
 BuildRequires: gsl-devel
 
 Requires: blas
-Requires: carta-cfitsio-v463-curl
+Requires: carta-cfitsio-v450-curl
 Requires: carta-casacore-nocurl
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
@@ -74,12 +76,15 @@ cd %{NVdir}
 mkdir build
 cd build
 
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+export PKG_CONFIG_PATH=%{cfitsio_prefix}/lib64/pkgconfig:$PKG_CONFIG_PATH
+
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I%{cfitsio_prefix}/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L%{cfitsio_prefix}/lib64" -DCMAKE_PREFIX_PATH=%{cfitsio_prefix} -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
            -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+export PKG_CONFIG_PATH=%{cfitsio_prefix}/lib64/pkgconfig:$PKG_CONFIG_PATH
+cmake ..  -DCMAKE_CXX_FLAGS="-I%{cfitsio_prefix}/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L%{cfitsio_prefix}/lib64" -DCMAKE_PREFIX_PATH=%{cfitsio_prefix} -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
@@ -121,7 +126,7 @@ cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{_datadir}/icons/hicolor/s
 rm -rf $RPM_BUILD_ROOT
 
 %post
-echo "/opt/cfitsio/lib64" > /etc/ld.so.conf.d/cfitsio.conf
+echo "%{cfitsio_prefix}/lib64" > /etc/ld.so.conf.d/cfitsio.conf
 /sbin/ldconfig
 
 %postun

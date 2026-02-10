@@ -1,10 +1,11 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 %define my_prefix  %{_prefix}
+%define cfitsio_prefix /opt/carta-cfitsio-v450-curl
 
 Name:           carta-casacore-nocurl
 Version:        3.5.0+6.6.0+2024.1.18
-Release:        1
+Release:        2
 Summary:        carta-casacore library files as needed by the CARTA image viewer
 
 License:        GPL-3+
@@ -13,7 +14,7 @@ URL:            https://github.com/CARTAvis/carta-casacore
 BuildArch: %{_arch}
 
 BuildRequires:  bison
-BuildRequires:  carta-cfitsio-v450-nocurl-devel
+BuildRequires:  carta-cfitsio-v450-curl-devel
 BuildRequires:  cmake3
 BuildRequires:  fftw-devel
 BuildRequires:  flex
@@ -75,7 +76,8 @@ cd build
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
           -DENABLE_RPATH=NO \
-          -DCMAKE_PREFIX_PATH=/opt/cfitsio
+          -DCFITSIO_ROOT=%{cfitsio_prefix} \
+          -DCMAKE_PREFIX_PATH=%{cfitsio_prefix}
 %cmake_build
 %install
 cd %{NVdir}/build
@@ -95,7 +97,8 @@ cmake3 .. -DUSE_THREADS=ON \
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
           -DENABLE_RPATH=NO \
-          -DCMAKE_PREFIX_PATH=/opt/cfitsio
+          -DCFITSIO_ROOT=%{cfitsio_prefix} \
+          -DCMAKE_PREFIX_PATH=%{cfitsio_prefix}
 make -j 2
 %install
 cd %{NVdir}/build
@@ -159,8 +162,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
-* Thu Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
-- Update measures-data which downloads the latest geodeditc and ephemerides
+* Thu Feb 5 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
+- Update measures-data and fix cfitsio-v450 path
 
 * Thu Jul 24 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
 - Update measures-data which downloads the latest geodeditc and ephemerides

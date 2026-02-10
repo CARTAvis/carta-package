@@ -29,7 +29,7 @@ This package provides the beta versions of the carta-backend and carta-frontend 
 %files
 
 %changelog
-* Fri Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.1.0
+* Fri Feb 6 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.1.0
   - Update backend v5.1.0 and frontend v5.1.0
 
 * Thu Jul 31 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0.3
