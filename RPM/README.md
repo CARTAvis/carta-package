@@ -10,7 +10,7 @@ Most of our RPM SPEC files can be built interchangeably on `el7, el8`,`el9`, and
 | carta-frontend | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/) |
 | | | |
 | carta-casacore| 3.5.0+6.6.0+2024.1.18 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore/) | 
-| measures-data | 2022.8.21-1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/) |
+| measures-data | 2026.1.27-1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/) |
 | fits2idia | 0.5.5 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/fits2idia/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/fits2idia/) |
 | | | |
 | carta-cfitsio | 3.50 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio/) |
