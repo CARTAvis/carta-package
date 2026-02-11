@@ -1,5 +1,5 @@
 Name:           carta-beta
-Version:        5.0+2025.7.31
+Version:        5.1+2026.1.16
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -26,6 +26,9 @@ This package provides the beta versions of the carta-backend and carta-frontend 
 %files
 
 %changelog
+* Fri Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.1+2026.1.16
+  - carta-beta metapackage for the CARTA 5.1-beta.2026.1.16 release
+
 * Thu Jul 31 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0+2025.7.31
   - carta-beta metapackage for the CARTA 5.0-beta.2025.7.31 release
 

@@ -4,7 +4,7 @@
 %define debug_package %{nil}
 
 Name:           carta-backend
-Version:        5.0.3
+Version:        5.1.0
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -12,8 +12,10 @@ URL:            https://github.com/CARTAvis/carta-backend
 
 BuildArch: %{_arch}
 
-Obsoletes: carta-backend <= 5.0.3
-Obsoletes: carta-backend = 5.0.3~rc.0
+%define cfitsio_prefix /opt/carta-cfitsio-v450-curl
+
+Obsoletes: carta-backend <= 5.1.0
+Obsoletes: carta-backend = 5.1.0~rc.0
 
 BuildRequires: git
 BuildRequires: blas-devel
@@ -74,12 +76,15 @@ cd %{NVdir}
 mkdir build
 cd build
 
-cmake3 ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+export PKG_CONFIG_PATH=%{cfitsio_prefix}/lib64/pkgconfig:$PKG_CONFIG_PATH
+
+cmake3 ..  -DCMAKE_CXX_FLAGS="-I%{cfitsio_prefix}/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L%{cfitsio_prefix}/lib64" -DCMAKE_PREFIX_PATH=%{cfitsio_prefix} -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
            -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 
 %if 0%{?suse_version} >= 1500
 export CC=gcc-9 CXX=g++-9 FC=gfortran-9
-cmake ..  -DCMAKE_CXX_FLAGS="-I/opt/cfitsio/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L/opt/cfitsio/lib64" -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+export PKG_CONFIG_PATH=%{cfitsio_prefix}/lib64/pkgconfig:$PKG_CONFIG_PATH
+cmake ..  -DCMAKE_CXX_FLAGS="-I%{cfitsio_prefix}/include" -DCMAKE_CXX_STANDARD_LIBRARIES="-L%{cfitsio_prefix}/lib64" -DCMAKE_PREFIX_PATH=%{cfitsio_prefix} -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCartaUserFolderPrefix=".carta" -DDEPLOYMENT_TYPE=rpm
 %endif
 
@@ -121,7 +126,7 @@ cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{_datadir}/icons/hicolor/s
 rm -rf $RPM_BUILD_ROOT
 
 %post
-echo "/opt/cfitsio/lib64" > /etc/ld.so.conf.d/cfitsio.conf
+echo "%{cfitsio_prefix}/lib64" > /etc/ld.so.conf.d/cfitsio.conf
 /sbin/ldconfig
 
 %postun
@@ -150,6 +155,9 @@ fi
 %{_datadir}/icons/hicolor/symbolic/apps/cartaviewer.svg
 
 %changelog
+* Fri Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.1.0
+  - carta-backend component for the CARTA 5.1.0 release
+
 * Thu Jul 31 2025 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.0.3
   - carta-backend component for the CARTA 5.0.3 release
 
