@@ -9,11 +9,11 @@ Most of our RPM SPEC files can be built interchangeably on `el7, el8`,`el9`, and
 | carta-backend | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/) |
 | carta-frontend | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/) |
 | | | |
-| carta-casacore| 3.5.0+6.6.0+2024.1.18 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore/) | 
+| carta-casacore-nocurl | 3.5.0+6.6.0+2024.1.18 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore-nocurl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore-nocurl/) | 
 | measures-data | 2026.1.27-1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/) |
 | fits2idia | 0.5.5 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/fits2idia/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/fits2idia/) |
 | | | |
-| carta-cfitsio | 3.50 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio/) |
+| carta-cfitsio-v450-curl | 4.50 | el7 /el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio-v450-curl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio-v450-curl/) |
 | carta-gsl | 2.5 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-gsl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-gsl/) |
 | protobuf | 3.6.0 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/protobuf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/protobuf/) |
 | gtest | 1.10 | el7 / el8 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/) |
@@ -66,7 +66,7 @@ enabled_metadata=1
 ## Additional RPMS:
 
 Our Copr `carta/cartvis` repo holds some additional custom RPMs:
--  **carta-cfitsio-3.50** - el7, el8, and el9
+-  **carta-cfitsio-4.50** - el7, el8, and el9
 	- It installs to the custom location `/opt/carta-cfitsio-v450-curl` so as not to interfere with the default cfitsio.
 -  **carta-cfitsio-3.47** - el7-only
 	- This is needed only if building the carta-backend with unit-tests because the default el7 cfitsio-3.37 is too old. It installs to the custom location `/opt/carta-cfitsio` so as not to interfere with the default cfitsio.
