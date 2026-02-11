@@ -26,39 +26,46 @@ else
     echo "carta-rpmbuild image already exists."
 fi
 
-# if there is no srpm_file container
-if ! docker ps -a | grep -q srpm_file; then
-    echo "Creating srpm_file container..."
-    # create the srpm_file container
-    docker create -i -t --name srpm_file -v ~/rpmbuild:/root/rpmbuild carta-rpmbuild
-else
-    echo "srpm_file container already exists."
+# Remove existing container if it exists
+if docker ps -a | grep -q srpm_file; then
+    echo "Removing existing srpm_file container..."
+    docker rm -f srpm_file
 fi
 
+echo "Creating srpm_file container..."
+# create the srpm_file container
+docker run -d --name srpm_file -v ~/rpmbuild:/root/rpmbuild carta-rpmbuild /bin/bash -c "while true; do sleep 30; done;"
+
+# Wait for container to be fully running
+sleep 2
+
 SPEC=measures-data.spec
+EXPECTED_MD5=$(awk '/^# Source0MD5:/ {print $3}' "$SPEC")
 if [ $SPEC = "measures-data.spec" ]; then
-    SOURCE_FILE=WSRT_Measures.ztar
-    if [ ! -f $SOURCE_FILE ]; then
-        echo "$SOURCE_FILE not found. Downloading..."
-        wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
-        if [ $? -ne 0 ]; then
-            echo "Failed to download $SOURCE_FILE. Please check your internet connection."
-            exit 1
-        fi
-    else
-        echo "$SOURCE_FILE already exists."
+    SOURCE_FILE_Z=WSRT_Measures.ztar
+    SOURCE_FILE=WSRT_Measures.tar
+    echo "Downloading latest $SOURCE_FILE_Z from ftp.astron.nl..."
+    rm -f "$SOURCE_FILE_Z" "$SOURCE_FILE"
+    wget ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
+    if [ $? -ne 0 ]; then
+        echo "Failed to download $SOURCE_FILE_Z. Please check your internet connection."
+        exit 1
     fi
+
+    # Decompress to match the MD5 expected by COPR (uncompressed tar hash)
+    echo "Decompressing $SOURCE_FILE_Z to $SOURCE_FILE..."
+    gunzip -c "$SOURCE_FILE_Z" > "$SOURCE_FILE"
 fi
 
 echo "Building SRPM for $SPEC..."
-docker start srpm_file
+docker exec srpm_file /bin/bash -c "mkdir -p /root/rpmbuild/SPECS /root/rpmbuild/SOURCES /root/rpmbuild/SRPMS"
 
 docker cp $SPEC srpm_file:/root/rpmbuild/SPECS/
 docker cp $SOURCE_FILE srpm_file:/root/rpmbuild/SOURCES/
-docker exec -it srpm_file /bin/bash -c "rpmbuild -bs /root/rpmbuild/SPECS/$SPEC"
-srpm_output=$(docker exec srpm_file bash -c 'ls /root/rpmbuild/SRPMS/measures*.rpm | xargs -n 1 basename')
+docker exec srpm_file /bin/bash -c "rm -f /root/rpmbuild/SRPMS/measures*.src.rpm"
+docker exec srpm_file /bin/bash -c "rpmbuild -bs /root/rpmbuild/SPECS/$SPEC"
+srpm_output=$(docker exec srpm_file /bin/bash -c "rpmspec -q --qf '%{name}-%{version}-%{release}.src.rpm\n' /root/rpmbuild/SPECS/$SPEC")
 docker cp srpm_file:/root/rpmbuild/SRPMS/${srpm_output} .
-docker stop srpm_file
 docker rm -f srpm_file
 
 if [ -f "${srpm_output}" ]; then
