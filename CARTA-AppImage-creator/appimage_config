@@ -4,32 +4,28 @@ EMSDK_VERSION=4.0.3
 NODE_VERSION=22
 BIN_PATH=/usr/local/bin
 
-# For Release
-RELEASE_DATE="2025-07-29"
-APPDATA_FILE="./org.carta.desktop.appdata.xml"
-
 IMAGE_NAME="carta-appimage-create"
 CONTAINER_NAME="carta-appimage-container"
 
-PACKAGING_PATH=$(pwd)
+PACKAGING_PATH=/home/pshnghng/carta-package/CARTA-AppImage-creator
 DOCKER_PACKAGING_PATH=/pack
 
 ARCH=arm64
 BACKGROUND_FIGURE=""
 
 # Can be branch, tag or commit
-FRONTEND_VERSION=v5.0.2
-BACKEND_VERSION=v5.0.1
+FRONTEND_VERSION=v6.0.0-beta.1
+BACKEND_VERSION=v6.0.0-beta.1
 
-RELEASE=FALSE
+RELEASE=TRUE
 
 # Naming the output file if it is a release packaging (RELEASE=TRUE)
-RELEASE_VERSION=5.0.0
+RELEASE_VERSION=v6.0.0-beta.1
 
-NPM_FRONTEND=FALSE
+NPM_FRONTEND=TRUE
 
 # Set to TRUE if it is a beta release
-BETA_RELEASE=FALSE
+BETA_RELEASE=TRUE
 
 # Set to TRUE to update the measurement data
 UPDATE_MEASURES_DATA=FALSE
@@ -38,5 +34,6 @@ PREPARE_FRONTEND=TRUE
 PREPARE_BACKEND=TRUE
 
 # Set to TRUE if it is a release packaging (RELEASE=TRUE)
-CLEAN_FRONTEND=TRUE
-CLEAN_BACKEND=TRUE
+CLEAN_FRONTEND=FALSE
+CLEAN_BACKEND=FALSE
+

@@ -27,7 +27,8 @@ then
 fi
 
 
-CARTA_CASACORE_TAG=master
+# CARTA_CASACORE_TAG=master
+CARTA_CASACORE_TAG=3.8.0+6.7.5+2026.3.3
 
 docker build -f Dockerfile-carta-appimage-create \
              --build-arg BASE_IMAGE=$IMAGE \
