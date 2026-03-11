@@ -1,13 +1,15 @@
 %define debug_package %{nil}
 
 Name:           measures-data
-Version:        2026.1.27
+Version:        2026.3.3
 Release:        1%{?dist}
 Summary:        CASA ephemerides and geodetic data
 License:        GPL-3+
 URL:            ftp://ftp.astron.nl/outgoing/Measures/WSRT_Measures.ztar
 Source0:        WSRT_Measures.tar
-# Source0MD5:     5a27a68f80f5eb96da116d708ed39098
+# Source0MD5:     83ce3f7193876003fc49f5ddd3744075
+
+BuildArch: noarch
 
 %description
 CASA ephemerides and geodetic data needed by CARTA downloaded from ftp.astron.nl.
@@ -31,6 +33,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/casacore/data/geodetic/
 
 %changelog
+* Tue Mar 3 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 2026.3.3
+- Download latest geodeditc and ephemerides direct from ftp.astron.nl
+
 * Tue Jan 27 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 2026.1.27
 - Download latest geodeditc and ephemerides direct from ftp.astron.nl
 

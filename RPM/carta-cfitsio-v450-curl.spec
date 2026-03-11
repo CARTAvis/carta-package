@@ -3,7 +3,7 @@
 
 Name:           carta-cfitsio-v450-curl
 Version:        4.5.0
-Release:        2%{?dist}
+Release:        1%{?dist}
 Summary:        Library for reading and writing FITS data files
 
 License:        BSD-3-Clause

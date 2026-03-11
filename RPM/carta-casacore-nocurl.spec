@@ -4,8 +4,8 @@
 %define cfitsio_prefix /opt/carta-cfitsio-v450-curl
 
 Name:           carta-casacore-nocurl
-Version:        3.5.0+6.6.0+2024.1.18
-Release:        2
+Version:        3.8.0+6.7.5+2026.3.3
+Release:        1
 Summary:        carta-casacore library files as needed by the CARTA image viewer
 
 License:        GPL-3+
@@ -64,15 +64,8 @@ cd %{NVdir}
 mkdir build
 cd build
 
-%cmake3 .. -DUSE_THREADS=ON \
-          -DUSE_FFTW3=ON \
-          -DUSE_HDF5=ON \
-          -DBUILD_PYTHON=OFF \
-          -DBUILD_PYTHON3=OFF \
-          -DBUILD_TESTING=OFF \
-          -DUSE_OPENMP=ON \
+%cmake3 .. -DBUILD_TESTING=OFF \
           -DUseCcache=1 \
-          -DHAS_CXX11=1 \
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
           -DENABLE_RPATH=NO \
@@ -88,12 +81,9 @@ export CC=gcc CXX=g++-9 FC=gfortran-9
 cmake3 .. -DUSE_THREADS=ON \
           -DUSE_FFTW3=ON \
           -DUSE_HDF5=ON \
-          -DBUILD_PYTHON=OFF \
-          -DBUILD_PYTHON3=OFF \
           -DBUILD_TESTING=OFF \
           -DUSE_OPENMP=ON \
           -DUseCcache=1 \
-          -DHAS_CXX11=1 \
           -DCMAKE_INSTALL_PREFIX=/opt/carta-casacore \
           -DDATA_DIR=/usr/share/casacore/data \
           -DENABLE_RPATH=NO \
@@ -146,22 +136,25 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %files
-/opt/carta-casacore/lib/libcasa_imageanalysis.so.6
-/opt/carta-casacore/lib/libcasa_measures.so.7
-/opt/carta-casacore/lib/libcasa_scimath.so.7
-/opt/carta-casacore/lib/libcasa_tables.so.7
-/opt/carta-casacore/lib/libcasa_mirlib.so.7
-/opt/carta-casacore/lib/libcasa_casa.so.7
-/opt/carta-casacore/lib/libcasa_images.so.7
-/opt/carta-casacore/lib/libcasa_lattices.so.7
-/opt/carta-casacore/lib/libcasa_coordinates.so.7
-/opt/carta-casacore/lib/libcasa_fits.so.7
-/opt/carta-casacore/lib/libcasa_scimath_f.so.7
+/opt/carta-casacore/lib/libcasa_imageanalysis.so.7
+/opt/carta-casacore/lib/libcasa_measures.so.9
+/opt/carta-casacore/lib/libcasa_scimath.so.9
+/opt/carta-casacore/lib/libcasa_tables.so.9
+/opt/carta-casacore/lib/libcasa_mirlib.so.9
+/opt/carta-casacore/lib/libcasa_casa.so.9
+/opt/carta-casacore/lib/libcasa_images.so.9
+/opt/carta-casacore/lib/libcasa_lattices.so.9
+/opt/carta-casacore/lib/libcasa_coordinates.so.9
+/opt/carta-casacore/lib/libcasa_fits.so.9
+/opt/carta-casacore/lib/libcasa_scimath_f.so.9
 /opt/carta-casacore/bin/casa_data_autoupdate
 
 %config(noreplace) %_sysconfdir/ld.so.conf.d/%{name}.conf
 
 %changelog
+* Tue Mar 3 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.8.0+6.7.5+2026.3.3
+- Update casacore and libs
+
 * Thu Feb 5 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 3.5.0+6.6.0+2024.1.18
 - Update measures-data and fix cfitsio-v450 path
 

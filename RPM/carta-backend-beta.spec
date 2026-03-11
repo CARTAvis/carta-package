@@ -1,7 +1,7 @@
 #
 # This experimental version will install the beta carta-backend to /opt/carta-backend-beta
 # so that the beta and normal release versions can be kept on the same system.
-# It also creates a new startup script at /usr/bin/carta-beta that points
+# It also creates a new startup script at /usr/bin/carta-6.0.0~beta.1 that points
 # to the executable at /opt/carta-backend-beta/bin/carta_backend.
 #
 %global _enable_debug_packages 1
@@ -11,11 +11,11 @@
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
 %define my_prefix  %{_prefix}
-%define datadirbeta /opt/carta-backend-beta/share
-%define beta_install_path /opt/carta-beta
+%define datadirbeta /usr/share/casacore
+%define beta_install_path /opt/carta-6.0.0~beta.1
 
-Name:           carta-backend-beta
-Version:        5.1+2026.1.16
+Name:           carta-backend
+Version:        6.0.0~beta.1
 Release:        1
 Summary:        CARTA - Cube Analysis and Rendering Tool for Astronomy
 License:        GPL-3.0-only
@@ -27,7 +27,7 @@ BuildArch: %{_arch}
 
 BuildRequires: git
 BuildRequires: blas-devel
-BuildRequires: carta-casacore-nocurl-devel
+BuildRequires: carta-casacore-devel
 %if 0%{?suse_version} >= 1500
 BuildRequires: cmake
 %else
@@ -50,7 +50,7 @@ BuildRequires: gsl-devel
 
 Requires: blas
 Requires: carta-cfitsio-v450-curl
-Requires: carta-casacore-nocurl
+Requires: carta-casacore
 Requires: hdf5
 %if 0%{?suse_version} >= 1500
 Requires: libaec0
@@ -74,7 +74,7 @@ This package provides the release version of the backend component.
 rm -rf %{NVdir}
 git clone %{url}.git %{NVdir}
 cd %{NVdir}
-git checkout v5.1.0
+git checkout v6.0.0-beta.1
 git submodule update --init
 
 %build
@@ -128,7 +128,7 @@ cp static/icons/scalable/cartaviewer.svg %{buildroot}%{beta_install_path}/share/
 cp static/icons/symbolic/cartaviewer.svg %{buildroot}%{beta_install_path}/share/icons/hicolor/symbolic/apps
 
 mkdir -p %{buildroot}%{_bindir}
-cat > %{buildroot}%{_bindir}/carta-beta << 'EOF'
+cat > %{buildroot}%{_bindir}/carta-6.0.0~beta.1 << 'EOF'
 #!/bin/bash
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -146,9 +146,9 @@ if [ -x "$(command -v casa_data_autoupdate)" ]; then
     casa_data_autoupdate
 fi
 
-/opt/carta-beta/bin/carta_backend "$@"
+%{beta_install_path}/bin/carta_backend "$@"
 EOF
-chmod +x %{buildroot}%{_bindir}/carta-beta
+chmod +x %{buildroot}%{_bindir}/carta-6.0.0~beta.1
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -168,7 +168,7 @@ fi
 %{beta_install_path}/bin/carta_backend
 %{beta_install_path}/bin/carta
 %{beta_install_path}/share/carta/default.fits
-%{_bindir}/carta-beta
+%{_bindir}/carta-6.0.0~beta.1
 
 %{beta_install_path}/share/applications/carta.desktop
 %{beta_install_path}/share/icons/hicolor/16x16/apps/cartaviewer.png
@@ -195,6 +195,9 @@ fi
 %exclude %{beta_install_path}/lib64/pkgconfig/pugixml.pc
 
 %changelog
+* Tue Mar 3 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 6.0+2026.3.3
+  - carta-backend v6.0.0-beta for CARTA 6.0.0-beta.1.2026.3.3 release
+
 * Fri Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.1+2026.1.16
   - carta-backend v5.1.0 for CARTA 5.1-beta.2026.1.16 release
 
