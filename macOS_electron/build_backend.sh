@@ -32,6 +32,7 @@ if [ ! -d ${PACKAGING_PATH}/carta-backend ]; then
     git submodule update --init
 else 
     cd ${PACKAGING_PATH}/carta-backend
+    git fetch --tags
     git checkout ${BACKEND_VERSION}
     git submodule update
 

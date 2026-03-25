@@ -7,22 +7,23 @@ cat > dmg_config <<EOL
 EMSDK_PATH=../emsdk
 PACKAGING_PATH=$(pwd)
 
-ARCH=$(arch)
+# ARCH=$(arch)
+ARCH=arm64
 BACKGROUND_FIGURE=""
 
 # Can be branch, tag or commit
-FRONTEND_VERSION=v5.0.2
-BACKEND_VERSION=v5.0.1
+FRONTEND_VERSION=v6.0.0-beta.1.0.2
+BACKEND_VERSION=v6.0.0-beta.1
 
-RELEASE=FALSE
+RELEASE=TRUE
 
 # Release version, for naming the output
-RELEASE_VERSION=5.0.0
+RELEASE_VERSION=v6.0.0-beta.1
 
-NPM_FRONTEND=FALSE
+NPM_FRONTEND=TRUE
 
 # Set to TRUE if it is a beta release
-BETA_RELEASE=FALSE
+BETA_RELEASE=TRUE
 
 # for debug purposes
 PREPARE_FRONTEND=TRUE

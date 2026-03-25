@@ -26,7 +26,7 @@ if [[ "${RELEASE}" == "TRUE" ]]; then
     fi
 fi
 
-NAME=CARTA
+NAME=CARTA-v6.0.0-beta.1
 YEAR=$(date +%Y)
 
 # Parameters check 
@@ -115,12 +115,14 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
             cd ${PACKAGING_PATH}/package
             git checkout ${FRONTEND_VERSION}
             git submodule update --init --recursive
+            # nvm use 22 before npm install
             npm install
             npm run build-libs
         else
             cd ${PACKAGING_PATH}/package
             git checkout ${FRONTEND_VERSION}
             git submodule update
+            # nvm use 22 before npm install
             npm install
 
             if [ -d ${PACKAGING_PATH}/package/build ]; then
@@ -132,9 +134,14 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
 
         npm run build
     fi
-
-    cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 fi
+
+# Always copy frontend build output into pack/
+if [ ! -d ${PACKAGING_PATH}/package/build ]; then
+    echo "Frontend build directory not found: ${PACKAGING_PATH}/package/build"
+    exit 1
+fi
+cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 
 cd ${PACKAGING_PATH}
 # prepare backend
@@ -165,8 +172,9 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
         git submodule update --init
     else 
         cd ${PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
-        git submodule update
+        git submodule update --init
 
         if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
             echo "Removing existing build directory..."
@@ -181,9 +189,20 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
 
     echo "Copying backend libraries..."
     sh ${PACKAGING_PATH}/cp_libs.sh ${PACKAGING_PATH}/carta-backend/build
+fi
+
+if [ "$ARCH" == "arm64" ]; then
     cp -r ${PACKAGING_PATH}/carta-backend/build/libs ${PACKAGING_PATH}/pack/carta-backend/
     cp -r ${PACKAGING_PATH}/carta-backend/build/carta_backend ${PACKAGING_PATH}/pack/carta-backend/bin
+else
+    if [ ! -d ${PACKAGING_PATH}/carta-backend-x86_64 ]; then
+        mkdir -p ${PACKAGING_PATH}/carta-backend-x86_64
+        tar -zxvf ${PACKAGING_PATH}/carta-backend-x86_64.tar.gz -C ${PACKAGING_PATH}/carta-backend-x86_64
+    fi
+    cp -r ${PACKAGING_PATH}/carta-backend-x86_64/build/libs ${PACKAGING_PATH}/pack/carta-backend/
+    cp -r ${PACKAGING_PATH}/carta-backend-x86_64/build/carta_backend ${PACKAGING_PATH}/pack/carta-backend/bin
 fi
+
 
 echo "Running Apple notarization..."
 cd ${PACKAGING_PATH}
@@ -196,7 +215,7 @@ if [ $ARCH == "arm64" ]; then
     SUFFIX="-$ARCH"
 fi
 if [ -f ./CARTA-${RELEASE_VERSION}${SUFFIX}.dmg ]; then
-    if [ $RELEASE = "TRUE" ]; then
+    if [ $RELEASE = "TRUE" && $BETA_RELEASE = "FALSE" ]; then
         mv CARTA-${RELEASE_VERSION}${SUFFIX}.dmg CARTA-$ARCH.dmg
         echo "Output file: CARTA-$ARCH.dmg"
     else
