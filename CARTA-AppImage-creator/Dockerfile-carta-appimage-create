@@ -67,12 +67,20 @@ RUN \
     source /etc/bashrc && \
     cd /root && \
     ls -sort && \
-    git clone --recursive https://github.com/CARTAvis/carta-casacore.git && \
+    git config --global http.postBuffer 524288000 && \
+    git config --global http.lowSpeedLimit 0 && \
+    git config --global http.lowSpeedTime 600 && \
+    git clone https://github.com/CARTAvis/carta-casacore.git && \
     cd carta-casacore && \
+    git fetch --tags && \
     git checkout ${CASACORE} && \
     git submodule update --init --recursive && \
     mkdir -p build && cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release \
+    cmake .. -DUSE_FFTW3=ON \
+            -DUSE_HDF5=ON \
+            -DUSE_THREADS=ON \
+            -DUSE_OPENMP=ON \
+            -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTING=OFF \
             -DBUILD_PYTHON=OFF \
             -DUseCcache=1 \

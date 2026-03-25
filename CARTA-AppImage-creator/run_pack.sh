@@ -41,6 +41,10 @@ mkdir -p ${DOCKER_PACKAGING_PATH}/CARTA
 cp ${DOCKER_PACKAGING_PATH}/AppRun ${DOCKER_PACKAGING_PATH}/CARTA
 cp ${DOCKER_PACKAGING_PATH}/carta.desktop ${DOCKER_PACKAGING_PATH}/CARTA
 cp ${DOCKER_PACKAGING_PATH}/carta.png ${DOCKER_PACKAGING_PATH}/CARTA
+# check metainfo file exists
+if [ ! -d ${DOCKER_PACKAGING_PATH}/CARTA/usr/share/metainfo ]; then
+    mkdir -p ${DOCKER_PACKAGING_PATH}/CARTA/usr/share/metainfo
+fi
 cp ${DOCKER_PACKAGING_PATH}/org.carta.desktop.appdata.xml ${DOCKER_PACKAGING_PATH}/CARTA/usr/share/metainfo
 
 if [ "$UPDATE_MEASURES_DATA" = "TRUE" ]; then
@@ -151,10 +155,12 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
         echo "Cloning carta-backend repository..."
         git clone https://github.com/CARTAvis/carta-backend.git
         cd ${DOCKER_PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update --init
     else 
         cd ${DOCKER_PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update
 
@@ -169,10 +175,11 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=appimage -DCMAKE_PREFIX_PATH=/opt/cfitsio
     make -j 4
 
-    # Copy libraries to ${DOCKER_PACKAGING_PATH}/CARTA/lib and the binary to ${DOCKER_PACKAGING_PATH}/CARTA/bin
-    sh ${DOCKER_PACKAGING_PATH}/cp_libs.sh
     echo "Finished preparing backend and libs."
 fi
+
+# Always copy libraries and binary to CARTA folder
+sh ${DOCKER_PACKAGING_PATH}/cp_libs.sh
 ## prepare backend and libs ##
 
 ## AppImage packaging ##
