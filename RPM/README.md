@@ -1,27 +1,20 @@
 ## RPM spec files for CARTA
 
-We host our CARTA RPMS on [Fedora Copr](https://copr.fedorainfracloud.org/). Copr (Cool Other Package Repo) is a convenient service to build and host third-party RPM package repositories, similar to [Ubuntu's Launchpad PPAs](https://launchpad.net/ubuntu/+ppas). Although it is provided by Fedora, we can build packages only for EPEL7, EPEL8, and EPEL9 (Extra Packages for Enterprise Linux).
+We host our CARTA RPMS on [Fedora Copr](https://copr.fedorainfracloud.org/). Copr (Cool Other Package Repo) is a convenient service to build and host third-party RPM package repositories, similar to [Ubuntu's Launchpad PPAs](https://launchpad.net/ubuntu/+ppas). Although it is provided by Fedora, we can build packages only for EPEL8, and EPEL9 (Extra Packages for Enterprise Linux).
 
-Most of our RPM SPEC files can be built interchangeably on `el7, el8`,`el9`, and `x86_64` and `aarch64`.
+Most of our RPM SPEC files can be built interchangeably on `el8`,`el9`, and `x86_64` and `aarch64`.
 | Package name | Version | Platform | Copr build status |
 |--------------|---------|----------|-------------------|
-| carta | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta/) |
-| carta-backend | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend/) |
-| carta-frontend | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend/) |
+| carta | 6.0.0~beta.1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta/) |
+| carta-backend | 6.0.0~beta.1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-backend/) |
+| carta-frontend | 6.0.0~beta.1.0.2 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-frontend/) |
 | | | |
-| carta-casacore-nocurl | 3.5.0+6.6.0+2024.1.18 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore-nocurl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-casacore-nocurl/) | 
-| measures-data | 2026.1.27-1 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/measures-data/) |
-| fits2idia | 0.5.5 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/fits2idia/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/fits2idia/) |
+| carta-casacore | 3.8.0+6.7.5+2026.3.3-1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-casacore/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-casacore/) | 
+| measures-data | 2026.3.3-1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/measures-data/) |
+| fits2idia | 0.1.15 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/fits2idia/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/fits2idia/) |
 | | | |
-| carta-cfitsio-v450-curl | 4.50 | el7 /el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio-v450-curl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-cfitsio-v450-curl/) |
-| carta-gsl | 2.5 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-gsl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-gsl/) |
-| protobuf | 3.6.0 | el7 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/protobuf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/protobuf/) |
-| gtest | 1.10 | el7 / el8 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/) |
-| | | |
-| carta-beta | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-beta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-beta/) |
-| carta-backend-beta | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend-beta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-backend-beta/) |
-| carta-frontend-beta | 5.1.0 | el7 / el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend-beta/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/carta-frontend-beta/) |
-
+| carta-cfitsio-v450-curl | 4.50 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-cfitsio-v450-curl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-cfitsio-v450-curl/) |
+| gtest | 1.10 | el8 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/) |
 
 The **carta**, **carta-backend**, and **carta-frontend** packages are updated regularly for each mainline CARTA release (current: 5.1.0).
 The **carta-beta**, **carta-backend-beta**, and **carta-frontend-beta** packages are experimental and may be updated for each CARTA 'beta' release (current: 5.1.0-beta, installs independently to /opt/carta-beta and can be run with `carta-beta`).
@@ -34,13 +27,6 @@ The other packages do not require updates.
 
 Copr and the `cartavis/carta` repo can be added via yum/dnf. The epel repo is also required.
 
-### CentOS 7 / RedHat 7 (el7, x86_64)
-```
-yum -y install yum-plugin-copr
-yum -y copr enable cartavis/carta
-yum -y install epel-release
-yum -y install carta
-```
 ### AlmaLinux 8 / AlmaLinux 9 / RedHat 8 / RedHat 9 (el8, el9, x86_64 + aarch64)
 ```
 dnf -y install 'dnf-command(copr)'
