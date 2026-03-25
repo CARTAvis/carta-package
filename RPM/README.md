@@ -9,11 +9,11 @@ Most of our RPM SPEC files can be built interchangeably on `el8`,`el9`, and `x86
 | carta-backend | 6.0.0~beta.1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-backend/) |
 | carta-frontend | 6.0.0~beta.1.0.2 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-frontend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-frontend/) |
 | | | |
-| carta-casacore | 3.8.0+6.7.5+2026.3.3-1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-casacore/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-casacore/) | 
-| measures-data | 2026.3.3-1 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/measures-data/) |
+| carta-casacore | 3.8.0+6.7.5+2026.3.3 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-casacore/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-casacore/) | 
+| measures-data | 2026.3.3 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/measures-data/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/measures-data/) |
 | fits2idia | 0.1.15 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/fits2idia/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/fits2idia/) |
 | | | |
-| carta-cfitsio-v450-curl | 4.50 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-cfitsio-v450-curl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-cfitsio-v450-curl/) |
+| carta-cfitsio-v450-curl | 4.5.0 | el8 / el9| [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-cfitsio-v450-curl/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta-preview/package/carta-cfitsio-v450-curl/) |
 | gtest | 1.10 | el8 | [![Copr build status](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/cartavis/carta/package/gtest/) |
 
 The **carta**, **carta-backend**, and **carta-frontend** packages are updated regularly for each mainline CARTA release (current: 5.1.0).
@@ -30,7 +30,7 @@ Copr and the `cartavis/carta` repo can be added via yum/dnf. The epel repo is al
 ### AlmaLinux 8 / AlmaLinux 9 / RedHat 8 / RedHat 9 (el8, el9, x86_64 + aarch64)
 ```
 dnf -y install 'dnf-command(copr)'
-dnf -y copr enable cartavis/carta
+dnf -y copr enable cartavis/carta-preview
 dnf -y install epel-release
 dnf -y install carta
 ```
@@ -39,11 +39,11 @@ Alternatively, a repository file can be written to `/etc/yum/repos.d/carta.repo`
 ```
 [copr:copr.fedorainfracloud.org:cartavis:carta]
 name=Copr repo for carta owned by cartavis
-baseurl=https://download.copr.fedorainfracloud.org/results/cartavis/carta/epel-$releasever-$basearch/
+baseurl=https://download.copr.fedorainfracloud.org/results/cartavis/carta-preview/epel-$releasever-$basearch/
 type=rpm-md
 skip_if_unavailable=True
 gpgcheck=1
-gpgkey=https://download.copr.fedorainfracloud.org/results/cartavis/carta/pubkey.gpg
+gpgkey=https://download.copr.fedorainfracloud.org/results/cartavis/carta-preview/pubkey.gpg
 repo_gpgcheck=0
 enabled=1
 enabled_metadata=1
@@ -52,7 +52,7 @@ enabled_metadata=1
 ## Additional RPMS:
 
 Our Copr `carta/cartvis` repo holds some additional custom RPMs:
--  **carta-cfitsio-4.50** - el7, el8, and el9
+-  **carta-cfitsio-4.50** - el8, and el9
 	- It installs to the custom location `/opt/carta-cfitsio-v450-curl` so as not to interfere with the default cfitsio.
 -  **carta-cfitsio-3.47** - el7-only
 	- This is needed only if building the carta-backend with unit-tests because the default el7 cfitsio-3.37 is too old. It installs to the custom location `/opt/carta-cfitsio` so as not to interfere with the default cfitsio.
