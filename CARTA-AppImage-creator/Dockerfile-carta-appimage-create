@@ -1,5 +1,5 @@
 # Dockerfile to build and package a universal Linux Appimage of CARTA.
-# Built on our oldest supported platform (Almalinux8.10/RHEL7) to ensure full forward compatibility.
+# Built on AlmaLinux 8.10 (RHEL8-compatible).
 # Requires BASE_IMAGE, ARCH_TYPE, CASACORE_TAG, BACKEND_TAG, FRONTEND_TAG, and VERSION arguments from the 'create-carta-appimage.sh' script.
 
 ARG BASE_IMAGE=almalinux:8.10
@@ -12,7 +12,7 @@ ARG CASACORE
 RUN \
     dnf -y install epel-release && \
     dnf -y install 'dnf-command(config-manager)' && \
-    dnf -y config-manager --set-enabled powertools && \
+    dnf -y config-manager --set-enabled crb && \
     dnf -y update && \
     dnf -y install autoconf automake bison blas-devel bzip2 cmake curl-devel flex fftw fftw-devel gcc \
             gcc-c++ gcc-gfortran git git-lfs gsl-devel hdf5-devel lapack-devel libasan \
