@@ -3,6 +3,9 @@
 
 . ${DOCKER_PACKAGING_PATH}/appimage_config
 
+# Rewrite SSH GitHub URLs to HTTPS to avoid host key verification issues in Docker
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+
 echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
@@ -68,7 +71,7 @@ cd ${DOCKER_PACKAGING_PATH}
 if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
     echo "Frontend release version: ${FRONTEND_VERSION}"
     echo "Preparing frontend..."
-    
+
     # clean frontend
     if [ "${CLEAN_FRONTEND}" = "TRUE" ]; then
         echo "Cleaning frontend..."
@@ -103,7 +106,8 @@ if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
 
         if [ ! -d /pack/package ]; then
             echo "Cloning carta-frontend repository..."
-            git clone https://github.com/CARTAvis/carta-frontend.git package
+            #git clone https://github.com/CARTAvis/carta-frontend.git package
+            git clone https://github.com/pshnghng0318/carta-frontend.git package
             cd ${DOCKER_PACKAGING_PATH}/package
             git checkout ${FRONTEND_VERSION}
             git submodule update --init --recursive
@@ -111,15 +115,20 @@ if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
             npm run build-libs
         else
             cd ${DOCKER_PACKAGING_PATH}/package
+            git fetch origin
+            git reset --hard
+            git clean -fd
             git checkout ${FRONTEND_VERSION}
-            git submodule update
+            git pull origin ${FRONTEND_VERSION}
+            git submodule update --init --force
             npm install
 
-            if [ -d ${DOCKER_PACKAGING_PATH}/package/build ]; then
-                echo "Removing existing build directory..."
-                rm -rf ${DOCKER_PACKAGING_PATH}/package/build
-                mkdir -p ${DOCKER_PACKAGING_PATH}/package/build
-            fi
+            # disable for small modification, don't remove, just build
+            # if [ -d ${DOCKER_PACKAGING_PATH}/package/build ]; then
+            #     echo "Removing existing build directory..."
+            #     rm -rf ${DOCKER_PACKAGING_PATH}/package/build
+            #     mkdir -p ${DOCKER_PACKAGING_PATH}/package/build
+            # fi
         fi
 
         npm run build
@@ -153,27 +162,47 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
 
     if [ ! -d ${DOCKER_PACKAGING_PATH}/carta-backend ]; then
         echo "Cloning carta-backend repository..."
-        git clone https://github.com/CARTAvis/carta-backend.git
+        #git clone https://github.com/CARTAvis/carta-backend.git
+        git clone https://github.com/pshnghng0318/carta-backend.git
         cd ${DOCKER_PACKAGING_PATH}/carta-backend
-        git fetch --tags
+        #git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update --init
     else 
         cd ${DOCKER_PACKAGING_PATH}/carta-backend
-        git fetch --tags
+        git fetch origin
+        #it fetch --tags
+        git reset --hard
+        git clean -fd
         git checkout ${BACKEND_VERSION}
-        git submodule update
+        git pull origin ${BACKEND_VERSION}
+        git submodule update --init --force
 
-        if [ -d ${DOCKER_PACKAGING_PATH}/carta-backend/build ]; then
-            echo "Removing existing build directory..."
-            rm -rf ${DOCKER_PACKAGING_PATH}/carta-backend/build
-        fi
+        # disable for small modification, don't remove, just build
+        # if [ -d ${DOCKER_PACKAGING_PATH}/carta-backend/build ]; then
+        #     echo "Removing existing build directory..."
+        #     rm -rf ${DOCKER_PACKAGING_PATH}/carta-backend/build
+        # fi
     fi
 
-    mkdir -p ${DOCKER_PACKAGING_PATH}/carta-backend/build
+    # Use GCC 13 (gcc-toolset-13) to satisfy abseil-cpp requirements for tensorstore
+    if [ -f /opt/rh/gcc-toolset-13/enable ]; then
+        source /opt/rh/gcc-toolset-13/enable
+        echo "Using $(gcc --version | head -1)"
+        # GCC 13 toolset linker doesn't search /usr/lib64 by default; add it explicitly
+        export LIBRARY_PATH=/usr/lib64:${LIBRARY_PATH}
+        # Export CC/CXX so Bazel subprocess inherits GCC 13
+        export CC=/opt/rh/gcc-toolset-13/root/usr/bin/gcc
+        export CXX=/opt/rh/gcc-toolset-13/root/usr/bin/g++
+    fi
+
+    ### mkdir -p ${DOCKER_PACKAGING_PATH}/carta-backend/build
     cd ${DOCKER_PACKAGING_PATH}/carta-backend/build
-    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=appimage -DCMAKE_PREFIX_PATH=/opt/cfitsio
-    make -j 4
+    ### rm -f CMakeCache.txt
+    ### cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=appimage -DCMAKE_PREFIX_PATH=/opt/cfitsio -DCMAKE_EXE_LINKER_FLAGS="-ldl -L/usr/lib64" \
+        -DCMAKE_C_COMPILER=/opt/rh/gcc-toolset-13/root/usr/bin/gcc \
+        -DCMAKE_CXX_COMPILER=/opt/rh/gcc-toolset-13/root/usr/bin/g++
+    make -j 16
 
     echo "Finished preparing backend and libs."
 fi

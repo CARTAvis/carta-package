@@ -45,6 +45,13 @@ cp /usr/lib64/libtinfo.so.6 ${DOCKER_PACKAGING_PATH}/CARTA/lib
 cp /usr/lib64/libwcs.so.7 ${DOCKER_PACKAGING_PATH}/CARTA/lib 
 cp /usr/lib64/libzfp.so.0 ${DOCKER_PACKAGING_PATH}/CARTA/lib 
 cp /usr/lib64/libzstd.so.1 ${DOCKER_PACKAGING_PATH}/CARTA/lib 
+cp /usr/lib64/libre2.so.0 ${DOCKER_PACKAGING_PATH}/CARTA/lib
+cp /usr/lib64/libsnappy.so.1 ${DOCKER_PACKAGING_PATH}/CARTA/lib
+cp /usr/lib64/libuv.so.1 ${DOCKER_PACKAGING_PATH}/CARTA/lib
+cp /usr/lib64/liblz4.so.1 ${DOCKER_PACKAGING_PATH}/CARTA/lib
+cp /usr/lib64/liblzma.so.5 ${DOCKER_PACKAGING_PATH}/CARTA/lib
+cp /usr/lib64/libbz2.so.1 ${DOCKER_PACKAGING_PATH}/CARTA/lib
+cp /usr/lib64/libblosc.so.1 ${DOCKER_PACKAGING_PATH}/CARTA/lib
 if [ $(arch) = "x86_64" ]; then cp /usr/lib64/libquadmath.so.0 ${DOCKER_PACKAGING_PATH}/CARTA/lib; fi
 
 # copy some additional files

@@ -14,6 +14,11 @@ fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 export CASAPATH="../../../../$DIR/etc linux"
 export LD_LIBRARY_PATH=$DIR/lib:$LD_LIBRARY_PATH
+export NO_AT_BRIDGE=1
+export GTK_MODULES=""
+# Prevent GIO from loading system proxy/gio modules not bundled in the AppImage
+unset GIO_EXTRA_MODULES
+export GIO_MODULE_DIR=""
 
 FIRST_IP=$(hostname -I | cut -d' ' -f1)
 # Only export env variable if it's not empty
