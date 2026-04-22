@@ -23,8 +23,15 @@ fi
 ## Docker ##
 # check if container started
 if [ ! "$( docker container inspect -f '{{.State.Running}}' ${CONTAINER_NAME} )" = "true" ]; then
-    echo "Docker container ${CONTAINER_NAME} is not running. Starting it..."
-    docker run -d -it --env-file ./appimage_config -v ${PACKAGING_PATH}:${DOCKER_PACKAGING_PATH} --name ${CONTAINER_NAME} ${IMAGE_NAME}
+    echo "Docker container ${CONTAINER_NAME} is not running."
+    # check if container already exists (stopped) - reuse it, don't remove
+    if docker container inspect ${CONTAINER_NAME} > /dev/null 2>&1; then
+        echo "Restarting existing container ${CONTAINER_NAME}..."
+        docker start ${CONTAINER_NAME}
+    else
+        echo "Creating new container ${CONTAINER_NAME}..."
+        docker run -d -it --env-file ./appimage_config -v ${PACKAGING_PATH}:${DOCKER_PACKAGING_PATH} --name ${CONTAINER_NAME} ${IMAGE_NAME}
+    fi
     echo "Docker container ${CONTAINER_NAME} starting..."
 fi
 
