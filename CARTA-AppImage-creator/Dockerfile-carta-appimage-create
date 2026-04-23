@@ -10,19 +10,20 @@ ARG CASACORE
 
 # Install the required packages
 RUN \
-    dnf -y install epel-release && \
-    dnf -y install 'dnf-command(config-manager)' && \
-    dnf -y config-manager --set-enabled powertools && \
-    dnf -y update && \
-    dnf -y install autoconf automake bison blas-devel bzip2 bzip2-devel blosc-devel cmake curl-devel flex fftw fftw-devel gcc \
+        dnf -y install epel-release && \
+        dnf -y install 'dnf-command(config-manager)' && \
+        dnf -y config-manager --set-enabled powertools && \
+        dnf -y update && \
+        dnf -y install autoconf automake bison blas-devel bzip2 bzip2-devel blosc-devel cmake curl-devel flex fftw fftw-devel gcc \
             gcc-c++ gcc-gfortran gcc-toolset-13 gcc-toolset-13-gcc gcc-toolset-13-gcc-c++ \
             git git-lfs gsl-devel hdf5-devel lapack-devel libasan \
-            libtool libxml2-devel libzstd-devel libuuid-devel libuv-devel lz4-devel make ncurses-devel nasm openssl-devel patch patchelf protobuf-devel \
-            pugixml-devel python3.12 python3.12-pip re2-devel readline-devel snappy-devel subversion \
-            unzip wcslib-devel wget zlib-devel libuuid-devel zfp-devel && \
-    dnf install -y fuse fuse-libs squashfs-tools desktop-file-utils appstream file && \
-    pip3 install --upgrade pip && \
-    pip3 install numpy astropy
+            libtool libxml2-devel libzstd-devel libuuid-devel make ncurses-devel openssl-devel patchelf protobuf-devel \
+            pugixml-devel python3.12 python3.12-pip readline-devel subversion \
+            unzip wcslib-devel wget zlib-devel libuuid-devel zfp-devel \
+            patch nasm libuv-devel snappy-devel lz4-devel bzip2-devel blosc-devel re2-devel && \
+        dnf install -y fuse fuse-libs squashfs-tools desktop-file-utils appstream file && \
+        pip3 install --upgrade pip && \
+        pip3 install numpy astropy
 
 # Install cfitsio
 RUN \
