@@ -113,12 +113,14 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
             echo "Cloning carta-frontend repository..."
             git clone https://github.com/CARTAvis/carta-frontend.git package
             cd ${PACKAGING_PATH}/package
+            git fetch --tags
             git checkout ${FRONTEND_VERSION}
             git submodule update --init --recursive
             npm install
             npm run build-libs
         else
             cd ${PACKAGING_PATH}/package
+            git fetch --tags
             git checkout ${FRONTEND_VERSION}
             git submodule update
             npm install
@@ -133,8 +135,8 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
         npm run build
     fi
 
-    cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 fi
+cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 
 cd ${PACKAGING_PATH}
 # prepare backend
@@ -146,7 +148,8 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
         FOLDER_PREFIX=".carta-beta"
     fi
 
-    if [ ! -d /opt/casaroot-carta-casacore ]; then
+    # if [ ! -d /opt/casaroot-carta-casacore ]; then
+    if [ ! -d /opt/carta-casacore ]; then
         echo "CARTA casacore root directory not found. Please install carta-casacore with floating CASAROOT first."
         exit 1
     fi
@@ -161,29 +164,42 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
         echo "Cloning carta-backend repository..."
         git clone https://github.com/CARTAvis/carta-backend.git
         cd ${PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update --init
     else 
         cd ${PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update
 
-        if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
-            echo "Removing existing build directory..."
-            rm -rf ${PACKAGING_PATH}/carta-backend/build
+        if [ ! -f ${PACKAGING_PATH}/carta-backend/build/carta_backend ]; then
+            if [ -d ${PACKAGING_PATH}/carta-backend/build ]; then
+                echo "Removing existing build directory..."
+                rm -rf ${PACKAGING_PATH}/carta-backend/build
+            fi
+            mkdir -p ${PACKAGING_PATH}/carta-backend/build
+            cd ${PACKAGING_PATH}/carta-backend/build
+            cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
+            make -j 6
+        else
+            echo "Backend binary already exists, skipping build."
+            cd ${PACKAGING_PATH}/carta-backend/build
         fi
     fi
 
-    mkdir -p ${PACKAGING_PATH}/carta-backend/build
-    cd ${PACKAGING_PATH}/carta-backend/build
-    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/casaroot-carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
-    make -j 4
+    if [ ! -d ${PACKAGING_PATH}/carta-backend/build ]; then
+        mkdir -p ${PACKAGING_PATH}/carta-backend/build
+        cd ${PACKAGING_PATH}/carta-backend/build
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
+        make -j 6
+    fi
 
-    echo "Copying backend libraries..."
-    sh ${PACKAGING_PATH}/cp_libs.sh ${PACKAGING_PATH}/carta-backend/build
-    cp -r ${PACKAGING_PATH}/carta-backend/build/libs ${PACKAGING_PATH}/pack/carta-backend/
-    cp -r ${PACKAGING_PATH}/carta-backend/build/carta_backend ${PACKAGING_PATH}/pack/carta-backend/bin
 fi
+echo "Copying backend libraries..."
+sh ${PACKAGING_PATH}/cp_libs.sh ${PACKAGING_PATH}/carta-backend/build
+cp -r ${PACKAGING_PATH}/carta-backend/build/libs ${PACKAGING_PATH}/pack/carta-backend/
+cp -r ${PACKAGING_PATH}/carta-backend/build/carta_backend ${PACKAGING_PATH}/pack/carta-backend/bin
 
 echo "Running Apple notarization..."
 cd ${PACKAGING_PATH}
