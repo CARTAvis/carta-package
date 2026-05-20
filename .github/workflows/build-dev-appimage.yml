@@ -7,6 +7,8 @@ jobs:
   build-appimage:
     runs-on: [self-hosted, cd]
 
+
+
     defaults:
       run:
         working-directory: CARTA-AppImage-creator
@@ -26,7 +28,11 @@ jobs:
       - name: Set PACKAGING_PATH in appimage_config
         run: |
           PACKAGING_PATH="$(pwd)"
-          sed -i "s|^PACKAGING_PATH=.*|PACKAGING_PATH=${PACKAGING_PATH}|" appimage_config
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            sed -i '' "s|^PACKAGING_PATH=.*|PACKAGING_PATH=${PACKAGING_PATH}|" appimage_config
+          else
+            sed -i "s|^PACKAGING_PATH=.*|PACKAGING_PATH=${PACKAGING_PATH}|" appimage_config
+          fi
           echo "=== Final appimage_config ==="
           cat appimage_config
 
@@ -77,4 +83,3 @@ jobs:
           chmod +x "${APPIMAGE_FILE}"
           echo "--- Backend version output ---"
           APPIMAGE_EXTRACT_AND_RUN=1 ./'${APPIMAGE_FILE}' --version 2>&1 || true
-
