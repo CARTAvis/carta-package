@@ -7,22 +7,6 @@ echo "Starting AppImage build process..."
 echo "Backend release version: ${BACKEND_VERSION}"
 echo "Frontend release version: ${FRONTEND_VERSION}"
 
-if [ "${RELEASE}" = "TRUE" ]; then
-    echo "Are versions correct? (y/n): "
-    read -p "Are versions correct? (y/n): " confirm
-    if [[ "$confirm" != "y" ]]; then
-        echo "Exiting build process."
-        exit 1
-    fi
-
-    echo "Is RELEASE_DATE: ${RELEASE_DATE} correct? (y/n): "
-    read -p "Is RELEASE_DATE correct? (y/n): " date_confirm
-    if [[ "$date_confirm" != "y" ]]; then
-        echo "Exiting build process."
-        exit 1 
-    fi
-fi
-
 # Parameters check
 if [ "${NPM_FRONTEND}" = "TRUE" ] && [ "${RELEASE}" = "FALSE" ]; then
     echo "NPM pre-build frontend is only for release version."
