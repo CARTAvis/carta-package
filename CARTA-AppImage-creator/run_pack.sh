@@ -85,12 +85,14 @@ if [ "${PREPARE_FRONTEND}" = "TRUE" ]; then
             echo "Cloning carta-frontend repository..."
             git clone https://github.com/CARTAvis/carta-frontend.git package
             cd ${DOCKER_PACKAGING_PATH}/package
+            git fetch --tags
             git checkout ${FRONTEND_VERSION}
             git submodule update --init --recursive
             npm install
             npm run build-libs
         else
             cd ${DOCKER_PACKAGING_PATH}/package
+            git fetch --tags
             git checkout ${FRONTEND_VERSION}
             git submodule update
             npm install
@@ -135,10 +137,12 @@ if [ "${PREPARE_BACKEND}" = "TRUE" ]; then
         echo "Cloning carta-backend repository..."
         git clone https://github.com/CARTAvis/carta-backend.git
         cd ${DOCKER_PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update --init
     else 
         cd ${DOCKER_PACKAGING_PATH}/carta-backend
+        git fetch --tags
         git checkout ${BACKEND_VERSION}
         git submodule update
 
