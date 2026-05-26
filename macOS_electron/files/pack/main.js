@@ -211,7 +211,6 @@ app.on('open-file', (event, filePath) => {
   console.log('macOS open-file:', filePath);
 
   if (appIsReady) {
-    // App already running: collect files within 100ms then open one new window
     pendingOpenFiles.push(filePath);
     clearTimeout(openFileTimer);
     openFileTimer = setTimeout(() => {
@@ -222,7 +221,6 @@ app.on('open-file', (event, filePath) => {
       createWindow();
     }, 100);
   } else {
-    // App starting up: collect files for initial window
     openFilePaths.push(filePath);
     fileMode = 1;
     if (!baseDirectory) {
@@ -241,7 +239,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', (event) => {
-  // Close all windows forcefully
   const allWindows = BrowserWindow.getAllWindows();
   allWindows.forEach(win => {
     win.destroy();
@@ -249,7 +246,6 @@ app.on('before-quit', (event) => {
 }); 
 
 app.on('will-quit', (event) => {
-  // Kill any remaining carta_backend processes started by this app
   const { execSync } = require('child_process');
   try {
     const appPath = __dirname.replace(/\//g, '\\/');
@@ -291,24 +287,15 @@ const createWindow = exports.createWindow = () => {
     show: false
   });
 
-  // Using the find-free-port-sync to find a free port for each carta-backend instance
   backendPort = getPortSync();
-  const windowPort = backendPort; // capture for this window's close handler
+  const windowPort = backendPort;
 
-  // Open the Electron DevTools with the --inspect flag
   if (items.inspect === true) {
     newWindow.webContents.openDevTools();
   }
 
   const finalExtraArgs = generateExtraArgs(items);
 
-  // const runArgs = [
-  //   path.join(__dirname, 'carta-backend/bin/run.sh'),
-  //   cartaAuthToken,
-  //   baseDirectory,
-  //   backendPort,
-  //   finalExtraArgs
-  // ];
   const runArgs = [
     path.join(__dirname, 'carta-backend/bin/run.sh'),
     cartaAuthToken,
@@ -322,7 +309,6 @@ const createWindow = exports.createWindow = () => {
 
   const run = exec(runArgs.join(' '));
 
-  // Correctly handle Electron window URL scenarios
   if (openFilePaths.length > 0) {
 
     const encodedFiles = openFilePaths.map(file => {
@@ -362,17 +348,16 @@ const createWindow = exports.createWindow = () => {
   newWindow.setTouchBar(touchBar);
 
   newWindow.on('close', (event) => {
-    event.preventDefault(); // bypass any beforeunload dialog in the frontend
+    event.preventDefault();
     try { mainWindowState.saveState(newWindow); } catch (e) {}
 
-    // Kill the carta_backend for this window using its port
     try {
       execSync(`pkill -9 -f "carta_backend.*${windowPort}"`, { timeout: 1000 });
     } catch (e) {
       // Ignore - process may have already exited
     }
 
-    newWindow.destroy(); // force close the window
+    newWindow.destroy();
   });
 
   windows.add(newWindow);
