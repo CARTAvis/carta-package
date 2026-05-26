@@ -1,7 +1,7 @@
 const electron = require('electron');
 const { app, BrowserWindow, TouchBar, Menu, shell, dialog } = electron;
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar;
-const { exec, spawn } = require('child_process');
+const { exec, spawn, execSync } = require('child_process');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
@@ -13,6 +13,9 @@ const mainProcess = require('./main.js');
 const uuid = require('uuid');
 const getPortSync = require('find-free-port-sync');
 const homedir = os.homedir();
+
+let openFilePaths = [];
+let fileMode;
 
 app.allowRendererProcessReuse = true;
 
@@ -35,7 +38,8 @@ function generateExtraArgs(args) {
 
 const items = minimist(process.argv.slice(1));
 const args = minimist(process.argv.slice(1));
-const inputPath = args._[0] || '';
+const inputPaths = args._.filter(p => p);
+const inputPath = inputPaths[0] || '';
 let baseDirectory;
 
 // Handle the different File Browser starting folder scenarios
@@ -54,6 +58,7 @@ try {
         }
     } else if (fileStatus.isFile()) {
         fileMode = 1;
+        openFilePaths = inputPaths;
         baseDirectory = path.dirname(inputPath); // Using command line to directly open an image
     } else if (fileStatus.isDirectory()) {
         fileMode = 0;
@@ -196,14 +201,43 @@ const backendPorts = new Set();
 // Generate a UUID for the CARTA_AUTH_TOKEN
 const cartaAuthToken = uuid.v4();
 
+let appIsReady = false;
+let pendingOpenFiles = [];
+let openFileTimer = null;
+
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+
+  console.log('macOS open-file:', filePath);
+
+  if (appIsReady) {
+    // App already running: collect files within 100ms then open one new window
+    pendingOpenFiles.push(filePath);
+    clearTimeout(openFileTimer);
+    openFileTimer = setTimeout(() => {
+      openFilePaths = [...pendingOpenFiles];
+      baseDirectory = path.dirname(pendingOpenFiles[0]);
+      fileMode = 1;
+      pendingOpenFiles = [];
+      createWindow();
+    }, 100);
+  } else {
+    // App starting up: collect files for initial window
+    openFilePaths.push(filePath);
+    fileMode = 1;
+    if (!baseDirectory) {
+      baseDirectory = path.dirname(filePath);
+    }
+  }
+});
+
 app.on('ready', () => {
+  appIsReady = true;
   createWindow();
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform === 'darwin') {
-    return false;
-  }
+  app.quit();
 });
 
 app.on('before-quit', (event) => {
@@ -259,6 +293,7 @@ const createWindow = exports.createWindow = () => {
 
   // Using the find-free-port-sync to find a free port for each carta-backend instance
   backendPort = getPortSync();
+  const windowPort = backendPort; // capture for this window's close handler
 
   // Open the Electron DevTools with the --inspect flag
   if (items.inspect === true) {
@@ -267,26 +302,47 @@ const createWindow = exports.createWindow = () => {
 
   const finalExtraArgs = generateExtraArgs(items);
 
+  // const runArgs = [
+  //   path.join(__dirname, 'carta-backend/bin/run.sh'),
+  //   cartaAuthToken,
+  //   baseDirectory,
+  //   backendPort,
+  //   finalExtraArgs
+  // ];
   const runArgs = [
     path.join(__dirname, 'carta-backend/bin/run.sh'),
     cartaAuthToken,
     baseDirectory,
-    backendPort,
-    finalExtraArgs
+    backendPort
   ];
+
+  if (finalExtraArgs) {
+    runArgs.push(finalExtraArgs);
+  }
 
   const run = exec(runArgs.join(' '));
 
   // Correctly handle Electron window URL scenarios
-  if (inputPath === '') {
-    newWindow.loadURL(`file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}`);
+  if (openFilePaths.length > 0) {
+
+    const encodedFiles = openFilePaths.map(file => {
+      const inputFile = file.startsWith('/')
+        ? file
+        : `${process.cwd()}/${file}`;
+
+      return encodeURIComponent(inputFile);
+    });
+
+    newWindow.loadURL(
+      `file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}&files=${encodedFiles.join(',')}`
+    );
+
   } else {
-    if (fileMode === 1) {
-      const inputFile = inputPath.startsWith('/') ? inputPath : `${process.cwd()}/${inputPath}`;
-      newWindow.loadURL(`file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}&file=${encodeURIComponent(inputFile)}`);
-    } else if (fileMode === 0) {
-      newWindow.loadURL(`file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}`);
-    }
+
+    newWindow.loadURL(
+      `file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}`
+    );
+
   }
 
   run.stdout.on('data', (data) => {
@@ -305,22 +361,18 @@ const createWindow = exports.createWindow = () => {
 
   newWindow.setTouchBar(touchBar);
 
-  newWindow.on('close', () => {
-    mainWindowState.saveState(newWindow);
-    
-    // Kill the backend process immediately
-    if (run && run.pid) {
-      try {
-        process.kill(-run.pid, 'SIGKILL');
-      } catch (e) {
-        app.quit();
-      }
-    }
-  });
+  newWindow.on('close', (event) => {
+    event.preventDefault(); // bypass any beforeunload dialog in the frontend
+    try { mainWindowState.saveState(newWindow); } catch (e) {}
 
-  // Completely close Electron if no other windows are open
-  app.on('window-all-closed', function () {
-    app.quit();
+    // Kill the carta_backend for this window using its port
+    try {
+      execSync(`pkill -9 -f "carta_backend.*${windowPort}"`, { timeout: 1000 });
+    } catch (e) {
+      // Ignore - process may have already exited
+    }
+
+    newWindow.destroy(); // force close the window
   });
 
   windows.add(newWindow);

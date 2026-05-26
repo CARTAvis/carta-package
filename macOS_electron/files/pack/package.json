@@ -45,6 +45,17 @@
       "entitlementsInherit": "entitlements.mac.plist",
       "signIgnore": [
         "carta-backend/etc/data/"
+      ],
+      "fileAssociations": [
+        {
+          "ext": [
+            "fits",
+            "fit",
+            "fts"
+          ],
+          "name": "FITS Image",
+          "role": "Viewer"
+        }
       ]
     },
     "dmg": {
