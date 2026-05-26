@@ -239,6 +239,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', (event) => {
+  // Close all windows forcefully
   const allWindows = BrowserWindow.getAllWindows();
   allWindows.forEach(win => {
     win.destroy();
@@ -246,6 +247,7 @@ app.on('before-quit', (event) => {
 }); 
 
 app.on('will-quit', (event) => {
+  // Kill any remaining carta_backend processes started by this app
   const { execSync } = require('child_process');
   try {
     const appPath = __dirname.replace(/\//g, '\\/');
@@ -287,9 +289,11 @@ const createWindow = exports.createWindow = () => {
     show: false
   });
 
+  // Using the find-free-port-sync to find a free port for each carta-backend instance
   backendPort = getPortSync();
   const windowPort = backendPort;
 
+  // Open the Electron DevTools with the --inspect flag
   if (items.inspect === true) {
     newWindow.webContents.openDevTools();
   }
@@ -309,6 +313,7 @@ const createWindow = exports.createWindow = () => {
 
   const run = exec(runArgs.join(' '));
 
+  // Correctly handle Electron window URL scenarios
   if (openFilePaths.length > 0) {
 
     const encodedFiles = openFilePaths.map(file => {
@@ -356,7 +361,8 @@ const createWindow = exports.createWindow = () => {
     } catch (e) {
       // Ignore - process may have already exited
     }
-
+    
+    // Completely close Electron if no other windows are open
     newWindow.destroy();
   });
 
