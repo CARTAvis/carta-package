@@ -1,7 +1,7 @@
 {
   "name": "CARTA",
-  "version": "5.0.3",
-  "description": "2025 CARTA Desktop",
+  "version": "v6.0.0-beta.1",
+  "description": "2026 CARTA Desktop",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
@@ -34,25 +34,37 @@
     "node-gyp": "^12.1.0",
     "uuid": "^13.0.0"
   },
-  "mac": {
-    "hardenedRuntime": true,
-    "gatekeeperAssess": false,
-    "entitlements": "entitlements.mac.plist",
-    "entitlementsInherit": "entitlements.mac.plist"
-  },
   "build": {
     "appId": "cartavis.org",
     "afterSign": "electron-builder-notarize",
     "mac": {
-      "notarize": true
+      "notarize": true,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "signIgnore": [
+        "carta-backend/etc/data/"
+      ],
+      "fileAssociations": [
+        {
+          "ext": [
+            "fits",
+            "fit",
+            "fts"
+          ],
+          "name": "FITS Image",
+          "role": "Viewer"
+        }
+      ]
     },
-    "asar": "false"
-  },
-  "dmg": {
-    "sign": false,
-    "window": {
-      "width": "540",
-      "height": "380"
-    }
+    "dmg": {
+      "sign": false,
+      "window": {
+        "width": "540",
+        "height": "380"
+      }
+    },
+    "asar": false
   }
 }
