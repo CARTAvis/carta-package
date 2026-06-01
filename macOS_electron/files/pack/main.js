@@ -1,5 +1,5 @@
 const electron = require('electron');
-const { app, BrowserWindow, TouchBar, Menu, shell, dialog } = electron;
+const { app, BrowserWindow, TouchBar, Menu, shell, dialog, ipcMain } = electron;
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar;
 const { exec, spawn, execSync } = require('child_process');
 const path = require('path');
@@ -234,6 +234,37 @@ app.on('ready', () => {
   createWindow();
 });
 
+ipcMain.on('carta:open-dropped-files', (event, filePaths) => {
+  if (!Array.isArray(filePaths) || filePaths.length === 0) return;
+
+  const wc = event.sender;
+  const payload = JSON.stringify(filePaths);
+
+  const tryAppend = (attempt = 0) => {
+    const script = `(async () => {
+      if (!window.app || typeof window.app.appendFile !== 'function') {
+        return false;
+      }
+      const files = ${payload};
+      for (const f of files) {
+        try { await window.app.appendFile(f); }
+        catch (err) { console.error('appendFile failed for', f, err); }
+      }
+      return true;
+    })();`;
+
+    wc.executeJavaScript(script, true).then((ok) => {
+      if (!ok && attempt < 150) {
+        setTimeout(() => tryAppend(attempt + 1), 200);
+      }
+    }).catch((err) => {
+      console.error('executeJavaScript for dropped files failed:', err);
+    });
+  };
+
+  tryAppend();
+});
+
 app.on('window-all-closed', () => {
   app.quit();
 });
@@ -286,7 +317,13 @@ const createWindow = exports.createWindow = () => {
     height: mainWindowState.height,
     x: x,
     y: y,
-    show: false
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    }
   });
 
   // Using the find-free-port-sync to find a free port for each carta-backend instance
