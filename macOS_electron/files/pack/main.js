@@ -157,7 +157,7 @@ const touchBar = new TouchBar({
 // Print the --help output from the carta_backend --help output
 if (items.help) {
 
-  var run = exec(path.join(__dirname, 'carta-backend/bin/carta_backend --help'));
+  var run = spawn(path.join(__dirname, 'carta-backend/bin/carta_backend'), ['--help']);
 
   run.stdout.on('data', (data) => {
     console.log(`${data}`);
@@ -178,7 +178,7 @@ if (items.help) {
 // Print the --version output from the carta_backend --version output
 if (items.version) {
 
-  var run = exec(path.join(__dirname, 'carta-backend/bin/carta_backend --version'));
+  var run = spawn(path.join(__dirname, 'carta-backend/bin/carta_backend'), ['--version']);
 
   run.stdout.on('data', (data) => {
     console.log(`${data}`);
