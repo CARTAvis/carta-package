@@ -33,7 +33,7 @@ function generateExtraArgs(args) {
       }
     }
   }
-  return newArgs.join(' ');
+  return newArgs;
 }
 
 const items = minimist(process.argv.slice(1));
@@ -337,18 +337,14 @@ const createWindow = exports.createWindow = () => {
 
   const finalExtraArgs = generateExtraArgs(items);
 
-  const runArgs = [
+  const run = spawn(
     path.join(__dirname, 'carta-backend/bin/run.sh'),
-    cartaAuthToken,
-    baseDirectory,
-    backendPort
-  ];
+    [cartaAuthToken, baseDirectory, String(backendPort), ...finalExtraArgs]
+  );
 
   if (finalExtraArgs) {
     runArgs.push(finalExtraArgs);
   }
-
-  const run = exec(runArgs.join(' '));
 
   // Correctly handle Electron window URL scenarios
   if (openFilePaths.length > 0) {
