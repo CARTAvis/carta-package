@@ -222,7 +222,7 @@ autoUpdater.on('update-downloaded', (info) => {
         try { fs.unlinkSync(zipPath); } catch (e) {}
         try { fs.unlinkSync(path.join(cacheDir, 'update-info.json')); } catch (e) {}
         spawn('open', ['-n', newAppDest], { detached: true, stdio: 'ignore' }).unref();
-        setTimeout(() => app.quit(), 1500);
+        setTimeout(() => app.quit(), 100);
 
       } catch (err) {
         console.error('Custom install failed:', err.message);
