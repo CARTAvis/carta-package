@@ -221,7 +221,7 @@ autoUpdater.on('update-downloaded', (info) => {
         try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
         try { fs.unlinkSync(zipPath); } catch (e) {}
         try { fs.unlinkSync(path.join(cacheDir, 'update-info.json')); } catch (e) {}
-        spawn('open', [newAppDest], { detached: true, stdio: 'ignore' }).unref();
+        spawn('open', ['-n', newAppDest], { detached: true, stdio: 'ignore' }).unref();
         setTimeout(() => app.quit(), 1500);
 
       } catch (err) {
