@@ -573,10 +573,6 @@ const createWindow = exports.createWindow = () => {
     [cartaAuthToken, baseDirectory, String(backendPort), ...finalExtraArgs]
   );
 
-  if (finalExtraArgs) {
-    runArgs.push(finalExtraArgs);
-  }
-
   // Correctly handle Electron window URL scenarios
   if (openFilePaths.length > 0) {
 
