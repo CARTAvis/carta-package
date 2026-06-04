@@ -636,6 +636,7 @@ function openNewCarta() {
 
 // Check for updates function
 function checkForUpdates() {
+  setSkippedVersion(null);
   autoUpdater.checkForUpdates().catch(err => {
     console.error('Failed to check for updates:', err);
     dialog.showMessageBox({
