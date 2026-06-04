@@ -17,8 +17,53 @@ const homedir = os.homedir();
 
 let openFilePaths = [];
 let fileMode;
+let progressWindow = null;
 
 app.allowRendererProcessReuse = true;
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function createProgressWindow() {
+  if (progressWindow && !progressWindow.isDestroyed()) return;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+         padding: 20px; margin: 0; background: #f5f5f5; user-select: none; }
+  h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #333; }
+  progress { width: 100%; height: 10px; accent-color: #0070c9; }
+  #info { margin: 8px 0 0; font-size: 12px; color: #666; }
+</style></head>
+<body>
+  <h3>Downloading CARTA Update...</h3>
+  <progress id="bar" value="0" max="100"></progress>
+  <div id="info">Starting download...</div>
+</body></html>`;
+
+  progressWindow = new BrowserWindow({
+    width: 380,
+    height: 130,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    closable: false,
+    alwaysOnTop: true,
+    title: 'Downloading Update',
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
+  });
+  progressWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  progressWindow.setMenu(null);
+}
+
+function closeProgressWindow() {
+  if (progressWindow && !progressWindow.isDestroyed()) {
+    progressWindow.destroy();
+    progressWindow = null;
+  }
+  try { app.dock.setProgressBar(-1); } catch (e) {}
+}
 
 // Configure auto-updater
 autoUpdater.setFeedURL({
@@ -27,18 +72,61 @@ autoUpdater.setFeedURL({
   repo: 'carta-builds'
 });
 autoUpdater.autoDownload = false; // Don't auto-download, wait for user confirmation
-autoUpdater.autoInstallOnAppQuit = true; // Auto-install on app quit
+autoUpdater.autoInstallOnAppQuit = false; // We handle installation manually
 
 // Auto-updater event handlers
 autoUpdater.on('checking-for-update', () => {
   console.log('Checking for updates...');
 });
 
+// Skipped version persistence
+function getSkippedVersion() {
+  try {
+    const filePath = path.join(app.getPath('userData'), 'skipped-version.json');
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8')).skippedVersion || null;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function setSkippedVersion(version) {
+  try {
+    const filePath = path.join(app.getPath('userData'), 'skipped-version.json');
+    fs.writeFileSync(filePath, JSON.stringify({ skippedVersion: version }), 'utf8');
+  } catch (e) {
+    console.error('Failed to save skipped version:', e);
+  }
+}
+
 autoUpdater.on('update-available', (info) => {
   console.log('Update available:', info.version);
+
+  // Clear stale pending cache if it belongs to a different version
+  const pendingDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
+  const updateInfoPath = path.join(pendingDir, 'update-info.json');
+  try {
+    if (fs.existsSync(updateInfoPath)) {
+      const cached = JSON.parse(fs.readFileSync(updateInfoPath, 'utf8'));
+      if (cached.fileName && !cached.fileName.includes(info.version)) {
+        console.log('Stale cache detected, clearing pending dir for version:', cached.fileName);
+        execSync(`rm -rf "${pendingDir}"`);
+        fs.mkdirSync(pendingDir, { recursive: true });
+      }
+    }
+  } catch (e) {
+    console.warn('Could not check/clear pending cache:', e.message);
+  }
+
+  // Skip if this version was previously dismissed
+  if (getSkippedVersion() === info.version) {
+    console.log('Skipping version:', info.version);
+    return;
+  }
+
   const dialogOpts = {
     type: 'info',
-    buttons: ['Update', 'Later'],
+    buttons: ['Update', 'Later', 'Skip This Version'],
     title: 'CARTA Update Available',
     message: `New version ${info.version} is available`,
     detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nWould you like to download and install the update?`
@@ -46,7 +134,11 @@ autoUpdater.on('update-available', (info) => {
 
   dialog.showMessageBox(dialogOpts).then((returnValue) => {
     if (returnValue.response === 0) {
+      createProgressWindow();
       autoUpdater.downloadUpdate();
+    } else if (returnValue.response === 2) {
+      setSkippedVersion(info.version);
+      console.log('Version skipped:', info.version);
     }
   });
 });
@@ -63,6 +155,7 @@ autoUpdater.on('update-not-available', (info) => {
 
 autoUpdater.on('error', (err) => {
   console.error('Update error:', err);
+  closeProgressWindow();
   dialog.showMessageBox({
     type: 'error',
     title: 'Update Failed',
@@ -72,14 +165,26 @@ autoUpdater.on('error', (err) => {
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = `Download speed: ${progressObj.bytesPerSecond}`;
-  log_message = log_message + ` - Downloaded ${progressObj.percent}%`;
-  log_message = log_message + ` (${progressObj.transferred}/${progressObj.total})`;
-  console.log(log_message);
+  const percent = Math.round(progressObj.percent);
+  const speed = formatBytes(progressObj.bytesPerSecond);
+  const transferred = formatBytes(progressObj.transferred);
+  const total = formatBytes(progressObj.total);
+  console.log(`Downloading: ${percent}% (${transferred}/${total}) at ${speed}/s`);
+
+  try { app.dock.setProgressBar(progressObj.percent / 100); } catch (e) {}
+
+  if (progressWindow && !progressWindow.isDestroyed()) {
+    progressWindow.webContents.executeJavaScript(`
+      document.getElementById('bar').value = ${percent};
+      document.getElementById('info').textContent =
+        '${percent}%  \u2022  ${transferred} / ${total}  \u2022  ${speed}/s';
+    `).catch(() => {});
+  }
 });
 
 autoUpdater.on('update-downloaded', (info) => {
   console.log('Update downloaded:', info);
+  closeProgressWindow();
   const dialogOpts = {
     type: 'info',
     buttons: ['Restart Now', 'Later'],
@@ -112,8 +217,10 @@ autoUpdater.on('update-downloaded', (info) => {
         try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
         execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
 
-        // Cleanup temp, open new app, then quit current
+        // Cleanup temp and downloaded zip, open new app, then quit current
         try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
+        try { fs.unlinkSync(zipPath); } catch (e) {}
+        try { fs.unlinkSync(path.join(cacheDir, 'update-info.json')); } catch (e) {}
         spawn('open', [newAppDest], { detached: true, stdio: 'ignore' }).unref();
         setTimeout(() => app.quit(), 1500);
 
