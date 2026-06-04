@@ -198,7 +198,7 @@ autoUpdater.on('update-downloaded', (info) => {
       const cacheDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
       const zipName = info.downloadedFile ? path.basename(info.downloadedFile) : 'update.zip';
       const zipPath = path.join(cacheDir, zipName);
-      const currentAppPath = app.getPath('exe').split('.app')[0] + '.app';
+      const currentAppPath = path.resolve(__dirname, '../../..');
       const appsDir = path.dirname(currentAppPath);
       const tempDir = path.join(os.tmpdir(), 'carta-update-' + Date.now());
 
