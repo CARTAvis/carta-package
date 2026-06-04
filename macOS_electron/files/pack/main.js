@@ -9,6 +9,7 @@ const os = require('os');
 const minimist = require('minimist');
 const contextMenu = require('electron-context-menu');
 const WindowStateManager = require('electron-window-state-manager');
+const { autoUpdater } = require('electron-updater');
 const mainProcess = require('./main.js');
 const uuid = require('uuid');
 const getPortSync = require('find-free-port-sync');
@@ -18,6 +19,116 @@ let openFilePaths = [];
 let fileMode;
 
 app.allowRendererProcessReuse = true;
+
+// Configure auto-updater
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: 'pshnghng0318',
+  repo: 'carta-builds'
+});
+autoUpdater.autoDownload = false; // Don't auto-download, wait for user confirmation
+autoUpdater.autoInstallOnAppQuit = true; // Auto-install on app quit
+
+// Auto-updater event handlers
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for updates...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available:', info.version);
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Update', 'Later'],
+    title: 'CARTA Update Available',
+    message: `New version ${info.version} is available`,
+    detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nWould you like to download and install the update?`
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) {
+      autoUpdater.downloadUpdate();
+    }
+  });
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  console.log('Already up to date');
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'No Updates Available',
+    message: 'You are already using the latest version',
+    detail: `Current version: ${app.getVersion()}`
+  });
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Update error:', err);
+  dialog.showMessageBox({
+    type: 'error',
+    title: 'Update Failed',
+    message: 'An error occurred while checking for updates',
+    detail: err.message
+  });
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = `Download speed: ${progressObj.bytesPerSecond}`;
+  log_message = log_message + ` - Downloaded ${progressObj.percent}%`;
+  log_message = log_message + ` (${progressObj.transferred}/${progressObj.total})`;
+  console.log(log_message);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Update downloaded:', info);
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Restart Now', 'Later'],
+    title: 'Update Ready',
+    message: 'Update has been downloaded',
+    detail: 'The application will restart to complete the update installation.'
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) {
+      const cacheDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
+      const zipName = info.downloadedFile ? path.basename(info.downloadedFile) : 'update.zip';
+      const zipPath = path.join(cacheDir, zipName);
+      const currentAppPath = app.getPath('exe').split('.app')[0] + '.app';
+      const appsDir = path.dirname(currentAppPath);
+      const tempDir = path.join(os.tmpdir(), 'carta-update-' + Date.now());
+
+      try {
+        // Extract zip using macOS ditto
+        execSync(`ditto -x -k "${zipPath}" "${tempDir}"`);
+
+        // Find the .app bundle inside extracted dir
+        const newAppName = fs.readdirSync(tempDir).find(e => e.endsWith('.app'));
+        if (!newAppName) throw new Error('No .app found in zip');
+
+        const newAppSrc = path.join(tempDir, newAppName);
+        const newAppDest = path.join(appsDir, newAppName);
+
+        // Remove old copy if exists, then install
+        try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
+        execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
+
+        // Cleanup temp, open new app, then quit current
+        try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
+        spawn('open', [newAppDest], { detached: true, stdio: 'ignore' }).unref();
+        setTimeout(() => app.quit(), 1500);
+
+      } catch (err) {
+        console.error('Custom install failed:', err.message);
+        dialog.showMessageBox({
+          type: 'error',
+          title: 'Install Failed',
+          message: 'Failed to install update',
+          detail: err.message
+        });
+      }
+    }
+  });
+});
 
 // To process all command line arguments correctly (Also remove the --inspect flag)
 function generateExtraArgs(args) {
@@ -102,6 +213,13 @@ if (process.platform === 'darwin') {
         accelerator: process.platform === 'darwin' ? 'Cmd+N' : 'Ctrl+N',
         click() {
           openNewCarta()
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Check for Updates...',
+        click() {
+          checkForUpdates()
         }
       },
       { type: 'separator' },
@@ -232,6 +350,12 @@ app.on('open-file', (event, filePath) => {
 app.on('ready', () => {
   appIsReady = true;
   createWindow();
+  // Check for updates 0.1 seconds after launch
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(err => {
+      console.error('Auto update check failed:', err.message);
+    });
+  }, 100);
 });
 
 ipcMain.on('carta:open-dropped-files', (event, filePaths) => {
@@ -405,4 +529,17 @@ const createWindow = exports.createWindow = () => {
 
 function openNewCarta() {
   mainProcess.createWindow();
+}
+
+// Check for updates function
+function checkForUpdates() {
+  autoUpdater.checkForUpdates().catch(err => {
+    console.error('Failed to check for updates:', err);
+    dialog.showMessageBox({
+      type: 'error',
+      title: 'Update Check Failed',
+      message: 'Unable to check for updates',
+      detail: 'Please check your internet connection and try again later.'
+    });
+  });
 }
