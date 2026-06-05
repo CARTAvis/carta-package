@@ -195,44 +195,48 @@ autoUpdater.on('update-downloaded', (info) => {
 
   dialog.showMessageBox(dialogOpts).then((returnValue) => {
     if (returnValue.response === 0) {
-      const cacheDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
-      const zipName = info.downloadedFile ? path.basename(info.downloadedFile) : 'update.zip';
-      const zipPath = path.join(cacheDir, zipName);
-      const currentAppPath = path.resolve(__dirname, '../../..');
-      const appsDir = path.dirname(currentAppPath);
-      const tempDir = path.join(os.tmpdir(), 'carta-update-' + Date.now());
+      setTimeout(() => {
+        BrowserWindow.getAllWindows().forEach(w => w.hide());
 
-      try {
-        // Extract zip using macOS ditto
-        execSync(`ditto -x -k "${zipPath}" "${tempDir}"`);
+        const cacheDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
+        const zipName = info.downloadedFile ? path.basename(info.downloadedFile) : 'update.zip';
+        const zipPath = path.join(cacheDir, zipName);
+        const currentAppPath = path.resolve(__dirname, '../../..');
+        const appsDir = path.dirname(currentAppPath);
+        const tempDir = path.join(os.tmpdir(), 'carta-update-' + Date.now());
 
-        // Find the .app bundle inside extracted dir
-        const newAppName = fs.readdirSync(tempDir).find(e => e.endsWith('.app'));
-        if (!newAppName) throw new Error('No .app found in zip');
+        try {
+          // Extract zip using macOS ditto
+          execSync(`ditto -x -k "${zipPath}" "${tempDir}"`);
 
-        const newAppSrc = path.join(tempDir, newAppName);
-        const newAppDest = path.join(appsDir, newAppName);
+          // Find the .app bundle inside extracted dir
+          const newAppName = fs.readdirSync(tempDir).find(e => e.endsWith('.app'));
+          if (!newAppName) throw new Error('No .app found in zip');
 
-        // Remove old copy if exists, then install
-        try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
-        execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
+          const newAppSrc = path.join(tempDir, newAppName);
+          const newAppDest = path.join(appsDir, newAppName);
 
-        // Cleanup temp and downloaded zip, open new app, then quit current
-        try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
-        try { fs.unlinkSync(zipPath); } catch (e) {}
-        try { fs.unlinkSync(path.join(cacheDir, 'update-info.json')); } catch (e) {}
-        spawn('open', ['-n', newAppDest], { detached: true, stdio: 'ignore' }).unref();
-        setTimeout(() => app.quit(), 100);
+          // Remove old copy if exists, then install
+          try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
+          execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
 
-      } catch (err) {
-        console.error('Custom install failed:', err.message);
-        dialog.showMessageBox({
-          type: 'error',
-          title: 'Install Failed',
-          message: 'Failed to install update',
-          detail: err.message
-        });
-      }
+          // Cleanup temp and downloaded zip, open new app, then quit current
+          try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
+          try { fs.unlinkSync(zipPath); } catch (e) {}
+          try { fs.unlinkSync(path.join(cacheDir, 'update-info.json')); } catch (e) {}
+          spawn('open', ['-n', newAppDest], { detached: true, stdio: 'ignore' }).unref();
+          setTimeout(() => app.quit(), 100);
+
+        } catch (err) {
+          console.error('Custom install failed:', err.message);
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Install Failed',
+            message: 'Failed to install update',
+            detail: err.message
+          });
+        }
+      }, 0);
     }
   });
 });
