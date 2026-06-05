@@ -138,6 +138,12 @@ if [ "${PREPARE_FRONTEND}" == "TRUE" ]; then
 fi
 cp -r ${PACKAGING_PATH}/package/build/* ${PACKAGING_PATH}/pack
 
+if [ -d /opt/casaroot-carta-casacore ]; then
+    CASAROOT="/opt/casaroot-carta-casacore"
+else
+    CASAROOT="/opt/carta-casacore"
+fi
+
 cd ${PACKAGING_PATH}
 # prepare backend
 if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
@@ -148,8 +154,7 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
         FOLDER_PREFIX=".carta-beta"
     fi
 
-    # if [ ! -d /opt/casaroot-carta-casacore ]; then
-    if [ ! -d /opt/carta-casacore ]; then
+    if [ ! -d ${CASAROOT} ]; then
         echo "CARTA casacore root directory not found. Please install carta-casacore with floating CASAROOT first."
         exit 1
     fi
@@ -180,7 +185,7 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
             fi
             mkdir -p ${PACKAGING_PATH}/carta-backend/build
             cd ${PACKAGING_PATH}/carta-backend/build
-            cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
+            cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=${CASAROOT} -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
             make -j 6
         else
             echo "Backend binary already exists, skipping build."
@@ -191,7 +196,7 @@ if [ "${PREPARE_BACKEND}" == "TRUE" ]; then
     if [ ! -d ${PACKAGING_PATH}/carta-backend/build ]; then
         mkdir -p ${PACKAGING_PATH}/carta-backend/build
         cd ${PACKAGING_PATH}/carta-backend/build
-        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=/opt/carta-casacore -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCARTA_CASACORE_ROOT=${CASAROOT} -DCartaUserFolderPrefix=${FOLDER_PREFIX} -DDEPLOYMENT_TYPE=electron
         make -j 6
     fi
 
