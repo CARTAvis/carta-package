@@ -18,6 +18,8 @@ const homedir = os.homedir();
 let openFilePaths = [];
 let fileMode;
 let progressWindow = null;
+let pendingUpdateInfo = null;
+let isCancellingDownload = false;
 
 app.allowRendererProcessReuse = true;
 
@@ -35,16 +37,54 @@ function createProgressWindow() {
   h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #333; }
   progress { width: 100%; height: 10px; accent-color: #0070c9; }
   #info { margin: 8px 0 0; font-size: 12px; color: #666; }
+  #error { margin: 8px 0 0; font-size: 11px; color: #999; word-break: break-word; }
+  #actions { margin-top: 16px; text-align: right; }
+  button { border: none; border-radius: 6px; padding: 6px 16px; margin-left: 8px;
+           font-size: 12px; cursor: pointer; background: #e0e0e0; color: #222; }
+  button#retry-btn { background: #0070c9; color: #fff; }
 </style></head>
 <body>
-  <h3>Downloading CARTA Update...</h3>
+  <h3 id="title">Downloading CARTA Update...</h3>
   <progress id="bar" value="0" max="100"></progress>
   <div id="info">Starting download...</div>
+  <div id="error" style="display:none;"></div>
+  <div id="actions">
+    <button id="retry-btn" style="display:none;">Retry</button>
+    <button id="cancel-btn">Cancel</button>
+  </div>
+  <script>
+    document.getElementById('cancel-btn').onclick = function() {
+      window.location.href = 'carta://cancel';
+    };
+    document.getElementById('retry-btn').onclick = function() {
+      window.location.href = 'carta://retry';
+    };
+    window.showError = function(msg) {
+      document.getElementById('title').textContent = 'Update Download Failed';
+      document.getElementById('bar').style.display = 'none';
+      document.getElementById('info').style.display = 'none';
+      var e = document.getElementById('error');
+      e.style.display = 'block';
+      e.textContent = msg;
+      document.getElementById('retry-btn').style.display = 'inline-block';
+    };
+    window.showDownloading = function() {
+      document.getElementById('title').textContent = 'Downloading CARTA Update...';
+      var bar = document.getElementById('bar');
+      bar.style.display = 'block';
+      bar.value = 0;
+      var info = document.getElementById('info');
+      info.style.display = 'block';
+      info.textContent = 'Starting download...';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('retry-btn').style.display = 'none';
+    };
+  <\/script>
 </body></html>`;
 
   progressWindow = new BrowserWindow({
     width: 380,
-    height: 130,
+    height: 180,
     resizable: false,
     minimizable: false,
     maximizable: false,
@@ -55,6 +95,48 @@ function createProgressWindow() {
   });
   progressWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
   progressWindow.setMenu(null);
+
+  progressWindow.webContents.on('will-navigate', (event, navUrl) => {
+    event.preventDefault();
+    if (navUrl === 'carta://cancel') {
+      onCancelDownload();
+    } else if (navUrl === 'carta://retry') {
+      onRetryDownload();
+    }
+  });
+}
+
+// Show the failure message inside the existing progress window (no separate
+// dialog) and reveal the Retry / Cancel buttons.
+function showDownloadError(message) {
+  if (progressWindow && !progressWindow.isDestroyed()) {
+    // Error view needs more room than the download view, so double the height.
+    try {
+      progressWindow.setResizable(true);
+      progressWindow.setSize(380, 360);
+      progressWindow.setResizable(false);
+    } catch (e) {}
+    progressWindow.webContents.executeJavaScript(
+      'window.showError(' + JSON.stringify(String(message)) + ');'
+    ).catch(() => {});
+  }
+}
+
+// Retry a failed download: reset the progress UI and start downloading again.
+function onRetryDownload() {
+  isCancellingDownload = false;
+  if (progressWindow && !progressWindow.isDestroyed()) {
+    // Restore the original (shorter) download view height.
+    try {
+      progressWindow.setResizable(true);
+      progressWindow.setSize(380, 180);
+      progressWindow.setResizable(false);
+    } catch (e) {}
+    progressWindow.webContents.executeJavaScript('window.showDownloading();').catch(() => {});
+  } else {
+    createProgressWindow();
+  }
+  try { autoUpdater.downloadUpdate(); } catch (e) {}
 }
 
 function closeProgressWindow() {
@@ -63,6 +145,43 @@ function closeProgressWindow() {
     progressWindow = null;
   }
   try { app.dock.setProgressBar(-1); } catch (e) {}
+}
+
+// Cancel the in-progress download. Does NOT delete the downloaded zip, then
+// re-shows the update-available dialog (Update / Remind Me in 7 Days / Skip This Version).
+function onCancelDownload() {
+  isCancellingDownload = true;
+  try { autoUpdater.cancelDownload(); } catch (e) {}
+  closeProgressWindow();
+  if (pendingUpdateInfo) {
+    showUpdateDialog(pendingUpdateInfo);
+  }
+}
+
+// Show the "update available" dialog and act on the user's choice.
+function showUpdateDialog(info) {
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Update', 'Remind Me in 7 Days', 'Skip This Version'],
+    title: 'CARTA Update Available',
+    message: `New version ${info.version} is available`,
+    detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nWould you like to download and install the update?`
+  };
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) {
+      isCancellingDownload = false;
+      clearRemindDate();
+      createProgressWindow();
+      autoUpdater.downloadUpdate();
+    } else if (returnValue.response === 1) {
+      setRemindDate();
+      console.log('Reminder set for 7 days later.');
+    } else if (returnValue.response === 2) {
+      setSkippedVersion(info.version);
+      console.log('Version skipped:', info.version);
+    }
+  });
 }
 
 // Configure auto-updater
@@ -99,6 +218,35 @@ function setSkippedVersion(version) {
   }
 }
 
+function getRemindDate() {
+  try {
+    const filePath = path.join(app.getPath('userData'), 'remind-date.json');
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return data.remindAfter ? new Date(data.remindAfter) : null;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function setRemindDate() {
+  try {
+    const filePath = path.join(app.getPath('userData'), 'remind-date.json');
+    const remindAfter = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    fs.writeFileSync(filePath, JSON.stringify({ remindAfter: remindAfter.toISOString() }), 'utf8');
+    console.log('Will remind after:', remindAfter.toISOString());
+  } catch (e) {
+    console.error('Failed to save remind date:', e);
+  }
+}
+
+function clearRemindDate() {
+  try {
+    const filePath = path.join(app.getPath('userData'), 'remind-date.json');
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch (e) {}
+}
+
 autoUpdater.on('update-available', (info) => {
   console.log('Update available:', info.version);
 
@@ -124,23 +272,15 @@ autoUpdater.on('update-available', (info) => {
     return;
   }
 
-  const dialogOpts = {
-    type: 'info',
-    buttons: ['Update', 'Later', 'Skip This Version'],
-    title: 'CARTA Update Available',
-    message: `New version ${info.version} is available`,
-    detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nWould you like to download and install the update?`
-  };
+  // Suppress if the user asked to be reminded later and 7 days haven't passed
+  const remindAfter = getRemindDate();
+  if (remindAfter && new Date() < remindAfter) {
+    console.log('Reminder not yet due, suppressing update dialog until:', remindAfter.toISOString());
+    return;
+  }
 
-  dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) {
-      createProgressWindow();
-      autoUpdater.downloadUpdate();
-    } else if (returnValue.response === 2) {
-      setSkippedVersion(info.version);
-      console.log('Version skipped:', info.version);
-    }
-  });
+  pendingUpdateInfo = info;
+  showUpdateDialog(info);
 });
 
 autoUpdater.on('update-not-available', (info) => {
@@ -154,8 +294,21 @@ autoUpdater.on('update-not-available', (info) => {
 });
 
 autoUpdater.on('error', (err) => {
+  // cancelDownload() raises an error event; swallow it (this is expected).
+  if (isCancellingDownload) {
+    console.log('Download cancelled by user.');
+    isCancellingDownload = false;
+    return;
+  }
   console.error('Update error:', err);
-  closeProgressWindow();
+  // If a download is in progress (progress window open), show the error inline
+  // with Retry / Cancel buttons instead of popping up a separate dialog.
+  if (progressWindow && !progressWindow.isDestroyed()) {
+    try { app.dock.setProgressBar(-1); } catch (e) {}
+    showDownloadError(err.message || String(err));
+    return;
+  }
+  // Otherwise (e.g. error while checking for updates), fall back to a dialog.
   dialog.showMessageBox({
     type: 'error',
     title: 'Update Failed',
@@ -185,61 +338,92 @@ autoUpdater.on('download-progress', (progressObj) => {
 autoUpdater.on('update-downloaded', (info) => {
   console.log('Update downloaded:', info);
   closeProgressWindow();
-  const dialogOpts = {
-    type: 'info',
-    buttons: ['Restart Now', 'Later'],
-    title: 'Update Ready',
-    message: 'Update has been downloaded',
-    detail: 'The application will restart to complete the update installation.'
-  };
 
-  dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) {
-      setTimeout(() => {
-        BrowserWindow.getAllWindows().forEach(w => w.hide());
-
-        const cacheDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
-        const zipName = info.downloadedFile ? path.basename(info.downloadedFile) : 'update.zip';
-        const zipPath = path.join(cacheDir, zipName);
-        const currentAppPath = path.resolve(__dirname, '../../..');
-        const appsDir = path.dirname(currentAppPath);
-        const tempDir = path.join(os.tmpdir(), 'carta-update-' + Date.now());
-
-        try {
-          // Extract zip using macOS ditto
-          execSync(`ditto -x -k "${zipPath}" "${tempDir}"`);
-
-          // Find the .app bundle inside extracted dir
-          const newAppName = fs.readdirSync(tempDir).find(e => e.endsWith('.app'));
-          if (!newAppName) throw new Error('No .app found in zip');
-
-          const newAppSrc = path.join(tempDir, newAppName);
-          const newAppDest = path.join(appsDir, newAppName);
-
-          // Remove old copy if exists, then install
-          try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
-          execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
-
-          // Cleanup temp and downloaded zip, open new app, then quit current
-          try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
-          try { fs.unlinkSync(zipPath); } catch (e) {}
-          try { fs.unlinkSync(path.join(cacheDir, 'update-info.json')); } catch (e) {}
-          spawn('open', ['-n', newAppDest], { detached: true, stdio: 'ignore' }).unref();
-          setTimeout(() => app.quit(), 100);
-
-        } catch (err) {
-          console.error('Custom install failed:', err.message);
-          dialog.showMessageBox({
-            type: 'error',
-            title: 'Install Failed',
-            message: 'Failed to install update',
-            detail: err.message
-          });
-        }
-      }, 0);
+  // Install immediately once the download succeeds — no need to wait for the
+  // user's restart choice. The dialog afterwards only decides whether to
+  // relaunch now or keep working (the new version is already in place).
+  setTimeout(() => {
+    let installedAppPath = null;
+    try {
+      installedAppPath = installDownloadedUpdate(info);
+    } catch (err) {
+      console.error('Custom install failed:', err.message);
+      dialog.showMessageBox({
+        type: 'error',
+        title: 'Install Failed',
+        message: 'Failed to install update',
+        detail: err.message
+      });
+      return;
     }
-  });
+
+    const dialogOpts = {
+      type: 'info',
+      buttons: ['Restart Now', 'Later'],
+      title: 'Update Installed',
+      message: 'The update has been installed',
+    };
+
+    dialog.showMessageBox(dialogOpts).then((returnValue) => {
+      if (returnValue.response === 0 && installedAppPath) {
+        // Open the new app and quit the current one.
+        BrowserWindow.getAllWindows().forEach(w => w.hide());
+        spawn('open', ['-n', installedAppPath], { detached: true, stdio: 'ignore' }).unref();
+        setTimeout(() => app.quit(), 100);
+      }
+    });
+  }, 0); // yield so the progress window close can paint before we block
 });
+
+// Extract the downloaded zip and replace the app bundle in /Applications.
+// Returns the path of the installed .app bundle. Throws on failure.
+function installDownloadedUpdate(info) {
+  const cacheDir = path.join(homedir, 'Library/Caches/carta-updater/pending');
+  const currentAppPath = path.resolve(__dirname, '../../..');
+  const appsDir = path.dirname(currentAppPath);
+  const tempDir = path.join(os.tmpdir(), 'carta-update-' + Date.now());
+
+  // Prefer the exact path electron-updater reports (already the final,
+  // renamed file). Fall back to scanning the cache for a non-temp .zip.
+  let zipPath = info.downloadedFile || '';
+  if (!zipPath || !fs.existsSync(zipPath)) {
+    const zips = fs.existsSync(cacheDir)
+      ? fs.readdirSync(cacheDir).filter(f => f.endsWith('.zip') && !f.startsWith('temp-'))
+      : [];
+    if (zips.length > 0) {
+      zipPath = path.join(cacheDir, zips[0]);
+    } else {
+      throw new Error(`Downloaded zip not found. info.downloadedFile=${info.downloadedFile}`);
+    }
+  }
+
+  // Extract zip using macOS ditto
+  execSync(`ditto -x -k "${zipPath}" "${tempDir}"`);
+
+  // Find the .app bundle inside extracted dir
+  const newAppName = fs.readdirSync(tempDir).find(e => e.endsWith('.app'));
+  if (!newAppName) throw new Error('No .app found in zip');
+
+  const newAppSrc = path.join(tempDir, newAppName);
+  const newAppDest = path.join(appsDir, newAppName);
+
+  // Remove old copy if exists, then install
+  try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
+  execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
+
+  // Cleanup: remove the extracted temp dir and wipe the entire pending cache
+  // directory so no zip (including any temp-*.zip partials) is left behind.
+  try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
+  try {
+    fs.rmSync(cacheDir, { recursive: true, force: true });
+    fs.mkdirSync(cacheDir, { recursive: true });
+  } catch (e) {
+    console.warn('Failed to clear pending cache after install:', e.message);
+  }
+
+  console.log('Update installed at:', newAppDest);
+  return newAppDest;
+}
 
 // To process all command line arguments correctly (Also remove the --inspect flag)
 function generateExtraArgs(args) {
@@ -641,6 +825,7 @@ function openNewCarta() {
 // Check for updates function
 function checkForUpdates() {
   setSkippedVersion(null);
+  clearRemindDate();
   autoUpdater.checkForUpdates().catch(err => {
     console.error('Failed to check for updates:', err);
     dialog.showMessageBox({
