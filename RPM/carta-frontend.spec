@@ -2,19 +2,18 @@
 %define debug_package %{nil}
 %undefine _disable_source_fetch
 
-# %define frontend_version 5.0.0-dev
-%define frontend_version 5.1.0
+%define frontend_version 6.0.0
 
 Name:           carta-frontend
-Version:        5.1.0
+Version:        6.0.0
 Release:        1
 Summary:        carta-frontend as needed by carta
 License:        GPL-3+
 URL:            https://github.com/CARTAvis/carta-frontend
 Source0:        https://registry.npmjs.org/carta-frontend/-/carta-frontend-%{frontend_version}.tgz
 
-Obsoletes: carta-frontend <= 5.1.0
-Obsoletes: carta-frontend = 5.1.0~rc.0
+Obsoletes: carta-frontend <= 6.0.0
+Obsoletes: carta-frontend = 6.0.0~rc.0
 
 BuildArch: noarch
 
@@ -43,6 +42,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/carta/frontend
 
 %changelog
+* Fri Jun 12 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 6.0.0
+  - carta-frontend component v6.0.0 for the CARTA 6.0.0 release
+
 * Fri Jan 16 2026 Po-Sheng Huang <posheng@asiaa.sinica.edu.tw> 5.1.0
   - carta-frontend component v5.1.0 for the CARTA 5.1.0 release
 
