@@ -187,8 +187,8 @@ function showUpdateDialog(info) {
 // Configure auto-updater
 autoUpdater.setFeedURL({
   provider: 'github',
-  owner: 'pshnghng0318',
-  repo: 'carta-builds'
+  owner: 'CARTAvis',
+  repo: 'carta'
 });
 autoUpdater.autoDownload = false; // Don't auto-download, wait for user confirmation
 autoUpdater.autoInstallOnAppQuit = false; // We handle installation manually
@@ -300,12 +300,19 @@ autoUpdater.on('error', (err) => {
     isCancellingDownload = false;
     return;
   }
+  // Silently ignore 404 on latest-mac.yml — the release exists but update
+  // metadata hasn't been published yet; treat it as "no update available".
+  const errMsg = err.message || String(err);
+  if (errMsg.includes('latest-mac.yml') || err.statusCode === 404 || err.status === 404) {
+    console.log('Update metadata (latest-mac.yml) not found in release, skipping update check.');
+    return;
+  }
   console.error('Update error:', err);
   // If a download is in progress (progress window open), show the error inline
   // with Retry / Cancel buttons instead of popping up a separate dialog.
   if (progressWindow && !progressWindow.isDestroyed()) {
     try { app.dock.setProgressBar(-1); } catch (e) {}
-    showDownloadError(err.message || String(err));
+    showDownloadError(errMsg);
     return;
   }
   // Otherwise (e.g. error while checking for updates), fall back to a dialog.
@@ -313,7 +320,7 @@ autoUpdater.on('error', (err) => {
     type: 'error',
     title: 'Update Failed',
     message: 'An error occurred while checking for updates',
-    detail: err.message
+    detail: errMsg
   });
 });
 
@@ -552,7 +559,7 @@ const button3 = new TouchBarButton({
     iconPosition: 'right',
     label: 'CARTA User Manual',
     click: () => {
-        shell.openExternal('https://carta.readthedocs.io/en/4.1');
+        shell.openExternal('https://carta.readthedocs.io/en/latest');
     },
 });
 
@@ -827,6 +834,11 @@ function checkForUpdates() {
   setSkippedVersion(null);
   clearRemindDate();
   autoUpdater.checkForUpdates().catch(err => {
+    const errMsg = err.message || String(err);
+    if (errMsg.includes('latest-mac.yml') || err.statusCode === 404 || err.status === 404) {
+      console.log('Update metadata (latest-mac.yml) not found in release, skipping update check.');
+      return;
+    }
     console.error('Failed to check for updates:', err);
     dialog.showMessageBox({
       type: 'error',
