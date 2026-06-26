@@ -487,8 +487,18 @@ autoUpdater.on('update-available', (info) => {
   showUpdateDialog(info);
 });
 
+function normalizeVersion(version) {
+  return String(version || '').replace(/^v/i, '');
+}
+
 autoUpdater.on('update-not-available', (info) => {
   console.log('Already up to date');
+
+  if (normalizeVersion(info && info.version) === normalizeVersion(app.getVersion())) {
+    console.log('Current CARTA version matches the latest release; suppressing up-to-date dialog.');
+    return;
+  }
+
   showMessageBoxWithTheme({
     title: 'No Updates Available',
     message: 'You are already using the latest version',
