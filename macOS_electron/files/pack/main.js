@@ -1,5 +1,5 @@
 const electron = require('electron');
-const { app, BrowserWindow, TouchBar, Menu, shell, dialog, ipcMain } = electron;
+const { app, BrowserWindow, TouchBar, Menu, shell, dialog, ipcMain, powerMonitor } = electron;
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar;
 const { exec, spawn, execSync } = require('child_process');
 const path = require('path');
@@ -20,8 +20,88 @@ let fileMode;
 let progressWindow = null;
 let pendingUpdateInfo = null;
 let isCancellingDownload = false;
+let isSystemSuspended = false;
+let appIsQuitting = false;
 
 app.allowRendererProcessReuse = true;
+
+// Function to read theme preference from ~/.carta/config/preferences.json
+function getThemePreference() {
+  try {
+    const preferencesPath = path.join(homedir, '.carta/config/preferences.json');
+    if (fs.existsSync(preferencesPath)) {
+      const preferences = JSON.parse(fs.readFileSync(preferencesPath, 'utf8'));
+      return preferences.theme || 'auto';
+    }
+  } catch (e) {
+    console.warn('Could not read theme preference:', e.message);
+  }
+  return 'auto';
+}
+
+function showMessageBoxWithTheme(options) {
+  const { nativeTheme } = require('electron');
+  const theme = getThemePreference();
+
+  if (theme === 'dark') {
+    nativeTheme.themeSource = 'dark';
+  } else if (theme === 'light') {
+    nativeTheme.themeSource = 'light';
+  } else {
+    nativeTheme.themeSource = 'system';
+  }
+
+  return dialog.showMessageBox(options);
+}
+
+// Function to determine if dark mode should be used
+function isDarkMode() {
+  const theme = getThemePreference();
+  if (theme === 'dark') {
+    return true;
+  } else if (theme === 'light') {
+    return false;
+  }
+  // auto mode: check system preference
+  if (require('electron').nativeTheme) {
+    return require('electron').nativeTheme.shouldUseDarkColors;
+  }
+  return false;
+}
+
+// Function to get theme colors based on theme preference
+function getThemeColors() {
+  const dark = isDarkMode();
+  if (dark) {
+    return {
+      bodyBackground: '#383E47',
+      bodyForeground: '#e0e0e0',
+      titleColor: '#e0e0e0',
+      infoColor: '#a0a0a0',
+      errorColor: '#b0b0b0',
+      buttonBackground: '#8a8a8a',
+      buttonText: '#e0e0e0',
+      primaryButtonBackground: '#0070c9',
+      primaryButtonText: '#ffffff',
+      progressAccent: '#0070c9',
+      border: '#404040'
+    };
+  } else {
+    return {
+      bodyBackground: '#f5f5f5',
+      bodyForeground: '#333333',
+      titleColor: '#333333',
+      infoColor: '#666666',
+      errorColor: '#999999',
+      buttonBackground: '#e0e0e0',
+      buttonText: '#222222',
+      primaryButtonBackground: '#0070c9',
+      primaryButtonText: '#ffffff',
+      progressAccent: '#0070c9',
+      border: '#cccccc'
+    };
+  }
+}
 
 function formatBytes(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -30,18 +110,20 @@ function formatBytes(bytes) {
 
 function createProgressWindow() {
   if (progressWindow && !progressWindow.isDestroyed()) return;
+  
+  const colors = getThemeColors();
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-         padding: 20px; margin: 0; background: #f5f5f5; user-select: none; }
-  h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #333; }
-  progress { width: 100%; height: 10px; accent-color: #0070c9; }
-  #info { margin: 8px 0 0; font-size: 12px; color: #666; }
-  #error { margin: 8px 0 0; font-size: 11px; color: #999; word-break: break-word; }
+         padding: 20px; margin: 0; background: ${colors.bodyBackground}; user-select: none; }
+  h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: ${colors.titleColor}; }
+  progress { width: 100%; height: 10px; accent-color: ${colors.progressAccent}; }
+  #info { margin: 8px 0 0; font-size: 12px; color: ${colors.infoColor}; }
+  #error { margin: 8px 0 0; font-size: 11px; color: ${colors.errorColor}; word-break: break-word; }
   #actions { margin-top: 16px; text-align: right; }
-  button { border: none; border-radius: 6px; padding: 6px 16px; margin-left: 8px;
-           font-size: 12px; cursor: pointer; background: #e0e0e0; color: #222; }
-  button#retry-btn { background: #0070c9; color: #fff; }
+  button { border: 1px solid ${colors.border}; border-radius: 6px; padding: 6px 16px; margin-left: 8px;
+           font-size: 12px; cursor: pointer; background: ${colors.buttonBackground}; color: ${colors.buttonText}; }
+  button#retry-btn { background: ${colors.primaryButtonBackground}; color: ${colors.primaryButtonText}; border: 1px solid ${colors.primaryButtonBackground}; }
 </style></head>
 <body>
   <h3 id="title">Downloading CARTA Update...</h3>
@@ -106,20 +188,90 @@ function createProgressWindow() {
   });
 }
 
-// Show the failure message inside the existing progress window (no separate
-// dialog) and reveal the Retry / Cancel buttons.
 function showDownloadError(message) {
   if (progressWindow && !progressWindow.isDestroyed()) {
     // Error view needs more room than the download view, so double the height.
     try {
       progressWindow.setResizable(true);
-      progressWindow.setSize(380, 360);
+      progressWindow.setSize(380, 220);
       progressWindow.setResizable(false);
     } catch (e) {}
     progressWindow.webContents.executeJavaScript(
       'window.showError(' + JSON.stringify(String(message)) + ');'
     ).catch(() => {});
   }
+}
+
+// Create a themed dialog window
+function showThemedDialog(options) {
+  return new Promise((resolve) => {
+    const colors = getThemeColors();
+    const buttons = options.buttons || ['OK'];
+    const buttonsHtml = buttons.map((btn, idx) => 
+      `<button data-value="${idx}" class="${idx === 0 ? 'primary' : ''}">${btn}</button>`
+    ).join('');
+    
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+         padding: 20px; background: ${colors.bodyBackground}; color: ${colors.bodyForeground};
+         min-width: 400px; user-select: none; }
+  .container { display: flex; flex-direction: column; gap: 12px; }
+  .title { font-size: 16px; font-weight: 600; color: ${colors.titleColor}; }
+  .message { font-size: 14px; color: ${colors.bodyForeground}; }
+  .detail { font-size: 12px; color: ${colors.infoColor}; margin-top: 4px; word-break: break-word; white-space: pre-wrap; }
+  .buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  button { padding: 6px 16px; border-radius: 6px; border: 1px solid ${colors.border};
+           font-size: 12px; cursor: pointer; background: ${colors.buttonBackground}; 
+           color: ${colors.buttonText}; transition: all 0.2s; }
+  button:hover { opacity: 0.8; }
+  button.primary { background: ${colors.primaryButtonBackground}; color: ${colors.primaryButtonText}; border: 1px solid ${colors.primaryButtonBackground}; }
+  button.primary:hover { opacity: 0.9; }
+</style></head>
+<body>
+  <div class="container">
+    <div class="title">${options.title || ''}</div>
+    <div class="message">${options.message || ''}</div>
+    ${options.detail ? `<div class="detail">${options.detail}</div>` : ''}
+    <div class="buttons">${buttonsHtml}</div>
+  </div>
+  <script>
+    document.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.location.href = 'dialog://button-' + btn.dataset.value;
+      });
+    });
+  </script>
+</body></html>`;
+
+    const dialogWindow = new BrowserWindow({
+      width: Math.max(450, options.width || 450),
+      height: options.detail ? Math.max(200, options.height || 200) : Math.max(160, options.height || 160),
+      resizable: false,
+      minimizable: false,
+      maximizable: false,
+      modal: true,
+      webPreferences: { nodeIntegration: false, contextIsolation: true }
+    });
+
+    dialogWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+    dialogWindow.setMenu(null);
+
+    dialogWindow.webContents.on('will-navigate', (event, navUrl) => {
+      event.preventDefault();
+      const match = navUrl.match(/dialog:\/\/button-(\d+)/);
+      if (match) {
+        const buttonIndex = parseInt(match[1]);
+        dialogWindow.destroy();
+        resolve({ response: buttonIndex });
+      }
+    });
+
+    dialogWindow.on('closed', () => {
+      resolve({ response: -1 });
+    });
+  });
 }
 
 // Retry a failed download: reset the progress UI and start downloading again.
@@ -147,6 +299,56 @@ function closeProgressWindow() {
   try { app.dock.setProgressBar(-1); } catch (e) {}
 }
 
+function cleanupBackendProcesses() {
+  for (const win of windows) {
+    cleanupWindowBackend(win, win.backendPort);
+  }
+
+  try {
+    execSync('pkill -9 -f "carta_backend"', { timeout: 1000 });
+  } catch (e) {}
+
+  backendPorts.clear();
+}
+
+function cleanupWindowBackend(win, port) {
+  try {
+    if (win.backendProcess && !win.backendProcess.killed) {
+      win.backendProcess.kill('SIGKILL');
+    }
+  } catch (e) {}
+
+  try {
+    if (port) {
+      execSync(`pkill -9 -f "carta_backend.*${port}"`, { timeout: 1000 });
+    }
+  } catch (e) {}
+
+  backendPorts.delete(port);
+}
+
+function quitApplication() {
+  appIsQuitting = true;
+
+  if (openFileTimer) {
+    clearTimeout(openFileTimer);
+    openFileTimer = null;
+  }
+
+  closeProgressWindow();
+  cleanupBackendProcesses();
+
+  for (const win of BrowserWindow.getAllWindows()) {
+    try {
+      if (!win.isDestroyed()) {
+        win.destroy();
+      }
+    } catch (e) {}
+  }
+
+  app.exit(0);
+}
+
 // Cancel the in-progress download. Does NOT delete the downloaded zip, then
 // re-shows the update-available dialog (Update / Remind Me in 7 Days / Skip This Version).
 function onCancelDownload() {
@@ -161,14 +363,15 @@ function onCancelDownload() {
 // Show the "update available" dialog and act on the user's choice.
 function showUpdateDialog(info) {
   const dialogOpts = {
-    type: 'info',
-    buttons: ['Update', 'Remind Me in 7 Days', 'Skip This Version'],
     title: 'CARTA Update Available',
     message: `New version ${info.version} is available`,
-    detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nWould you like to download and install the update?`
+    detail: `Current version: ${app.getVersion()}\nNew version: ${info.version}\n\nWould you like to download and install the update?`,
+    buttons: ['Update', 'Remind Me in 7 Days', 'Skip This Version'],
+    width: 500,
+    height: 220
   };
 
-  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+  showMessageBoxWithTheme(dialogOpts).then((returnValue) => {
     if (returnValue.response === 0) {
       isCancellingDownload = false;
       clearRemindDate();
@@ -185,11 +388,12 @@ function showUpdateDialog(info) {
 }
 
 // Configure auto-updater
+
 autoUpdater.setFeedURL({
   provider: 'github',
   owner: 'CARTAvis',
   repo: 'carta'
-});
+}); 
 autoUpdater.autoDownload = false; // Don't auto-download, wait for user confirmation
 autoUpdater.autoInstallOnAppQuit = false; // We handle installation manually
 
@@ -283,13 +487,25 @@ autoUpdater.on('update-available', (info) => {
   showUpdateDialog(info);
 });
 
+function normalizeVersion(version) {
+  return String(version || '').replace(/^v/i, '');
+}
+
 autoUpdater.on('update-not-available', (info) => {
   console.log('Already up to date');
-  dialog.showMessageBox({
-    type: 'info',
+
+  if (normalizeVersion(info && info.version) === normalizeVersion(app.getVersion())) {
+    console.log('Current CARTA version matches the latest release; suppressing up-to-date dialog.');
+    return;
+  }
+
+  showMessageBoxWithTheme({
     title: 'No Updates Available',
     message: 'You are already using the latest version',
-    detail: `Current version: ${app.getVersion()}`
+    detail: `Current version: ${app.getVersion()}`,
+    buttons: ['OK'],
+    width: 450,
+    height: 180
   });
 });
 
@@ -315,13 +531,6 @@ autoUpdater.on('error', (err) => {
     showDownloadError(errMsg);
     return;
   }
-  // Otherwise (e.g. error while checking for updates), fall back to a dialog.
-  dialog.showMessageBox({
-    type: 'error',
-    title: 'Update Failed',
-    message: 'An error occurred while checking for updates',
-    detail: errMsg
-  });
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
@@ -355,28 +564,31 @@ autoUpdater.on('update-downloaded', (info) => {
       installedAppPath = installDownloadedUpdate(info);
     } catch (err) {
       console.error('Custom install failed:', err.message);
-      dialog.showMessageBox({
-        type: 'error',
+      showMessageBoxWithTheme({
         title: 'Install Failed',
         message: 'Failed to install update',
-        detail: err.message
+        detail: err.message,
+        buttons: ['OK'],
+        width: 450,
+        height: 180
       });
       return;
     }
 
     const dialogOpts = {
-      type: 'info',
-      buttons: ['Restart Now', 'Later'],
       title: 'Update Installed',
       message: 'The update has been installed',
+      buttons: ['Restart Now', 'Later'],
+      width: 450,
+      height: 180
     };
 
-    dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    showMessageBoxWithTheme(dialogOpts).then((returnValue) => {
       if (returnValue.response === 0 && installedAppPath) {
-        // Open the new app and quit the current one.
+        // Open the new app and fully terminate the current one.
         BrowserWindow.getAllWindows().forEach(w => w.hide());
         spawn('open', ['-n', installedAppPath], { detached: true, stdio: 'ignore' }).unref();
-        setTimeout(() => app.quit(), 100);
+        setTimeout(() => quitApplication(), 250);
       }
     });
   }, 0); // yield so the progress window close can paint before we block
@@ -530,7 +742,11 @@ if (process.platform === 'darwin') {
       { role: 'toggleDevTools' },
       { type: 'separator' },
       {
-        role: 'quit'
+        label: `Quit ${name}`,
+        accelerator: 'Command+Q',
+        click() {
+          quitApplication();
+        }
       },
     ]
   })
@@ -692,26 +908,27 @@ ipcMain.on('carta:open-dropped-files', (event, filePaths) => {
 });
 
 app.on('window-all-closed', () => {
-  app.quit();
+  // CARTA should fully exit when the last window is closed.
+  quitApplication();
 });
 
-app.on('before-quit', (event) => {
-  // Close all windows forcefully
-  const allWindows = BrowserWindow.getAllWindows();
-  allWindows.forEach(win => {
-    win.destroy();
-  });
+powerMonitor.on('suspend', () => {
+  isSystemSuspended = true;
+});
+
+powerMonitor.on('resume', () => {
+  isSystemSuspended = false;
+});
+
+app.on('before-quit', () => {
+  console.log('before-quit');
+  appIsQuitting = true;
+  closeProgressWindow();
 }); 
 
-app.on('will-quit', (event) => {
-  // Kill any remaining carta_backend processes started by this app
-  const { execSync } = require('child_process');
-  try {
-    const appPath = __dirname.replace(/\//g, '\\/');
-    execSync(`pkill -9 -f "${appPath}/carta-backend/bin/carta_backend"`, { timeout: 1000 });
-  } catch (e) {
-  }
-  backendPorts.clear();
+app.on('will-quit', () => {
+  console.log('will-quit');
+  cleanupBackendProcesses();
 });
 
 app.on('activate', (event, hasVisibleWindows) => {
@@ -738,7 +955,7 @@ const createWindow = exports.createWindow = () => {
     y = currentWindowY + 25;
   }
 
-    const newWindow = new BrowserWindow({
+  const newWindow = new BrowserWindow({
     width: mainWindowState.width,
     height: mainWindowState.height,
     x: x,
@@ -765,8 +982,14 @@ const createWindow = exports.createWindow = () => {
 
   const run = spawn(
     path.join(__dirname, 'carta-backend/bin/run.sh'),
-    [cartaAuthToken, baseDirectory, String(backendPort), ...finalExtraArgs]
+    [cartaAuthToken, baseDirectory, String(backendPort), ...finalExtraArgs], 
+    {
+      stdio: ['ignore', 'pipe', 'pipe']
+    }
   );
+
+  newWindow.backendProcess = run;
+  newWindow.backendPort = windowPort;
 
   // Correctly handle Electron window URL scenarios
   if (openFilePaths.length > 0) {
@@ -792,14 +1015,16 @@ const createWindow = exports.createWindow = () => {
   }
 
   run.stdout.on('data', (data) => {
-     console.log(`${data}`);
+    console.log(`${data}`);
+  });
+
+  run.stderr.on('data', (data) => {
+    console.error(`${data}`);
   });
 
   run.on('error', (err) => {
-     console.error('Error:', err);
+    console.error('Error:', err);
   });
-
-  app.releaseSingleInstanceLock();
 
   newWindow.once('ready-to-show', () => {
     newWindow.show();
@@ -808,17 +1033,34 @@ const createWindow = exports.createWindow = () => {
   newWindow.setTouchBar(touchBar);
 
   newWindow.on('close', (event) => {
-    event.preventDefault();
-    try { mainWindowState.saveState(newWindow); } catch (e) {}
+    console.log('window close', {
+      appIsQuitting,
+      isSystemSuspended,
+      port: windowPort
+    });
 
-    try {
-      execSync(`pkill -9 -f "carta_backend.*${windowPort}"`, { timeout: 1000 });
-    } catch (e) {
-      // Ignore - process may have already exited
+    if (newWindow.forceClosing || appIsQuitting) {
+      try { mainWindowState.saveState(newWindow); } catch (e) {}
+      return;
     }
-    
-    // Completely close Electron if no other windows are open
+
+    if (isSystemSuspended && !appIsQuitting) {
+      event.preventDefault();
+      return;
+    }
+
+    try { mainWindowState.saveState(newWindow); } catch (e) {}
+    event.preventDefault();
+    newWindow.forceClosing = true;
+    cleanupWindowBackend(newWindow, windowPort);
+    windows.delete(newWindow);
     newWindow.destroy();
+  });
+
+  newWindow.on('closed', () => {
+    console.log('window closed, killing backend', windowPort);
+    cleanupWindowBackend(newWindow, windowPort);
+    windows.delete(newWindow);
   });
 
   windows.add(newWindow);
@@ -840,11 +1082,13 @@ function checkForUpdates() {
       return;
     }
     console.error('Failed to check for updates:', err);
-    dialog.showMessageBox({
-      type: 'error',
+    showMessageBoxWithTheme({
       title: 'Update Check Failed',
       message: 'Unable to check for updates',
-      detail: 'Please check your internet connection and try again later.'
+      detail: 'Please check your internet connection and try again later.',
+      buttons: ['OK'],
+      width: 450,
+      height: 180
     });
   });
 }
