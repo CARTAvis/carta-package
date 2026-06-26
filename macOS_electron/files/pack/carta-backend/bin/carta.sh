@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dirname=`dirname $0`
+dirname=`dirname "$0"`
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )/../etc"
 

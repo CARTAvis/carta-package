@@ -1,7 +1,7 @@
 const electron = require('electron');
-const { app, BrowserWindow, TouchBar, Menu, shell, dialog } = electron;
+const { app, BrowserWindow, TouchBar, Menu, shell, dialog, ipcMain } = electron;
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar;
-const { exec, spawn } = require('child_process');
+const { exec, spawn, execSync } = require('child_process');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
@@ -13,6 +13,9 @@ const mainProcess = require('./main.js');
 const uuid = require('uuid');
 const getPortSync = require('find-free-port-sync');
 const homedir = os.homedir();
+
+let openFilePaths = [];
+let fileMode;
 
 app.allowRendererProcessReuse = true;
 
@@ -30,12 +33,13 @@ function generateExtraArgs(args) {
       }
     }
   }
-  return newArgs.join(' ');
+  return newArgs;
 }
 
 const items = minimist(process.argv.slice(1));
 const args = minimist(process.argv.slice(1));
-const inputPath = args._[0] || '';
+const inputPaths = args._.filter(p => p);
+const inputPath = inputPaths[0] || '';
 let baseDirectory;
 
 // Handle the different File Browser starting folder scenarios
@@ -54,6 +58,7 @@ try {
         }
     } else if (fileStatus.isFile()) {
         fileMode = 1;
+        openFilePaths = inputPaths;
         baseDirectory = path.dirname(inputPath); // Using command line to directly open an image
     } else if (fileStatus.isDirectory()) {
         fileMode = 0;
@@ -152,7 +157,7 @@ const touchBar = new TouchBar({
 // Print the --help output from the carta_backend --help output
 if (items.help) {
 
-  var run = exec(path.join(__dirname, 'carta-backend/bin/carta_backend --help'));
+  var run = spawn(path.join(__dirname, 'carta-backend/bin/carta_backend'), ['--help']);
 
   run.stdout.on('data', (data) => {
     console.log(`${data}`);
@@ -173,7 +178,7 @@ if (items.help) {
 // Print the --version output from the carta_backend --version output
 if (items.version) {
 
-  var run = exec(path.join(__dirname, 'carta-backend/bin/carta_backend --version'));
+  var run = spawn(path.join(__dirname, 'carta-backend/bin/carta_backend'), ['--version']);
 
   run.stdout.on('data', (data) => {
     console.log(`${data}`);
@@ -196,14 +201,72 @@ const backendPorts = new Set();
 // Generate a UUID for the CARTA_AUTH_TOKEN
 const cartaAuthToken = uuid.v4();
 
+let appIsReady = false;
+let pendingOpenFiles = [];
+let openFileTimer = null;
+
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+
+  console.log('macOS open-file:', filePath);
+
+  if (appIsReady) {
+    pendingOpenFiles.push(filePath);
+    clearTimeout(openFileTimer);
+    openFileTimer = setTimeout(() => {
+      openFilePaths = [...pendingOpenFiles];
+      baseDirectory = path.dirname(pendingOpenFiles[0]);
+      fileMode = 1;
+      pendingOpenFiles = [];
+      createWindow();
+    }, 100);
+  } else {
+    openFilePaths.push(filePath);
+    fileMode = 1;
+    if (!baseDirectory) {
+      baseDirectory = path.dirname(filePath);
+    }
+  }
+});
+
 app.on('ready', () => {
+  appIsReady = true;
   createWindow();
 });
 
+ipcMain.on('carta:open-dropped-files', (event, filePaths) => {
+  if (!Array.isArray(filePaths) || filePaths.length === 0) return;
+
+  const wc = event.sender;
+  const payload = JSON.stringify(filePaths);
+
+  const tryAppend = (attempt = 0) => {
+    const script = `(async () => {
+      if (!window.app || typeof window.app.appendFile !== 'function') {
+        return false;
+      }
+      const files = ${payload};
+      for (const f of files) {
+        try { await window.app.appendFile(f); }
+        catch (err) { console.error('appendFile failed for', f, err); }
+      }
+      return true;
+    })();`;
+
+    wc.executeJavaScript(script, true).then((ok) => {
+      if (!ok && attempt < 150) {
+        setTimeout(() => tryAppend(attempt + 1), 200);
+      }
+    }).catch((err) => {
+      console.error('executeJavaScript for dropped files failed:', err);
+    });
+  };
+
+  tryAppend();
+});
+
 app.on('window-all-closed', () => {
-  if (process.platform === 'darwin') {
-    return false;
-  }
+  app.quit();
 });
 
 app.on('before-quit', (event) => {
@@ -254,11 +317,18 @@ const createWindow = exports.createWindow = () => {
     height: mainWindowState.height,
     x: x,
     y: y,
-    show: false
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    }
   });
 
   // Using the find-free-port-sync to find a free port for each carta-backend instance
   backendPort = getPortSync();
+  const windowPort = backendPort;
 
   // Open the Electron DevTools with the --inspect flag
   if (items.inspect === true) {
@@ -267,26 +337,36 @@ const createWindow = exports.createWindow = () => {
 
   const finalExtraArgs = generateExtraArgs(items);
 
-  const runArgs = [
+  const run = spawn(
     path.join(__dirname, 'carta-backend/bin/run.sh'),
-    cartaAuthToken,
-    baseDirectory,
-    backendPort,
-    finalExtraArgs
-  ];
+    [cartaAuthToken, baseDirectory, String(backendPort), ...finalExtraArgs]
+  );
 
-  const run = exec(runArgs.join(' '));
+  if (finalExtraArgs) {
+    runArgs.push(finalExtraArgs);
+  }
 
   // Correctly handle Electron window URL scenarios
-  if (inputPath === '') {
-    newWindow.loadURL(`file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}`);
+  if (openFilePaths.length > 0) {
+
+    const encodedFiles = openFilePaths.map(file => {
+      const inputFile = file.startsWith('/')
+        ? file
+        : `${process.cwd()}/${file}`;
+
+      return encodeURIComponent(inputFile);
+    });
+
+    newWindow.loadURL(
+      `file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}&files=${encodedFiles.join(',')}`
+    );
+
   } else {
-    if (fileMode === 1) {
-      const inputFile = inputPath.startsWith('/') ? inputPath : `${process.cwd()}/${inputPath}`;
-      newWindow.loadURL(`file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}&file=${encodeURIComponent(inputFile)}`);
-    } else if (fileMode === 0) {
-      newWindow.loadURL(`file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}`);
-    }
+
+    newWindow.loadURL(
+      `file://${__dirname}/index.html?socketUrl=ws://localhost:${encodeURIComponent(backendPort)}&token=${encodeURIComponent(cartaAuthToken)}`
+    );
+
   }
 
   run.stdout.on('data', (data) => {
@@ -305,22 +385,18 @@ const createWindow = exports.createWindow = () => {
 
   newWindow.setTouchBar(touchBar);
 
-  newWindow.on('close', () => {
-    mainWindowState.saveState(newWindow);
-    
-    // Kill the backend process immediately
-    if (run && run.pid) {
-      try {
-        process.kill(-run.pid, 'SIGKILL');
-      } catch (e) {
-        app.quit();
-      }
-    }
-  });
+  newWindow.on('close', (event) => {
+    event.preventDefault();
+    try { mainWindowState.saveState(newWindow); } catch (e) {}
 
-  // Completely close Electron if no other windows are open
-  app.on('window-all-closed', function () {
-    app.quit();
+    try {
+      execSync(`pkill -9 -f "carta_backend.*${windowPort}"`, { timeout: 1000 });
+    } catch (e) {
+      // Ignore - process may have already exited
+    }
+    
+    // Completely close Electron if no other windows are open
+    newWindow.destroy();
   });
 
   windows.add(newWindow);
