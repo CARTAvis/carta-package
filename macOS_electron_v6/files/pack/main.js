@@ -391,10 +391,8 @@ function showUpdateDialog(info) {
 
 autoUpdater.setFeedURL({
   provider: 'github',
-  // owner: 'CARTAvis',
-  // repo: 'carta'
-  owner: 'pshnghng0318',
-  repo: 'carta-builds'
+  owner: 'CARTAvis',
+  repo: 'carta'
 }); 
 autoUpdater.autoDownload = false; // Don't auto-download, wait for user confirmation
 autoUpdater.autoInstallOnAppQuit = false; // We handle installation manually
