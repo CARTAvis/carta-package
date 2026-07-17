@@ -301,30 +301,29 @@ function closeProgressWindow() {
 
 function cleanupBackendProcesses() {
   for (const win of windows) {
-    cleanupWindowBackend(win, win.backendPort);
+    cleanupWindowBackend(win);
   }
-
-  try {
-    execSync('pkill -9 -f "carta_backend"', { timeout: 1000 });
-  } catch (e) {}
-
-  backendPorts.clear();
 }
 
-function cleanupWindowBackend(win, port) {
+function cleanupWindowBackend(win) {
+  if (!win || win.backendCleanupDone) {
+    return;
+  }
+
+  win.backendCleanupDone = true;
+
   try {
     if (win.backendProcess && !win.backendProcess.killed) {
       win.backendProcess.kill('SIGKILL');
     }
   } catch (e) {}
 
-  try {
-    if (port) {
+  const port = win.backendPort;
+  if (port) {
+    try {
       execSync(`pkill -9 -f "carta_backend.*${port}"`, { timeout: 1000 });
-    }
-  } catch (e) {}
-
-  backendPorts.delete(port);
+    } catch (e) {}
+  }
 }
 
 function quitApplication() {
@@ -832,7 +831,6 @@ if (items.version) {
 
 // Allow multiple instances of Electron
 const windows = new Set();
-const backendPorts = new Set();
 
 // Generate a UUID for the CARTA_AUTH_TOKEN
 const cartaAuthToken = uuid.v4();
@@ -970,8 +968,7 @@ const createWindow = exports.createWindow = () => {
   });
 
   // Using the find-free-port-sync to find a free port for each carta-backend instance
-  backendPort = getPortSync();
-  const windowPort = backendPort;
+  const backendPort = getPortSync();
 
   // Open the Electron DevTools with the --inspect flag
   if (items.inspect === true) {
@@ -989,7 +986,8 @@ const createWindow = exports.createWindow = () => {
   );
 
   newWindow.backendProcess = run;
-  newWindow.backendPort = windowPort;
+  newWindow.backendPort = backendPort;
+  newWindow.backendCleanupDone = false;
 
   // Correctly handle Electron window URL scenarios
   if (openFilePaths.length > 0) {
@@ -1036,7 +1034,7 @@ const createWindow = exports.createWindow = () => {
     console.log('window close', {
       appIsQuitting,
       isSystemSuspended,
-      port: windowPort
+      port: backendPort
     });
 
     if (newWindow.forceClosing || appIsQuitting) {
@@ -1052,14 +1050,12 @@ const createWindow = exports.createWindow = () => {
     try { mainWindowState.saveState(newWindow); } catch (e) {}
     event.preventDefault();
     newWindow.forceClosing = true;
-    cleanupWindowBackend(newWindow, windowPort);
-    windows.delete(newWindow);
     newWindow.destroy();
   });
 
   newWindow.on('closed', () => {
-    console.log('window closed, killing backend', windowPort);
-    cleanupWindowBackend(newWindow, windowPort);
+    console.log('window closed, killing backend', backendPort);
+    cleanupWindowBackend(newWindow);
     windows.delete(newWindow);
   });
 
