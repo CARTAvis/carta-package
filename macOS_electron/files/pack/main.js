@@ -10,7 +10,6 @@ const minimist = require('minimist');
 const contextMenu = require('electron-context-menu');
 const WindowStateManager = require('electron-window-state-manager');
 const { autoUpdater } = require('electron-updater');
-const mainProcess = require('./main.js');
 const uuid = require('uuid');
 const getPortSync = require('find-free-port-sync');
 const homedir = os.homedir();
@@ -319,9 +318,8 @@ function cleanupWindowBackend(win) {
 
   const port = win.backendPort;
   if (port) {
-    try {
-      execSync(`pkill -9 -f "carta_backend.*${port}"`, { timeout: 1000 });
-    } catch (e) {}
+    // Fire-and-forget: never block the quit path waiting on pkill.
+    exec(`pkill -9 -f "carta_backend.*${port}"`, () => {});
   }
 }
 
@@ -917,11 +915,21 @@ app.on('window-all-closed', () => {
   quitApplication();
 });
 
-app.on('before-quit', () => {
+// Dock "Quit" / Cmd+Q (via the OS) fires 'before-quit' first, then Electron
+// waits for every window's 'close' handler to actually close it before
+// 'window-all-closed' (and eventually process exit) can happen. If a
+// renderer is busy/unresponsive that cascade can stall forever and the app
+// never quits. So intercept here and force the same forced-exit path that
+// the app menu / Cmd+Q accelerator already uses, instead of waiting on the
+// window-close cascade.
+app.on('before-quit', (event) => {
   console.log('before-quit');
-  appIsQuitting = true;
-  closeProgressWindow();
-}); 
+  if (appIsQuitting) {
+    return;
+  }
+  event.preventDefault();
+  quitApplication();
+});
 
 app.on('will-quit', () => {
   console.log('will-quit');
@@ -1052,7 +1060,7 @@ const createWindow = exports.createWindow = () => {
 };
 
 function openNewCarta() {
-  mainProcess.createWindow();
+  createWindow();
 }
 
 // Check for updates function
