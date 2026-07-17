@@ -736,7 +736,15 @@ if (process.platform === 'darwin') {
         }
       },
       { type: 'separator' },
-      { role: 'toggleFullScreen' },
+      { label: 'Toggle Full Screen',
+        accelerator: 'Ctrl+Cmd+F',
+        click() {
+          const win = BrowserWindow.getFocusedWindow();
+          if (win) {
+            win.setFullScreen(!win.isFullScreen());
+          }
+        }
+      },
       { type: 'separator' },
       { role: 'toggleDevTools' },
       { type: 'separator' },
