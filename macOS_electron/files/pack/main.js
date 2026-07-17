@@ -20,7 +20,6 @@ let fileMode;
 let progressWindow = null;
 let pendingUpdateInfo = null;
 let isCancellingDownload = false;
-let isSystemSuspended = false;
 let appIsQuitting = false;
 
 app.allowRendererProcessReuse = true;
@@ -918,14 +917,6 @@ app.on('window-all-closed', () => {
   quitApplication();
 });
 
-powerMonitor.on('suspend', () => {
-  isSystemSuspended = true;
-});
-
-powerMonitor.on('resume', () => {
-  isSystemSuspended = false;
-});
-
 app.on('before-quit', () => {
   console.log('before-quit');
   appIsQuitting = true;
@@ -1039,19 +1030,8 @@ const createWindow = exports.createWindow = () => {
   newWindow.setTouchBar(touchBar);
 
   newWindow.on('close', (event) => {
-    console.log('window close', {
-      appIsQuitting,
-      isSystemSuspended,
-      port: backendPort
-    });
-
     if (newWindow.forceClosing || appIsQuitting) {
       try { mainWindowState.saveState(newWindow); } catch (e) {}
-      return;
-    }
-
-    if (isSystemSuspended && !appIsQuitting) {
-      event.preventDefault();
       return;
     }
 
