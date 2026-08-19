@@ -9,7 +9,7 @@ const os = require('os');
 const minimist = require('minimist');
 const contextMenu = require('electron-context-menu');
 const WindowStateManager = require('electron-window-state-manager');
-const { autoUpdater } = require('electron-updater');
+const { autoUpdater, CancellationToken } = require('electron-updater');
 const uuid = require('uuid');
 const getPortSync = require('find-free-port-sync');
 const homedir = os.homedir();
@@ -20,6 +20,16 @@ let progressWindow = null;
 let pendingUpdateInfo = null;
 let isCancellingDownload = false;
 let appIsQuitting = false;
+let downloadCancellationToken = null;
+
+// Start (or restart) a cancellable download, tracking the token so it can be cancelled later.
+function startDownload() {
+  downloadCancellationToken = new CancellationToken();
+  autoUpdater.downloadUpdate(downloadCancellationToken).catch((err) => {
+    if (isCancellingDownload) return; // expected rejection from token.cancel()
+    console.error('Download update failed:', err.message || err);
+  });
+}
 
 app.allowRendererProcessReuse = true;
 
@@ -286,7 +296,7 @@ function onRetryDownload() {
   } else {
     createProgressWindow();
   }
-  try { autoUpdater.downloadUpdate(); } catch (e) {}
+  startDownload();
 }
 
 function closeProgressWindow() {
@@ -349,7 +359,10 @@ function quitApplication() {
 // re-shows the update-available dialog (Update / Remind Me in 7 Days / Skip This Version).
 function onCancelDownload() {
   isCancellingDownload = true;
-  try { autoUpdater.cancelDownload(); } catch (e) {}
+  if (downloadCancellationToken) {
+    downloadCancellationToken.cancel();
+    downloadCancellationToken = null;
+  }
   closeProgressWindow();
   if (pendingUpdateInfo) {
     showUpdateDialog(pendingUpdateInfo);
@@ -372,7 +385,7 @@ function showUpdateDialog(info) {
       isCancellingDownload = false;
       clearRemindDate();
       createProgressWindow();
-      autoUpdater.downloadUpdate();
+      startDownload();
     } else if (returnValue.response === 1) {
       setRemindDate();
       console.log('Reminder set for 7 days later.');
@@ -587,7 +600,7 @@ autoUpdater.on('update-downloaded', (info) => {
         setTimeout(() => quitApplication(), 250);
       }
     });
-  }, 0); // yield so the progress window close can paint before we block
+  }, 0);
 });
 
 // Extract the downloaded zip and replace the app bundle in /Applications.
@@ -621,13 +634,39 @@ function installDownloadedUpdate(info) {
 
   const newAppSrc = path.join(tempDir, newAppName);
   const newAppDest = path.join(appsDir, newAppName);
+  const stagedAppDest = `${newAppDest}.new-${Date.now()}`;
+  const backupAppDest = `${newAppDest}.bak-${Date.now()}`;
 
-  // Remove old copy if exists, then install
-  try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
-  execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
+  // Copy the verified extracted bundle in under a staged name first, so the
+  // currently installed app is never touched until the replacement fully
+  // exists on disk.
+  try {
+    execSync(`ditto "${newAppSrc}" "${stagedAppDest}"`);
+  } catch (err) {
+    try { fs.rmSync(stagedAppDest, { recursive: true, force: true }); } catch (e) {}
+    throw err;
+  }
 
-  // Cleanup: remove the extracted temp dir and wipe the entire pending cache
-  // directory so no zip (including any temp-*.zip partials) is left behind.
+  // Swap the staged copy in and the old app out with atomic (same-volume)
+  // renames, keeping the old app as a backup so we can roll back on failure.
+  let oldAppMovedAside = false;
+  try {
+    if (fs.existsSync(newAppDest)) {
+      fs.renameSync(newAppDest, backupAppDest);
+      oldAppMovedAside = true;
+    }
+    fs.renameSync(stagedAppDest, newAppDest);
+  } catch (err) {
+    try { fs.rmSync(newAppDest, { recursive: true, force: true }); } catch (e) {}
+    if (oldAppMovedAside) {
+      try { fs.renameSync(backupAppDest, newAppDest); } catch (e) {}
+    }
+    try { fs.rmSync(stagedAppDest, { recursive: true, force: true }); } catch (e) {}
+    throw err;
+  }
+
+  // Swap succeeded: drop the backup and clean up temp artifacts.
+  try { fs.rmSync(backupAppDest, { recursive: true, force: true }); } catch (e) {}
   try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
   try {
     fs.rmSync(cacheDir, { recursive: true, force: true });
