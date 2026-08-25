@@ -12,4 +12,4 @@ if [[ ! " $@ " =~ ( --version | -v | --help | -h ) ]]; then
     fi
 fi
 
-$dirname/carta_backend $@ --frontend_folder=$dirname/../../
+$dirname/carta_backend $@ --frontend_folder=$dirname/../../ --enable_scripting
