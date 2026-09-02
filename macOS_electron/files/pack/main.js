@@ -1000,15 +1000,7 @@ app.on('will-quit', () => {
 });
 
 app.on('activate', (event, hasVisibleWindows) => {
-  if (!hasVisibleWindows) {
-    const existingWindow = [...windows].find(win => !win.isDestroyed());
-    if (existingWindow) {
-      existingWindow.show();
-      existingWindow.focus();
-    } else {
-      createWindow();
-    }
-  }
+  if (!hasVisibleWindows) { createWindow(); }
 });
 
 let newWindow;
