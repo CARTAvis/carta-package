@@ -882,6 +882,7 @@ const cartaAuthToken = uuid.v4();
 let appIsReady = false;
 let pendingOpenFiles = [];
 let openFileTimer = null;
+let systemSessionInactive = false;
 
 app.on('open-file', (event, filePath) => {
   event.preventDefault();
@@ -909,6 +910,28 @@ app.on('open-file', (event, filePath) => {
 
 app.on('ready', () => {
   appIsReady = true;
+
+  powerMonitor.on('suspend', () => {
+    systemSessionInactive = true;
+  });
+  powerMonitor.on('lock-screen', () => {
+    systemSessionInactive = true;
+  });
+  powerMonitor.on('user-did-resign-active', () => {
+    systemSessionInactive = true;
+  });
+  powerMonitor.on('unlock-screen', () => {
+    systemSessionInactive = false;
+  });
+  powerMonitor.on('user-did-become-active', () => {
+    systemSessionInactive = false;
+  });
+  powerMonitor.on('resume', () => {
+    setTimeout(() => {
+      systemSessionInactive = false;
+    }, 1000);
+  });
+
   createWindow();
   // Check for updates 0.1 seconds after launch
   setTimeout(() => {
@@ -950,8 +973,9 @@ ipcMain.on('carta:open-dropped-files', (event, filePaths) => {
 });
 
 app.on('window-all-closed', () => {
-  // CARTA should fully exit when the last window is closed.
-  quitApplication();
+  if (process.platform !== 'darwin' || !systemSessionInactive) {
+    quitApplication();
+  }
 });
 
 // Dock "Quit" / Cmd+Q (via the OS) fires 'before-quit' first, then Electron
@@ -976,7 +1000,15 @@ app.on('will-quit', () => {
 });
 
 app.on('activate', (event, hasVisibleWindows) => {
-  if (!hasVisibleWindows) { createWindow(); }
+  if (!hasVisibleWindows) {
+    const existingWindow = [...windows].find(win => !win.isDestroyed());
+    if (existingWindow) {
+      existingWindow.show();
+      existingWindow.focus();
+    } else {
+      createWindow();
+    }
+  }
 });
 
 let newWindow;
@@ -1084,6 +1116,11 @@ const createWindow = exports.createWindow = () => {
 
     try { mainWindowState.saveState(newWindow); } catch (e) {}
     event.preventDefault();
+
+    if (process.platform === 'darwin' && systemSessionInactive) {
+      return;
+    }
+
     newWindow.forceClosing = true;
     newWindow.destroy();
   });
