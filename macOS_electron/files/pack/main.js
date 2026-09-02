@@ -9,7 +9,7 @@ const os = require('os');
 const minimist = require('minimist');
 const contextMenu = require('electron-context-menu');
 const WindowStateManager = require('electron-window-state-manager');
-const { autoUpdater, CancellationToken } = require('electron-updater');
+const { autoUpdater } = require('electron-updater');
 const uuid = require('uuid');
 const getPortSync = require('find-free-port-sync');
 const homedir = os.homedir();
@@ -20,16 +20,6 @@ let progressWindow = null;
 let pendingUpdateInfo = null;
 let isCancellingDownload = false;
 let appIsQuitting = false;
-let downloadCancellationToken = null;
-
-// Start (or restart) a cancellable download, tracking the token so it can be cancelled later.
-function startDownload() {
-  downloadCancellationToken = new CancellationToken();
-  autoUpdater.downloadUpdate(downloadCancellationToken).catch((err) => {
-    if (isCancellingDownload) return; // expected rejection from token.cancel()
-    console.error('Download update failed:', err.message || err);
-  });
-}
 
 app.allowRendererProcessReuse = true;
 
@@ -296,7 +286,7 @@ function onRetryDownload() {
   } else {
     createProgressWindow();
   }
-  startDownload();
+  try { autoUpdater.downloadUpdate(); } catch (e) {}
 }
 
 function closeProgressWindow() {
@@ -359,10 +349,7 @@ function quitApplication() {
 // re-shows the update-available dialog (Update / Remind Me in 7 Days / Skip This Version).
 function onCancelDownload() {
   isCancellingDownload = true;
-  if (downloadCancellationToken) {
-    downloadCancellationToken.cancel();
-    downloadCancellationToken = null;
-  }
+  try { autoUpdater.cancelDownload(); } catch (e) {}
   closeProgressWindow();
   if (pendingUpdateInfo) {
     showUpdateDialog(pendingUpdateInfo);
@@ -385,7 +372,7 @@ function showUpdateDialog(info) {
       isCancellingDownload = false;
       clearRemindDate();
       createProgressWindow();
-      startDownload();
+      autoUpdater.downloadUpdate();
     } else if (returnValue.response === 1) {
       setRemindDate();
       console.log('Reminder set for 7 days later.');
@@ -600,7 +587,7 @@ autoUpdater.on('update-downloaded', (info) => {
         setTimeout(() => quitApplication(), 250);
       }
     });
-  }, 0);
+  }, 0); // yield so the progress window close can paint before we block
 });
 
 // Extract the downloaded zip and replace the app bundle in /Applications.
@@ -634,39 +621,13 @@ function installDownloadedUpdate(info) {
 
   const newAppSrc = path.join(tempDir, newAppName);
   const newAppDest = path.join(appsDir, newAppName);
-  const stagedAppDest = `${newAppDest}.new-${Date.now()}`;
-  const backupAppDest = `${newAppDest}.bak-${Date.now()}`;
 
-  // Copy the verified extracted bundle in under a staged name first, so the
-  // currently installed app is never touched until the replacement fully
-  // exists on disk.
-  try {
-    execSync(`ditto "${newAppSrc}" "${stagedAppDest}"`);
-  } catch (err) {
-    try { fs.rmSync(stagedAppDest, { recursive: true, force: true }); } catch (e) {}
-    throw err;
-  }
+  // Remove old copy if exists, then install
+  try { execSync(`rm -rf "${newAppDest}"`); } catch (e) {}
+  execSync(`ditto "${newAppSrc}" "${newAppDest}"`);
 
-  // Swap the staged copy in and the old app out with atomic (same-volume)
-  // renames, keeping the old app as a backup so we can roll back on failure.
-  let oldAppMovedAside = false;
-  try {
-    if (fs.existsSync(newAppDest)) {
-      fs.renameSync(newAppDest, backupAppDest);
-      oldAppMovedAside = true;
-    }
-    fs.renameSync(stagedAppDest, newAppDest);
-  } catch (err) {
-    try { fs.rmSync(newAppDest, { recursive: true, force: true }); } catch (e) {}
-    if (oldAppMovedAside) {
-      try { fs.renameSync(backupAppDest, newAppDest); } catch (e) {}
-    }
-    try { fs.rmSync(stagedAppDest, { recursive: true, force: true }); } catch (e) {}
-    throw err;
-  }
-
-  // Swap succeeded: drop the backup and clean up temp artifacts.
-  try { fs.rmSync(backupAppDest, { recursive: true, force: true }); } catch (e) {}
+  // Cleanup: remove the extracted temp dir and wipe the entire pending cache
+  // directory so no zip (including any temp-*.zip partials) is left behind.
   try { execSync(`rm -rf "${tempDir}"`); } catch (e) {}
   try {
     fs.rmSync(cacheDir, { recursive: true, force: true });
@@ -882,6 +843,7 @@ const cartaAuthToken = uuid.v4();
 let appIsReady = false;
 let pendingOpenFiles = [];
 let openFileTimer = null;
+let systemSessionInactive = false;
 
 app.on('open-file', (event, filePath) => {
   event.preventDefault();
@@ -909,6 +871,28 @@ app.on('open-file', (event, filePath) => {
 
 app.on('ready', () => {
   appIsReady = true;
+
+  powerMonitor.on('suspend', () => {
+    systemSessionInactive = true;
+  });
+  powerMonitor.on('lock-screen', () => {
+    systemSessionInactive = true;
+  });
+  powerMonitor.on('user-did-resign-active', () => {
+    systemSessionInactive = true;
+  });
+  powerMonitor.on('unlock-screen', () => {
+    systemSessionInactive = false;
+  });
+  powerMonitor.on('user-did-become-active', () => {
+    systemSessionInactive = false;
+  });
+  powerMonitor.on('resume', () => {
+    setTimeout(() => {
+      systemSessionInactive = false;
+    }, 1000);
+  });
+
   createWindow();
   // Check for updates 0.1 seconds after launch
   setTimeout(() => {
@@ -950,8 +934,9 @@ ipcMain.on('carta:open-dropped-files', (event, filePaths) => {
 });
 
 app.on('window-all-closed', () => {
-  // CARTA should fully exit when the last window is closed.
-  quitApplication();
+  if (process.platform !== 'darwin' || !systemSessionInactive) {
+    quitApplication();
+  }
 });
 
 // Dock "Quit" / Cmd+Q (via the OS) fires 'before-quit' first, then Electron
@@ -976,7 +961,15 @@ app.on('will-quit', () => {
 });
 
 app.on('activate', (event, hasVisibleWindows) => {
-  if (!hasVisibleWindows) { createWindow(); }
+  if (!hasVisibleWindows) {
+    const existingWindow = [...windows].find(win => !win.isDestroyed());
+    if (existingWindow) {
+      existingWindow.show();
+      existingWindow.focus();
+    } else {
+      createWindow();
+    }
+  }
 });
 
 let newWindow;
@@ -1084,6 +1077,11 @@ const createWindow = exports.createWindow = () => {
 
     try { mainWindowState.saveState(newWindow); } catch (e) {}
     event.preventDefault();
+
+    if (process.platform === 'darwin' && systemSessionInactive) {
+      return;
+    }
+
     newWindow.forceClosing = true;
     newWindow.destroy();
   });
