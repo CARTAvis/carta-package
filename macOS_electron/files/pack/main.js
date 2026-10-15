@@ -1037,6 +1037,18 @@ const createWindow = exports.createWindow = () => {
     }
   });
 
+  // Chromium may block multiple automatic downloads by default. 
+  const session = newWindow.webContents.session;
+  if (!session.__cartaPermissionHandlerInstalled) {
+    session.__cartaPermissionHandlerInstalled = true;
+    session.setPermissionRequestHandler((webContents, permission, callback) => {
+      if (permission === 'multiple-automatic-downloads') {
+        return callback(true);
+      }
+      return callback(false);
+    });
+  }
+
   // Using the find-free-port-sync to find a free port for each carta-backend instance
   const backendPort = getPortSync();
 
